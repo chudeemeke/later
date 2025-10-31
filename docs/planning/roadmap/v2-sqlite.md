@@ -6,6 +6,8 @@
 
 **Success Criteria:** Search < 10ms regardless of dataset size
 
+**Note:** This is a *storage migration* (JSONL → SQLite). For *implementation migration* (slash command → MCP server), see [Migration Strategy](../../architecture/decisions/migration-strategy.md).
+
 ## Problem
 
 **V1 performance degradation:**

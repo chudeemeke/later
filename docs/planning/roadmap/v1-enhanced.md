@@ -153,7 +153,9 @@ Update existing or create new?
 
 ## Migration from MVP
 
-**Backward compatible:**
+### Data Migration (Backward Compatible)
+
+**MVP items remain valid:**
 ```bash
 # MVP items still valid
 {"id":1,"title":"Item","status":"deferred","captured_at":"..."}
@@ -171,6 +173,29 @@ Update existing or create new?
   "context": {}      # Added
 }
 ```
+
+### Implementation Migration (Slash Command → MCP Server)
+
+**If you started with slash command MVP**, V1 is the ideal time to upgrade to MCP server:
+
+**Why upgrade?**
+- ✅ Claude can invoke tools automatically
+- ✅ Better error handling and validation
+- ✅ Cleaner integration with TodoWrite
+- ✅ Foundation for V2/V3 intelligence features
+
+**Migration process:**
+1. **Automatic detection** - MCP server detects old slash command config
+2. **Zero-downtime** - Runs migration script automatically
+3. **Data preserved** - JSONL items stay intact, only backend changes
+4. **30-day grace** - Old slash command deprecated but kept as backup
+5. **Rollback available** - `later rollback` if issues arise
+
+**Timeline:** 5 minutes (mostly automatic)
+
+**See:** [Migration Strategy](../../architecture/decisions/migration-strategy.md) for complete details.
+
+**MCP Implementation:** [MCP Server Implementation](../../technical/implementation/mcp-server-implementation.md)
 
 ## User Communication
 

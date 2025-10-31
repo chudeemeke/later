@@ -143,7 +143,100 @@ See [docs/design/philosophy/apple-style-philosophy.md](docs/design/philosophy/ap
 
 See [docs/planning/roadmap/](docs/planning/roadmap/) for detailed phase plans.
 
+## Implementation Options
+
+### Option A: Slash Command + Bash Script (MVP Start)
+**When:** MVP phase (4-6 hours)
+**Structure:**
+- `~/.claude/commands/later.md` - Slash command definition
+- `~/.local/bin/later` - Bash implementation
+- `~/.later/items.jsonl` - Data storage
+- `~/.later/config.json` - Version tracking
+
+**Pros:**
+- ✅ Fast to implement (validates concept quickly)
+- ✅ Simple bash + jq (no complex dependencies)
+- ✅ Good enough for personal use
+
+**Cons:**
+- ❌ Not a callable tool (Claude can't invoke automatically)
+- ❌ User must manually type `/later` commands
+- ❌ Limited to bash capabilities
+
+### Option B: MCP Server (V1+ Recommended)
+**When:** V1 Enhanced phase (2-3 days) OR straight from MVP
+**Structure:**
+- `~/Projects/later/dist/index.js` - MCP server (Node.js/TypeScript)
+- MCP tools: `later_capture`, `later_list`, `later_show`, `later_do`
+- `~/.later/items.jsonl` - Same data storage
+- `~/.local/bin/later` - Kept as CLI fallback
+
+**Pros:**
+- ✅ First-class tool integration (like TodoWrite, Bash)
+- ✅ Claude can invoke proactively
+- ✅ Schema validation via MCP
+- ✅ Better error handling and rich responses
+- ✅ Enables smart features (duplicate detection, auto-categorization)
+
+**Cons:**
+- ❌ More upfront complexity (~2-4 hours additional)
+- ❌ Requires Node.js/TypeScript setup
+- ❌ MCP server management overhead
+
+### Migration Strategy: Slash Command → MCP
+When upgrading from MVP (slash command) to V1 (MCP server):
+
+1. **Automatic Detection:** MCP server checks `~/.later/config.json` on startup
+2. **Zero-Downtime Migration:** Runs `~/.local/bin/later-upgrade` automatically
+3. **Data Preservation:** JSONL data stays intact, only backend changes
+4. **Graceful Deprecation:** Old slash command moved to `.deprecated` (30-day grace)
+5. **Rollback Support:** Backups + `later rollback` command if needed
+
+**Details:** [docs/architecture/decisions/migration-strategy.md](docs/architecture/decisions/migration-strategy.md)
+
+**MCP Implementation:** [docs/technical/implementation/mcp-server-implementation.md](docs/technical/implementation/mcp-server-implementation.md)
+
+### Recommendation
+- **Start with Option A** if validating concept or time-constrained
+- **Go straight to Option B** if confident in design and want full integration
+- **Path exists** for clean A→B migration without data loss or conflicts
+
 ## Development Guidelines
+
+### Test-Driven Development (MANDATORY)
+
+**CRITICAL:** ALL code must follow strict TDD methodology:
+
+1. **RED** → Write failing test first (defines expected behavior)
+2. **GREEN** → Write minimal code to make test pass
+3. **REFACTOR** → Improve code while keeping tests green
+
+**Rules:**
+- ❌ NEVER write production code without a failing test
+- ✅ ALWAYS write tests before implementation
+- ✅ Tests define the API/interface contract
+- ✅ Each test should test ONE thing
+- ✅ Keep tests simple, readable, maintainable
+
+**Workflow for every feature:**
+```bash
+# 1. Write failing test
+./tests/test_capture.sh  # Should fail initially
+
+# 2. Implement minimal code to pass
+./src/later capture "decision text"
+
+# 3. Verify test passes
+./tests/test_capture.sh  # Should pass now
+
+# 4. Refactor if needed
+# Clean up code, improve design
+
+# 5. Ensure tests still pass
+./tests/test_capture.sh  # Still passing
+```
+
+**If you skip TDD, STOP and restart properly.**
 
 ### File Organization
 
@@ -223,11 +316,13 @@ Benchmarks: [docs/technical/performance/benchmarks.md](docs/technical/performanc
 ## Next Steps
 
 1. ✅ **Design complete** (this documentation)
-2. ⏳ **Push to GitHub** (make repository)
-3. ⏳ **Test in Claude Code sandbox**
-4. ⏳ **Implement MVP** (200 lines, 4-6 hours)
+2. ✅ **Push to GitHub** (https://github.com/chudeemeke/later)
+3. ⏳ **Choose implementation path** (slash command OR MCP server)
+4. ⏳ **Implement MVP** (4-6 hours bash OR 6-8 hours MCP)
 5. ⏳ **Validate concept** (use it for real decisions)
 6. ⏳ **Enhance based on usage** (V1 features)
+
+**For implementation:** See [Standalone Implementation Guide](docs/getting-started/standalone-implementation-guide.md)
 
 ## Related Projects
 
