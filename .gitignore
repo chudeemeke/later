@@ -1,0 +1,81 @@
+# /later - Git Ignore
+
+# User data (never commit personal deferred items)
+/.later/
+*.jsonl
+*.db
+*.db-shm
+*.db-wal
+
+# Backups
+/backups/
+*.backup
+*.tmp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.*.sw?
+
+# Logs
+*.log
+*.log.*
+
+# Test data
+/test/fixtures/*.jsonl
+/test/fixtures/*.db
+
+# Build artifacts
+/dist/
+/build/
+*.tar.gz
+*.zip
+
+# API keys / secrets
+.env
+.env.local
+*.key
+*.pem
+credentials.json
+
+# Performance data
+performance.log
+audit.log
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# Lock files
+*.lock
+.migration-declined
+.using-sqlite
+.last-stale-check
+
+# Node/NPM (if adding npm scripts)
+node_modules/
+package-lock.json
+
+# Python (if adding Python tools)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Coverage reports
+coverage/
+.coverage
+*.cover
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
