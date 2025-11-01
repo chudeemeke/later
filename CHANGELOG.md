@@ -7,7 +7,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Documentation
+### In Progress - MCP Server Implementation (2025-11-01)
+
+**Status:** Phase 5/7 - Tool Implementation (Partial)
+
+**Completed:**
+- ✅ Phase 1: Project Setup (30 min)
+  - Created directory structure (src/, tests/, with subdirectories)
+  - Initialized npm project with package.json
+  - Configured TypeScript with strict mode
+  - Configured Jest for ESM and TypeScript
+  - Installed dependencies (@modelcontextprotocol/sdk, TypeScript, Jest, etc.)
+
+- ✅ Phase 2: Type Definitions (15 min)
+  - Defined core types: DeferredItem, Config, CaptureArgs, ListArgs, ShowArgs, DoArgs
+  - All types with proper TypeScript strict typing
+
+- ✅ Phase 3: Storage Layer (1.5 hours) - **11 tests passing**
+  - Implemented Storage interface (hexagonal architecture port)
+  - Implemented JSONLStorage adapter with:
+    - File locking for concurrent access (flock-style)
+    - Atomic writes (temp file + rename)
+    - Secure file permissions (600/700)
+    - CRUD operations: append, readAll, findById, update, getNextId
+    - Corruption handling and recovery
+  - All 11 storage tests passing
+
+- ✅ Phase 4: Utilities (2 hours) - **63 tests passing**
+  - Secret Sanitization (19 tests):
+    - Detects: OpenAI, Anthropic, GitHub, Slack, AWS keys
+    - Auto-sanitizes with [REDACTED-*] placeholders
+    - Secure by default
+  - Duplicate Detection (27 tests):
+    - Levenshtein distance algorithm
+    - Keyword extraction and overlap calculation
+    - Similarity scoring (60% title, 40% content)
+    - 80% threshold for duplicate detection
+    - Only checks pending/in-progress items
+  - Config Management (17 tests):
+    - Load/save config.json
+    - Default config generation
+    - Validation and sanitization
+    - Secure permissions (600)
+    - Migration detection support
+  - Context Extraction (placeholder for MVP)
+
+- ✅ Phase 5: MCP Tools (Partial) - **20 tests passing**
+  - later_capture tool (COMPLETE):
+    - Input validation
+    - Secret detection and sanitization
+    - Duplicate detection with similarity scoring
+    - Context extraction and truncation
+    - Sequential ID generation
+    - Comprehensive error handling
+    - All 20 tests passing
+
+**Test Coverage:** 94 passing tests across all implemented phases
+
+**Remaining Work:**
+- Phase 5: later_list, later_show, later_do tools (est. 2-3 hours)
+- Phase 6: MCP Server implementation and integration (est. 1 hour)
+- Phase 7: Build, final testing, and validation (est. 1 hour)
+
+**Architecture Highlights:**
+- Strict TDD methodology (RED → GREEN → REFACTOR)
+- Hexagonal architecture with storage abstraction
+- Security-first design (secret sanitization, file permissions)
+- Robust concurrency handling (file locking)
+- Comprehensive error handling
+- Edge case coverage
+
+### Documentation (Complete)
 - Complete architecture documentation (storage, schema, scaling)
 - Complete design/UX documentation (commands, progressive disclosure, error handling)
 - Complete technical documentation (implementation, performance)
@@ -22,6 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Git repository initialized
 - Project structure established (WoW conventions)
 - Documentation-first approach validated
+- NPM project configured with TypeScript and Jest
+- ESM modules with strict TypeScript compilation
 
 ## [0.0.0] - 2025-10-31
 
