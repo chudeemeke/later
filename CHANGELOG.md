@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 📋 Strategic Feature Roadmap (2025-11-01)
+
+**Status:** Product vision and strategic planning complete
+
+**Overview:**
+Extended product vision beyond V1-V3 with strategic analysis of features that would transform `/later` from personal productivity tool into decision intelligence platform.
+
+**Key Documents Added:**
+- `docs/planning/roadmap/product-vision-strategic-features.md` (comprehensive 10-feature analysis)
+- `docs/planning/roadmap/strategic-features-executive-summary.md` (prioritized top 5)
+
+**Strategic Themes Identified:**
+
+1. **Decision Quality & Outcome Tracking**
+   - Feature: Decision Retrospectives
+   - Value: 30% improvement in decision quality through feedback loops
+   - Status: P0 (must-have for V4)
+
+2. **Cross-Project Intelligence**
+   - Feature: Global Decision Library
+   - Value: 50% reduction in analysis paralysis via pattern reuse
+   - Status: P0 (must-have for V4)
+
+3. **Context-Aware Timing**
+   - Feature: Smart Scheduling
+   - Value: Automated "when to revisit" triggers based on context changes
+   - Status: P0 (must-have for V4)
+
+4. **Decision Impact Analysis**
+   - Feature: Impact Forecasting
+   - Value: 40% reduction in merge conflicts via batching intelligence
+   - Status: P1 (high-value for V4.5)
+
+5. **Team Collaboration**
+   - Feature: Collaborative Decision Rooms
+   - Value: 50% reduction in decision meetings through async collaboration
+   - Status: P2 (strategic for V5)
+
+**Business Model:**
+- Freemium approach defined (Free → Pro $10/mo → Team $50/mo → Enterprise)
+- Monetization rationale: Sustainable development funding
+- Target metrics: 15% free→pro conversion, 70% 6-month retention
+
+**Competitive Moat:**
+- Network effects from global decision library
+- Personalized learning from decision patterns
+- Deep workflow integration (Git, GitHub, IDE, Calendar)
+- Unique IP: Decision science frameworks + outcome tracking
+
+**Next Steps:**
+1. Validate V1-V3 with users (6-12 months)
+2. Prototype top 3 strategic features (decision retrospectives, global library, smart scheduling)
+3. User research on willingness to pay
+4. Build V4 with decision intelligence core
+
+---
+
 ### ✅ PRODUCTION READY - MCP Server Implementation Complete (2025-11-01)
 
 **Status:** Phase 7/7 - **COMPLETE & PRODUCTION READY** 🎉
