@@ -266,4 +266,58 @@ describe('Config Management Utilities', () => {
       expect(loaded.storage).toBe('jsonl');
     });
   });
+
+  describe('additional utilities', () => {
+    test('configExists returns false when no config', async () => {
+      const { configExists } = await import('../../src/utils/config.js');
+      const exists = await configExists(TEST_DIR);
+      expect(exists).toBe(false);
+    });
+
+    test('configExists returns true after creating config', async () => {
+      const { configExists, saveConfig, getDefaultConfig } = await import('../../src/utils/config.js');
+      await saveConfig(getDefaultConfig(TEST_DIR), TEST_DIR);
+      const exists = await configExists(TEST_DIR);
+      expect(exists).toBe(true);
+    });
+
+    test('getVersion returns version from config', async () => {
+      const { getVersion, saveConfig } = await import('../../src/utils/config.js');
+      await saveConfig({
+        version: '2.5.0',
+        backend: 'mcp-server',
+        storage: 'jsonl',
+        data_dir: TEST_DIR,
+      }, TEST_DIR);
+
+      const version = await getVersion(TEST_DIR);
+      expect(version).toBe('2.5.0');
+    });
+
+    test('needsMigration returns true for slash-command backend', async () => {
+      const { needsMigration, saveConfig } = await import('../../src/utils/config.js');
+      await saveConfig({
+        version: '1.0.0',
+        backend: 'slash-command',
+        storage: 'jsonl',
+        data_dir: TEST_DIR,
+      }, TEST_DIR);
+
+      const needs = await needsMigration(TEST_DIR);
+      expect(needs).toBe(true);
+    });
+
+    test('needsMigration returns false for mcp-server backend', async () => {
+      const { needsMigration, saveConfig } = await import('../../src/utils/config.js');
+      await saveConfig({
+        version: '1.0.0',
+        backend: 'mcp-server',
+        storage: 'jsonl',
+        data_dir: TEST_DIR,
+      }, TEST_DIR);
+
+      const needs = await needsMigration(TEST_DIR);
+      expect(needs).toBe(false);
+    });
+  });
 });
