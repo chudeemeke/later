@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "later": {
+      "command": "node",
+      "args": [
+        "dist/index.js"
+      ],
+      "env": {}
+    }
+  }
+}
