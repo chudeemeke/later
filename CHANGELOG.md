@@ -7,6 +7,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🔐 Security Enhancement: Proper Secret Management (2025-11-04)
+
+**Status:** Production security improvement - **CRITICAL**
+
+**Problem Identified:**
+During MCP server configuration and testing, secrets (Supabase API token) were temporarily hardcoded in `.mcp.json`. This violated:
+- Security best practices (secrets in plain text configuration files)
+- 12-factor app principles (config in environment)
+- Project security standards (no hardcoded credentials)
+- Risk of accidental git commits with exposed secrets
+
+**Solution Implemented:**
+Migrated from hardcoded secrets to proper environment variable management using `/etc/environment` with Claude Code's variable expansion syntax.
+
+**Changes Made:**
+
+1. **Environment Variable Storage:**
+   - Secrets moved to `/etc/environment` (system-wide, boot-time loading)
+   - Format: `VAR="value"` (no `export` keyword)
+   - Verified accessibility in sudo context (required for `sudo claude`)
+
+2. **MCP Configuration Update:**
+   - Updated `.mcp.json` to use `${VAR}` expansion syntax (Claude Code format)
+   - Applied to both `later` and `supabase` MCP servers
+   - Removed all hardcoded secret values
+
+3. **Cleanup:**
+   - Removed duplicate secret export from `.bashrc`
+   - Added comment pointing to `/etc/environment` as SSOT
+   - Verified both root and destiny users can access variables
+
+4. **Documentation:**
+   - Created comprehensive guide: `docs/getting-started/environment-configuration.md`
+   - Added quick reference: `~/.claude/MCP-SECRET-MANAGEMENT.md`
+   - Documented migration history and troubleshooting
+
+**Architecture Decision:**
+
+After thorough research, chose `/etc/environment` over alternatives:
+
+| Approach | Verdict |
+|----------|---------|
+| `/etc/environment` | ✅ **Selected** - System-wide, survives sudo, shell-agnostic |
+| `.bashrc` | ❌ Only works in interactive shells, not for MCP servers |
+| Hardcoded in config | ❌ Security risk, violates 12-factor principles |
+| `.env` + wrapper | ❌ Over-engineering for single-machine personal use |
+
+**Technical Details:**
+
+```bash
+# Storage location
+/etc/environment:
+  SUPABASE_URL="https://gpfuubmxhrcgfefvbvyh.supabase.co"
+  SUPABASE_ACCESS_TOKEN="sbp_5943020f..."
+
+# MCP configuration
+~/.claude/.mcp.json:
+  "env": {
+    "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"  // ✅ Variable expansion
+  }
+
+# Cleanup
+~/.bashrc:
+  # SUPABASE_ACCESS_TOKEN now managed in /etc/environment (system-wide)
+```
+
+**Verification:**
+- ✅ Secrets removed from version-controllable files
+- ✅ Variable expansion working in Claude Code MCP servers
+- ✅ `later` MCP server functioning with environment variables
+- ✅ Documentation complete (both detailed and quick reference)
+- ✅ Follows industry standards (12-factor, Linux best practices)
+
+**Security Improvements:**
+- **No hardcoded secrets** in configuration files
+- **Safe to commit** `.mcp.json` to version control
+- **Single source of truth** for credential management
+- **Audit trail** via system logs
+- **Proper permissions** on `/etc/environment` (root-owned, 644)
+
+**Future Enhancements (if needed):**
+- User-level secrets via `~/.pam_environment`
+- Encryption at rest via GPG
+- Secret rotation automation
+- Integration with secret managers (Vault, AWS Secrets Manager)
+
+**Impact:**
+- **Risk reduction:** Eliminated secret exposure in config files
+- **Maintainability:** Centralized secret management
+- **Compliance:** Aligned with industry security standards
+- **Portability:** Same config works across environments (dev/prod)
+
+**References:**
+- Claude Code MCP Docs: https://docs.claude.com/en/docs/claude-code/mcp
+- 12-Factor App: https://12factor.net/config
+- Linux environment configuration best practices
+
+---
+
 ### 📋 Strategic Feature Roadmap (2025-11-01)
 
 **Status:** Product vision and strategic planning complete
