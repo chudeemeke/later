@@ -1,0 +1,25 @@
+# API Baseline - Pre-Production Upgrade
+
+## Existing Tools (Must Remain Unchanged)
+1. later_capture - Capture deferred decisions
+2. later_list - List all deferred items with filtering
+3. later_show - Show detailed item information
+4. later_do - Mark item as in-progress
+
+## Test Status
+- Total Tests: 179
+- Pass Rate: 100%
+- Coverage: 95.44%
+
+## Files
+- src/tools/: capture.ts, list.ts, show.ts, do.ts
+- src/utils/: security.ts, duplicate.ts, config.ts, context.ts
+- src/storage/: jsonl.ts, interface.ts
+- src/: types.ts, index.ts
+
+## Date
+2025-11-05
+
+## Backward Compatibility Requirement
+All existing tools must continue to work exactly as before.
+No breaking changes allowed.

@@ -1,0 +1,77 @@
+
+> later-mcp-server@1.0.0 test
+> node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage
+
+(node:1376) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1355) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1397) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/utils/context.test.ts
+(node:1363) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1390) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/utils/security.test.ts
+(node:1362) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1369) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1356) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1383) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/utils/duplicate.test.ts
+PASS tests/utils/config.test.ts
+  ● Console
+
+    console.warn
+      Config file corrupted, creating new config
+
+      88 |     } else if (error instanceof SyntaxError) {
+      89 |       // Corrupted JSON, create new config
+    > 90 |       console.warn('Config file corrupted, creating new config');
+         |               ^
+      91 |       const defaultConfig = getDefaultConfig(dir);
+      92 |       await saveConfig(defaultConfig, dir);
+      93 |       return defaultConfig;
+
+      at warn (src/utils/config.ts:90:15)
+      at Object.<anonymous> (tests/utils/config.test.ts:164:22)
+
+PASS tests/tools/show.test.ts
+PASS tests/tools/do.test.ts
+PASS tests/tools/capture.test.ts
+PASS tests/tools/list.test.ts
+PASS tests/storage/jsonl.test.ts
+---------------|---------|----------|---------|---------|----------------------------------
+File           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                
+---------------|---------|----------|---------|---------|----------------------------------
+All files      |   95.44 |    85.03 |   95.65 |   95.21 |                                  
+ storage       |   84.84 |    64.28 |   85.71 |    83.6 |                                  
+  jsonl.ts     |   84.84 |    64.28 |   85.71 |    83.6 | 41,76-77,100-102,124,130,146-149 
+ tools         |   97.02 |    91.56 |     100 |   96.96 |                                  
+  capture.ts   |   96.87 |      100 |     100 |   96.77 | 124                              
+  do.ts        |   98.18 |    95.45 |     100 |   98.18 | 25                               
+  list.ts      |   96.42 |       92 |     100 |   96.22 | 42,44                            
+  show.ts      |   96.61 |    80.95 |     100 |   96.61 | 84,109                           
+ utils         |   97.98 |       80 |     100 |   97.82 |                                  
+  config.ts    |   97.87 |    66.66 |     100 |   97.87 | 95                               
+  context.ts   |     100 |      100 |     100 |     100 |                                  
+  duplicate.ts |   98.24 |       80 |     100 |   98.03 | 90                               
+  security.ts  |   96.66 |    85.71 |     100 |      96 | 127                              
+---------------|---------|----------|---------|---------|----------------------------------
+
+=============================== Coverage summary ===============================
+Statements   : 95.44% ( 398/417 )
+Branches     : 85.03% ( 125/147 )
+Functions    : 95.65% ( 66/69 )
+Lines        : 95.21% ( 378/397 )
+================================================================================
+
+Test Suites: 9 passed, 9 total
+Tests:       179 passed, 179 total
+Snapshots:   0 total
+Time:        8.568 s
+Ran all test suites.
