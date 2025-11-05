@@ -11,12 +11,16 @@ import { handleCapture } from './tools/capture.js';
 import { handleList } from './tools/list.js';
 import { handleShow } from './tools/show.js';
 import { handleDo } from './tools/do.js';
+import { handleUpdate } from './tools/update.js';
+import { handleDelete } from './tools/delete.js';
 import type {
   CaptureArgs,
   ListArgs,
   ShowArgs,
   DoArgs,
 } from './types.js';
+import type { UpdateArgs } from './tools/update.js';
+import type { DeleteArgs } from './tools/delete.js';
 
 // Initialize storage
 const storage = getStorage();
@@ -134,6 +138,72 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['id'],
         },
       },
+      {
+        name: 'later_update',
+        description:
+          'Update an existing deferred item. ' +
+          'Modify any field (decision, context, tags, priority, status, dependencies). ' +
+          'Validates state transitions and detects dependency cycles.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'number',
+              description: 'The item ID to update (required)',
+            },
+            decision: {
+              type: 'string',
+              description: 'Updated decision text (optional, max 500 chars)',
+            },
+            context: {
+              type: 'string',
+              description: 'Updated context (optional)',
+            },
+            tags: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Updated tags (optional)',
+            },
+            priority: {
+              type: 'string',
+              enum: ['low', 'medium', 'high'],
+              description: 'Updated priority (optional)',
+            },
+            status: {
+              type: 'string',
+              enum: ['pending', 'in-progress', 'done', 'archived'],
+              description: 'Updated status (optional, validates transitions)',
+            },
+            dependencies: {
+              type: 'array',
+              items: { type: 'number' },
+              description: 'Updated dependencies (optional, checks for cycles)',
+            },
+          },
+          required: ['id'],
+        },
+      },
+      {
+        name: 'later_delete',
+        description:
+          'Delete a deferred item. ' +
+          'By default performs soft delete (marks as archived). ' +
+          'Use hard=true for permanent removal (Phase 2 feature).',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'number',
+              description: 'The item ID to delete (required)',
+            },
+            hard: {
+              type: 'boolean',
+              description: 'If true, permanently delete (default: false, soft delete)',
+            },
+          },
+          required: ['id'],
+        },
+      },
     ],
   };
 });
@@ -195,6 +265,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case 'later_update': {
+        const result = await handleUpdate(args as unknown as UpdateArgs, storage);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: formatUpdateResult(result),
+            },
+          ],
+        };
+      }
+
+      case 'later_delete': {
+        const result = await handleDelete(args as unknown as DeleteArgs, storage);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: formatDeleteResult(result),
+            },
+          ],
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -240,6 +334,34 @@ function formatDoResult(result: any): string {
 
   if (result.todo_guidance) {
     output += '\n\n' + result.todo_guidance;
+  }
+
+  return output;
+}
+
+function formatUpdateResult(result: any): string {
+  if (!result.success) {
+    return `❌ Failed to update: ${result.error}`;
+  }
+
+  let output = result.message;
+
+  if (result.warnings && result.warnings.length > 0) {
+    output += '\n\n⚠️  Warnings:\n' + result.warnings.join('\n');
+  }
+
+  return output;
+}
+
+function formatDeleteResult(result: any): string {
+  if (!result.success) {
+    return `❌ Failed to delete: ${result.error}`;
+  }
+
+  let output = result.message;
+
+  if (result.warnings && result.warnings.length > 0) {
+    output += '\n\n⚠️  Warnings:\n' + result.warnings.join('\n');
   }
 
   return output;

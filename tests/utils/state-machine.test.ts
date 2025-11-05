@@ -2,6 +2,7 @@ import { describe, it, expect } from '@jest/globals';
 import {
   validateTransition,
   getValidTransitions,
+  getTransitionError,
   STATE_MACHINE,
   type ItemStatus,
 } from '../../src/utils/state-machine.js';
@@ -245,6 +246,25 @@ describe('State Machine Utility', () => {
     it('example: user tries to mark pending as done without working on it', () => {
       const status: ItemStatus = 'pending';
       expect(validateTransition(status, 'done')).toBe(false);
+    });
+  });
+
+  describe('getTransitionError', () => {
+    it('should return error message for invalid transition', () => {
+      const error = getTransitionError('pending', 'done');
+      expect(error).toContain('Cannot transition');
+      expect(error).toContain('pending');
+      expect(error).toContain('done');
+    });
+
+    it('should return empty string for valid transition', () => {
+      const error = getTransitionError('pending', 'in-progress');
+      expect(error).toBe('');
+    });
+
+    it('should return error for invalid from status', () => {
+      const error = getTransitionError('invalid' as ItemStatus, 'pending');
+      expect(error).toContain('Invalid status');
     });
   });
 });
