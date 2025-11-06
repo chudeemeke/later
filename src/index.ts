@@ -50,8 +50,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: 'later_capture',
         description:
           'Capture a deferred decision with context for later review. ' +
+          'Use when deferring non-urgent decisions, saving context for future sessions, ' +
+          'or tracking open questions that require more information. ' +
           'Automatically detects and sanitizes secrets, checks for duplicates, ' +
-          'and stores with full metadata.',
+          'and stores with full metadata. ' +
+          'Common triggers: "capture this for later", "defer this decision", ' +
+          '"save this decision", "I\'ll think about this later".',
         inputSchema: {
           type: 'object',
           properties: {
@@ -80,9 +84,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'later_list',
         description:
-          'List and filter deferred items. ' +
-          'Supports filtering by status, tags, and priority. ' +
-          'Returns formatted list with status icons and timestamps.',
+          'List and filter deferred items with advanced querying capabilities. ' +
+          'Supports filtering by status, tags, priority, sorting, and pagination. ' +
+          'Returns formatted list with status icons and timestamps. ' +
+          'Common triggers: "show me deferred items", "list pending decisions", ' +
+          '"what decisions do I have", "show high-priority items".',
         inputSchema: {
           type: 'object',
           properties: {
@@ -111,9 +117,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'later_show',
         description:
-          'Show full details of a specific deferred item. ' +
+          'Show full details of a specific deferred item including all metadata. ' +
           'Displays decision, context, status, priority, tags, timestamps, ' +
-          'and resolves any dependencies.',
+          'and resolves any dependencies. ' +
+          'Common triggers: "show item #5", "what\'s in item 3", "show details of that decision".',
         inputSchema: {
           type: 'object',
           properties: {
@@ -128,9 +135,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'later_do',
         description:
-          'Mark an item as in-progress and get TodoWrite guidance. ' +
-          'Checks dependencies, provides actionable todo suggestions, ' +
-          'and updates the item status.',
+          'Start working on a deferred decision by marking it in-progress and generating todos. ' +
+          'Checks dependencies, provides actionable todo suggestions via TodoWrite integration, ' +
+          'and updates the item status. Seamlessly converts deferred decisions into action plans. ' +
+          'Common triggers: "let\'s work on item #3", "start that database decision", ' +
+          '"convert item 5 to todos", "I\'m ready to tackle that now".',
         inputSchema: {
           type: 'object',
           properties: {
@@ -145,9 +154,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'later_update',
         description:
-          'Update an existing deferred item. ' +
+          'Update an existing deferred item with new information or changed priorities. ' +
           'Modify any field (decision, context, tags, priority, status, dependencies). ' +
-          'Validates state transitions and detects dependency cycles.',
+          'Validates state transitions and detects dependency cycles automatically. ' +
+          'Common triggers: "update item #3", "change priority to high", ' +
+          '"mark item 5 as done", "add context to that decision".',
         inputSchema: {
           type: 'object',
           properties: {
@@ -190,9 +201,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'later_delete',
         description:
-          'Delete a deferred item. ' +
-          'By default performs soft delete (marks as archived). ' +
-          'Use hard=true for permanent removal (Phase 2 feature).',
+          'Delete a deferred item when no longer needed. ' +
+          'By default performs soft delete (marks as archived for future reference). ' +
+          'Use hard=true for permanent removal. Checks for items that depend on this one. ' +
+          'Common triggers: "delete item #3", "remove that decision", ' +
+          '"archive item 5", "permanently delete item 7".',
         inputSchema: {
           type: 'object',
           properties: {
@@ -211,9 +224,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'later_bulk_update',
         description:
-          'Update multiple items at once with the same changes. ' +
-          'Useful for batch operations like changing priority or adding tags to multiple items. ' +
-          'Returns detailed results showing which items succeeded and which failed.',
+          'Update multiple items at once with the same changes for efficient batch processing. ' +
+          'Useful for changing priority, adding tags, or updating status across many items. ' +
+          'Returns detailed results showing which items succeeded and which failed. ' +
+          'Common triggers: "mark items 1,2,3 as high priority", "add tag \'api\' to all pending items", ' +
+          '"archive all done items".',
         inputSchema: {
           type: 'object',
           properties: {
@@ -253,10 +268,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'later_bulk_delete',
         description:
-          'Delete multiple items at once. ' +
-          'By default performs soft delete (marks as archived). ' +
-          'Use hard=true for permanent removal. ' +
-          'Returns detailed results showing which items were deleted and which failed.',
+          'Delete multiple items at once for efficient cleanup. ' +
+          'By default performs soft delete (marks as archived for reference). ' +
+          'Use hard=true for permanent removal of multiple items. ' +
+          'Returns detailed results showing which items were deleted and which failed. ' +
+          'Common triggers: "delete items 1,2,3", "remove all archived items", ' +
+          '"clean up old decisions".',
         inputSchema: {
           type: 'object',
           properties: {
@@ -276,9 +293,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'later_search',
         description:
-          'Full-text search across all deferred items with TF-IDF relevance scoring. ' +
-          'Searches decision, context, and tags fields. ' +
-          'Returns results ranked by relevance with match details.',
+          'Full-text search across all deferred items with intelligent TF-IDF relevance scoring. ' +
+          'Searches decision, context, and tags fields with field weighting for accuracy. ' +
+          'Returns results ranked by relevance with match details and similarity scores. ' +
+          'Common triggers: "search for optimization decisions", "find items about database", ' +
+          '"what did I defer about API design", "search later for GraphQL".',
         inputSchema: {
           type: 'object',
           properties: {

@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 📋 Design Decision: Natural Language Interface Only (2025-11-06)
+
+**Status:** Architectural decision - NO slash command implementation
+
+**Decision:**
+After comprehensive 7-dimension analysis (industry standards, Anthropic alignment, Apple philosophy, cognitive science, WoW principles, scalability, implementation realism), decided to maintain MCP-only architecture without adding slash command interface.
+
+**Rationale:**
+
+**1. Industry Standard Alignment:**
+- Git, Docker, kubectl: CLI and API are separate systems (no duplication)
+- GitHub CLI + API: Thin client pattern, not duplicated logic
+- Pattern: One source of truth for business logic
+
+**2. Anthropic's Own Pattern:**
+- TodoWrite: MCP only, NO slash command - works perfectly
+- Supabase MCP: NO slash command
+- Natural language is the primary interface
+
+**3. Architectural Integrity:**
+- Violates SOLID principles (adds unnecessary abstraction)
+- Creates dual systems writing to same storage (race conditions)
+- Maintenance burden: TWO interfaces for same operations
+- Doesn't scale: At 20+ tools, slash command menu pollutes
+
+**4. User Experience:**
+- Natural language more intuitive: "Capture this for later" vs "/later capture"
+- Reduces cognitive load: ONE concept (tools) vs TWO (slash + tools)
+- Slash commands only save 5 characters of typing
+- Not frequent enough to justify complexity (3-5 uses per session, not 30-50)
+
+**5. Technical Scalability:**
+- Pattern C (MCP only) scales infinitely
+- Pattern A (Slash + MCP) hits maintenance wall at scale
+- Future: Add tools, Claude discovers automatically - no new commands needed
+
+**What We Did Instead:**
+- ✅ Enhanced tool descriptions with usage examples and trigger phrases
+- ✅ Updated README with comprehensive natural language guide
+- ✅ Added proactive usage patterns to global CLAUDE.md
+- ✅ Optimized discoverability through better documentation
+
+**Impact:** None - current architecture works perfectly. Natural language interface provides better UX than slash commands would.
+
+---
+
 ### 🚀 Phase 5 Complete: Bulk Operations & Full-Text Search (2025-11-06)
 
 **Status:** Production-grade advanced features for power users
