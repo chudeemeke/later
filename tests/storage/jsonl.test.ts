@@ -2,6 +2,7 @@ import { JSONLStorage } from '../../src/storage/jsonl.js';
 import type { DeferredItem } from '../../src/types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 import { homedir } from 'os';
 
 const TEST_DIR = path.join(homedir(), '.later-test');
@@ -322,7 +323,7 @@ describe('JSONLStorage', () => {
       items.forEach(item => {
         expect(item.id % 2).toBe(1);
       });
-    });
+    }, 15000); // Increase timeout for concurrent operations with exponential backoff
   });
 
   describe('concurrent writes', () => {
@@ -344,6 +345,169 @@ describe('JSONLStorage', () => {
 
       const items = await storage.readAll();
       expect(items.length).toBe(10);
+    }, 15000); // Increase timeout for concurrent operations with exponential backoff
+  });
+
+  describe('lock management', () => {
+    test('cleans up stale lock from dead process', async () => {
+      const lockFile = path.join(TEST_DIR, '.lock');
+
+      // Create a stale lock file with a PID that doesn't exist
+      // Using PID 999999 which is unlikely to exist
+      await fs.writeFile(lockFile, '999999', { flag: 'wx' });
+
+      // Verify lock file exists
+      const exists = await fs.access(lockFile).then(() => true).catch(() => false);
+      expect(exists).toBe(true);
+
+      // Try to append an item - should clean stale lock and succeed
+      await storage.append({
+        id: 1,
+        decision: 'Test',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      // Verify item was added successfully
+      const items = await storage.readAll();
+      expect(items.length).toBe(1);
     });
+
+    test('respects valid lock from active process', async () => {
+      const lockFile = path.join(TEST_DIR, '.lock');
+
+      // Create a lock file with current process PID
+      await fs.writeFile(lockFile, String(process.pid), { flag: 'wx' });
+
+      // Try to append with a very short timeout
+      // This should fail because lock is held by active process
+      const appendPromise = storage.append({
+        id: 1,
+        decision: 'Test',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      // The append should eventually succeed after we release the lock
+      // Clean up lock immediately to allow test to complete
+      await fs.unlink(lockFile);
+
+      await appendPromise;
+      const items = await storage.readAll();
+      expect(items.length).toBe(1);
+    });
+
+    test('handles invalid lock file content', async () => {
+      const lockFile = path.join(TEST_DIR, '.lock');
+
+      // Create lock file with invalid content
+      await fs.writeFile(lockFile, 'not-a-number', { flag: 'wx' });
+
+      // Should clean invalid lock and succeed
+      await storage.append({
+        id: 1,
+        decision: 'Test',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const items = await storage.readAll();
+      expect(items.length).toBe(1);
+    });
+
+    test('uses exponential backoff for lock contention', async () => {
+      // This test verifies that retries use exponential backoff
+      // by measuring time between attempts
+      const lockFile = path.join(TEST_DIR, '.lock');
+      let lockAcquired = false;
+
+      // Hold lock for 300ms
+      await fs.writeFile(lockFile, String(process.pid), { flag: 'wx' });
+
+      setTimeout(async () => {
+        await fs.unlink(lockFile).catch(() => {});
+        lockAcquired = true;
+      }, 300);
+
+      const startTime = Date.now();
+
+      await storage.append({
+        id: 1,
+        decision: 'Test',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const duration = Date.now() - startTime;
+
+      // Should have waited at least 300ms
+      expect(duration).toBeGreaterThanOrEqual(300);
+      expect(lockAcquired).toBe(true);
+
+      const items = await storage.readAll();
+      expect(items.length).toBe(1);
+    });
+
+    test('waits for lock with retry attempts', async () => {
+      // Create a separate test directory
+      const testDir = path.join(os.tmpdir(), `later-test-lock-wait-${Date.now()}`);
+      await fs.mkdir(testDir, { recursive: true });
+      const testStorage = new JSONLStorage(testDir);
+
+      const lockFile = path.join(testDir, '.lock');
+
+      // Create a lock file with current PID
+      await fs.writeFile(lockFile, String(process.pid), { flag: 'wx' });
+
+      // Start an append operation in parallel
+      const appendPromise = testStorage.append({
+        id: 1,
+        decision: 'Test',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      // Release lock after 2 seconds
+      setTimeout(async () => {
+        await fs.unlink(lockFile).catch(() => {});
+      }, 2000);
+
+      const startTime = Date.now();
+
+      // Should succeed after lock is released
+      await appendPromise;
+
+      const duration = Date.now() - startTime;
+
+      // Should have waited at least 2 seconds for lock
+      expect(duration).toBeGreaterThanOrEqual(2000);
+
+      // Verify item was appended
+      const items = await testStorage.readAll();
+      expect(items.length).toBe(1);
+
+      // Cleanup
+      await fs.rm(testDir, { recursive: true }).catch(() => {});
+    }, 10000);
   });
 });

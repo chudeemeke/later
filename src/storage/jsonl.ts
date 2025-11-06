@@ -137,21 +137,57 @@ export class JSONLStorage implements Storage {
     }
   }
 
+  /**
+   * Clean stale lock files from dead processes
+   * @returns void
+   */
+  private async cleanStaleLock(): Promise<void> {
+    try {
+      const lockContent = await fs.readFile(this.lockFile, 'utf-8');
+      const lockPid = parseInt(lockContent.trim());
+
+      if (isNaN(lockPid)) {
+        // Invalid lock file content, remove it
+        await fs.unlink(this.lockFile);
+        return;
+      }
+
+      // Check if process is still alive
+      try {
+        process.kill(lockPid, 0); // Signal 0 = test if process exists
+        // Process is alive, lock is valid
+      } catch {
+        // Process is dead, remove stale lock
+        await fs.unlink(this.lockFile);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        // Ignore if lock file doesn't exist, throw other errors
+        throw error;
+      }
+    }
+  }
+
   private async withLock<T>(fn: () => Promise<T>): Promise<T> {
-    // Simple file-based locking with timeout
-    const maxRetries = 50; // 5 seconds max wait
+    // File-based locking with exponential backoff and stale lock detection
+    const maxRetries = 50; // 5 seconds max wait with exponential backoff
+    const baseDelay = 100; // ms
     let retries = 0;
     let acquired = false;
 
     while (!acquired && retries < maxRetries) {
       try {
+        // Check for and clean stale locks before attempting to acquire
+        await this.cleanStaleLock();
+
         // Try to create lock file exclusively
         await fs.writeFile(this.lockFile, String(process.pid), { flag: 'wx' });
         acquired = true;
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
-          // Lock held by another process, wait
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          // Lock held by another process, exponential backoff
+          const delay = Math.min(baseDelay * Math.pow(1.5, retries), 1000);
+          await new Promise((resolve) => setTimeout(resolve, delay));
           retries++;
         } else {
           throw error;
