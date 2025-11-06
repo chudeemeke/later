@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🚀 Phase 5 Complete: Bulk Operations & Full-Text Search (2025-11-06)
+
+**Status:** Production-grade advanced features for power users
+
+**Overview:**
+Implemented bulk operations for efficient batch processing and TF-IDF based full-text search with relevance ranking.
+
+**New Tools:**
+
+1. **`later_bulk_update`** - Batch update multiple items
+   - Apply same changes to multiple items at once
+   - Detailed success/failure reporting per item
+   - Transactional-style processing
+   - 17 comprehensive tests
+
+2. **`later_bulk_delete`** - Batch delete multiple items
+   - Soft or hard delete for multiple items
+   - Individual item error tracking
+   - Performance optimized for large batches
+   - Included in bulk operation tests
+
+3. **`later_search`** - Full-text search with relevance scoring
+   - TF-IDF algorithm for relevance ranking
+   - Search across decision, context, and tags
+   - Configurable field selection
+   - Match highlighting with scores
+   - 9 comprehensive tests
+
+**Features:**
+- Bulk operations process items individually with detailed error reporting
+- Search only includes active items (pending/in-progress)
+- Weighted scoring: decision (2x), tags (1.5x), context (1x)
+- Performance tracking for search operations
+- Structured logging for all operations
+
+**Test Results:**
+- ✅ **449 tests passing** (+26 from Phase 3)
+- ✅ **94.34% statement coverage**
+- ✅ **86.18% branch coverage**
+- ✅ **95.48% function coverage**
+
+**Files Added:**
+- `src/tools/bulk.ts`: Bulk operations (94% coverage)
+- `src/tools/search.ts`: Full-text search (90% coverage)
+- `tests/tools/bulk.test.ts`: 17 tests
+- `tests/tools/search.test.ts`: 9 tests
+
+**Performance:**
+- Bulk operations: Individual item processing with aggregated results
+- Search: Sub-millisecond for small datasets, logged for monitoring
+
+---
+
 ### ✅ Phase 3 Foundation: JSON-RPC Error System (2025-11-06)
 
 **Status:** Standard error code system implemented

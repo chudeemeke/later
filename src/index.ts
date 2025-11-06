@@ -13,6 +13,8 @@ import { handleShow } from './tools/show.js';
 import { handleDo } from './tools/do.js';
 import { handleUpdate } from './tools/update.js';
 import { handleDelete } from './tools/delete.js';
+import { handleBulkUpdate, handleBulkDelete } from './tools/bulk.js';
+import { handleSearch } from './tools/search.js';
 import type {
   CaptureArgs,
   ListArgs,
@@ -21,6 +23,8 @@ import type {
 } from './types.js';
 import type { UpdateArgs } from './tools/update.js';
 import type { DeleteArgs } from './tools/delete.js';
+import type { BulkUpdateArgs, BulkDeleteArgs } from './tools/bulk.js';
+import type { SearchArgs } from './tools/search.js';
 
 // Initialize storage
 const storage = getStorage();
@@ -204,6 +208,104 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['id'],
         },
       },
+      {
+        name: 'later_bulk_update',
+        description:
+          'Update multiple items at once with the same changes. ' +
+          'Useful for batch operations like changing priority or adding tags to multiple items. ' +
+          'Returns detailed results showing which items succeeded and which failed.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            ids: {
+              type: 'array',
+              items: { type: 'number' },
+              description: 'Array of item IDs to update (required)',
+            },
+            changes: {
+              type: 'object',
+              description: 'Changes to apply to all items',
+              properties: {
+                decision: { type: 'string' },
+                context: { type: 'string' },
+                tags: {
+                  type: 'array',
+                  items: { type: 'string' },
+                },
+                priority: {
+                  type: 'string',
+                  enum: ['low', 'medium', 'high'],
+                },
+                status: {
+                  type: 'string',
+                  enum: ['pending', 'in-progress', 'done', 'archived'],
+                },
+                dependencies: {
+                  type: 'array',
+                  items: { type: 'number' },
+                },
+              },
+            },
+          },
+          required: ['ids', 'changes'],
+        },
+      },
+      {
+        name: 'later_bulk_delete',
+        description:
+          'Delete multiple items at once. ' +
+          'By default performs soft delete (marks as archived). ' +
+          'Use hard=true for permanent removal. ' +
+          'Returns detailed results showing which items were deleted and which failed.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            ids: {
+              type: 'array',
+              items: { type: 'number' },
+              description: 'Array of item IDs to delete (required)',
+            },
+            hard: {
+              type: 'boolean',
+              description: 'If true, permanently delete (default: false)',
+            },
+          },
+          required: ['ids'],
+        },
+      },
+      {
+        name: 'later_search',
+        description:
+          'Full-text search across all deferred items with TF-IDF relevance scoring. ' +
+          'Searches decision, context, and tags fields. ' +
+          'Returns results ranked by relevance with match details.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search query (required)',
+            },
+            fields: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['decision', 'context', 'tags'],
+              },
+              description: 'Fields to search (default: all fields)',
+            },
+            limit: {
+              type: 'number',
+              description: 'Maximum number of results (default: 10)',
+            },
+            minScore: {
+              type: 'number',
+              description: 'Minimum relevance score (default: 0.01)',
+            },
+          },
+          required: ['query'],
+        },
+      },
     ],
   };
 });
@@ -289,6 +391,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case 'later_bulk_update': {
+        const result = await handleBulkUpdate(args as unknown as BulkUpdateArgs, storage);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: formatBulkResult('update', result),
+            },
+          ],
+        };
+      }
+
+      case 'later_bulk_delete': {
+        const result = await handleBulkDelete(args as unknown as BulkDeleteArgs, storage);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: formatBulkResult('delete', result),
+            },
+          ],
+        };
+      }
+
+      case 'later_search': {
+        const result = await handleSearch(args as unknown as SearchArgs, storage);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: formatSearchResult(result),
+            },
+          ],
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -365,6 +503,57 @@ function formatDeleteResult(result: any): string {
   }
 
   return output;
+}
+
+function formatBulkResult(operation: 'update' | 'delete', result: any): string {
+  const emoji = result.success ? '✅' : '⚠️';
+  let output = `${emoji} Bulk ${operation} completed:\n`;
+  output += `Total: ${result.total} | Succeeded: ${result.succeeded} | Failed: ${result.failedCount}`;
+
+  if (result.processed.length > 0) {
+    output += `\n\n✅ Processed IDs: ${result.processed.join(', ')}`;
+  }
+
+  if (result.failed.length > 0) {
+    output += `\n\n❌ Failed items:\n`;
+    result.failed.forEach((failure: any) => {
+      output += `  • ID ${failure.id}: ${failure.error}\n`;
+    });
+  }
+
+  return output.trim();
+}
+
+function formatSearchResult(result: any): string {
+  if (!result.success) {
+    return `❌ Search failed`;
+  }
+
+  if (result.totalFound === 0) {
+    return `🔍 No results found for "${result.query}"`;
+  }
+
+  let output = `🔍 Found ${result.totalFound} result${result.totalFound === 1 ? '' : 's'} for "${result.query}" (${result.searchTime}ms)\n\n`;
+
+  result.results.forEach((r: any, i: number) => {
+    output += `${i + 1}. [#${r.item.id}] ${r.item.decision}\n`;
+    output += `   Score: ${r.score} | Status: ${r.item.status} | Priority: ${r.item.priority}\n`;
+
+    if (r.item.tags.length > 0) {
+      output += `   Tags: ${r.item.tags.join(', ')}\n`;
+    }
+
+    const matches = [];
+    if (r.matches.decision) matches.push(`decision(${r.matches.decision})`);
+    if (r.matches.context) matches.push(`context(${r.matches.context})`);
+    if (r.matches.tags) matches.push(`tags(${r.matches.tags})`);
+    if (matches.length > 0) {
+      output += `   Matches: ${matches.join(', ')}\n`;
+    }
+    output += '\n';
+  });
+
+  return output.trim();
 }
 
 // Start server
