@@ -182,6 +182,149 @@ describe('JSONLStorage', () => {
     });
   });
 
+  describe('delete', () => {
+    test('deletes existing item', async () => {
+      const item: DeferredItem = {
+        id: 1,
+        decision: 'To be deleted',
+        context: 'Test',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      await storage.append(item);
+
+      // Verify item exists
+      let found = await storage.findById(1);
+      expect(found).not.toBeNull();
+
+      // Delete the item
+      await storage.delete(1);
+
+      // Verify item no longer exists
+      found = await storage.findById(1);
+      expect(found).toBeNull();
+    });
+
+    test('throws error for non-existent item', async () => {
+      await expect(storage.delete(999)).rejects.toThrow('Item #999 not found');
+    });
+
+    test('removes item from JSONL file', async () => {
+      const item1: DeferredItem = {
+        id: 1,
+        decision: 'First',
+        context: 'Test',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const item2: DeferredItem = {
+        id: 2,
+        decision: 'Second',
+        context: 'Test',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      await storage.append(item1);
+      await storage.append(item2);
+
+      // Delete first item
+      await storage.delete(1);
+
+      // Read file directly to verify
+      const content = await fs.readFile(TEST_FILE, 'utf-8');
+      const lines = content.trim().split('\n');
+
+      expect(lines.length).toBe(1);
+      expect(JSON.parse(lines[0]).id).toBe(2);
+    });
+
+    test('handles multiple deletes', async () => {
+      // Create 5 items
+      for (let i = 1; i <= 5; i++) {
+        await storage.append({
+          id: i,
+          decision: `Item ${i}`,
+          context: '',
+          status: 'pending',
+          tags: [],
+          priority: 'medium',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+
+      // Delete items 2 and 4
+      await storage.delete(2);
+      await storage.delete(4);
+
+      const items = await storage.readAll();
+      expect(items.length).toBe(3);
+      expect(items.map(i => i.id)).toEqual([1, 3, 5]);
+    });
+
+    test('maintains file permissions after delete', async () => {
+      const item: DeferredItem = {
+        id: 1,
+        decision: 'Test',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      await storage.append(item);
+      await storage.delete(1);
+
+      const stats = await fs.stat(TEST_FILE);
+      const mode = stats.mode & 0o777;
+      expect(mode).toBe(0o600); // rw-------
+    });
+
+    test('handles concurrent deletes safely', async () => {
+      // Create 20 items
+      for (let i = 1; i <= 20; i++) {
+        await storage.append({
+          id: i,
+          decision: `Item ${i}`,
+          context: '',
+          status: 'pending',
+          tags: [],
+          priority: 'medium',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+
+      // Delete even numbered items concurrently
+      const deletePromises = Array.from({ length: 10 }, (_, i) =>
+        storage.delete((i + 1) * 2)
+      );
+
+      await Promise.all(deletePromises);
+
+      const items = await storage.readAll();
+      expect(items.length).toBe(10);
+      // Verify only odd numbered items remain
+      items.forEach(item => {
+        expect(item.id % 2).toBe(1);
+      });
+    });
+  });
+
   describe('concurrent writes', () => {
     test('handles concurrent appends with locking', async () => {
       const promises = Array.from({ length: 10 }, (_, i) =>

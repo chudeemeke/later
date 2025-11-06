@@ -5,5 +5,6 @@ export interface Storage {
   readAll(): Promise<DeferredItem[]>;
   findById(id: number): Promise<DeferredItem | null>;
   update(item: DeferredItem): Promise<void>;
+  delete(id: number): Promise<void>;
   getNextId(): Promise<number>;
 }

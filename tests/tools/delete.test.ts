@@ -27,6 +27,7 @@ describe('Delete Tool', () => {
       update: async (item: DeferredItem) => {
         existingItem = item;
       },
+      delete: async () => {},
       getNextId: async () => 2,
     };
   });
@@ -110,19 +111,60 @@ describe('Delete Tool', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should mark as archived (Phase 2 pending)', async () => {
+    it('should permanently delete item from storage', async () => {
+      let deleteCalled = false;
+      let deletedId: number | undefined;
+
+      mockStorage.delete = async (id: number) => {
+        deleteCalled = true;
+        deletedId = id;
+        // Remove from mock storage
+        if (existingItem.id === id) {
+          mockStorage.findById = async () => null;
+        }
+      };
+
       const result = await handleDelete({ id: 1, hard: true }, mockStorage);
 
       expect(result.success).toBe(true);
-      expect(existingItem.status).toBe('archived');
+      expect(deleteCalled).toBe(true);
+      expect(deletedId).toBe(1);
     });
 
-    it('should include warning about Phase 2', async () => {
+    it('should not call update for hard delete', async () => {
+      let updateCalled = false;
+
+      mockStorage.delete = async () => {};
+      mockStorage.update = async () => {
+        updateCalled = true;
+      };
+
+      await handleDelete({ id: 1, hard: true }, mockStorage);
+
+      expect(updateCalled).toBe(false);
+    });
+
+    it('should include success message for hard delete', async () => {
+      mockStorage.delete = async () => {};
+
       const result = await handleDelete({ id: 1, hard: true }, mockStorage);
 
       expect(result.success).toBe(true);
-      expect(result.warnings).toBeDefined();
-      expect(result.warnings!.length).toBeGreaterThan(0);
+      expect(result.message).toContain('permanently deleted');
+      expect(result.message).toContain('1');
+    });
+
+    it('should verify item no longer exists after hard delete', async () => {
+      mockStorage.delete = async (id: number) => {
+        if (id === 1) {
+          mockStorage.findById = async () => null;
+        }
+      };
+
+      await handleDelete({ id: 1, hard: true }, mockStorage);
+
+      const found = await mockStorage.findById(1);
+      expect(found).toBeNull();
     });
   });
 

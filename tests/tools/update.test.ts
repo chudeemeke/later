@@ -27,6 +27,7 @@ describe('Update Tool', () => {
       update: async (item: DeferredItem) => {
         existingItem = item;
       },
+      delete: async () => {},
       getNextId: async () => 2,
     };
   });

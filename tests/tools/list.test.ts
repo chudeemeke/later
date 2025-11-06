@@ -485,4 +485,294 @@ describe('later_list Tool', () => {
       expect(result.formatted_output).toContain('tag2');
     });
   });
+
+  describe('Phase 2: Advanced Features', () => {
+    describe('advanced filtering', () => {
+      beforeEach(async () => {
+        await storage.append({
+          id: 1,
+          decision: 'Optimize database queries',
+          context: '',
+          status: 'pending',
+          tags: ['performance'],
+          priority: 'high',
+          created_at: '2025-01-01T00:00:00Z',
+          updated_at: '2025-01-01T00:00:00Z',
+        });
+
+        await storage.append({
+          id: 2,
+          decision: 'Fix UI bug in dashboard',
+          context: '',
+          status: 'in-progress',
+          tags: ['bug'],
+          priority: 'medium',
+          created_at: '2025-01-02T00:00:00Z',
+          updated_at: '2025-01-02T00:00:00Z',
+        });
+
+        await storage.append({
+          id: 3,
+          decision: 'Database migration script',
+          context: '',
+          status: 'done',
+          tags: ['database'],
+          priority: 'low',
+          created_at: '2025-01-03T00:00:00Z',
+          updated_at: '2025-01-03T00:00:00Z',
+        });
+      });
+
+      test('filters by equality operator', async () => {
+        const result = await handleList({
+          filters: {
+            status: { eq: 'pending' },
+          },
+        }, storage);
+
+        expect(result.items.length).toBe(1);
+        expect(result.items[0].id).toBe(1);
+      });
+
+      test('filters by contains operator', async () => {
+        const result = await handleList({
+          filters: {
+            decision: { contains: 'database' },
+          },
+        }, storage);
+
+        expect(result.items.length).toBe(2);
+        expect(result.items.map(i => i.id)).toEqual([3, 1]); // DESC by created_at
+      });
+
+      test('filters by in operator', async () => {
+        const result = await handleList({
+          filters: {
+            status: { in: ['pending', 'done'] },
+          },
+        }, storage);
+
+        expect(result.items.length).toBe(2);
+      });
+
+      test('filters by hasTag operator', async () => {
+        const result = await handleList({
+          filters: {
+            tags: { hasTag: 'bug' },
+          },
+        }, storage);
+
+        expect(result.items.length).toBe(1);
+        expect(result.items[0].id).toBe(2);
+      });
+
+      test('combines multiple filters with AND logic', async () => {
+        const result = await handleList({
+          filters: {
+            priority: { ne: 'low' },
+            decision: { contains: 'database' },
+          },
+        }, storage);
+
+        expect(result.items.length).toBe(1);
+        expect(result.items[0].id).toBe(1);
+      });
+    });
+
+    describe('sorting', () => {
+      beforeEach(async () => {
+        await storage.append({
+          id: 1,
+          decision: 'Item 1',
+          context: '',
+          status: 'pending',
+          tags: [],
+          priority: 'low',
+          created_at: '2025-01-03T00:00:00Z',
+          updated_at: '2025-01-03T00:00:00Z',
+        });
+
+        await storage.append({
+          id: 2,
+          decision: 'Item 2',
+          context: '',
+          status: 'done',
+          tags: [],
+          priority: 'high',
+          created_at: '2025-01-01T00:00:00Z',
+          updated_at: '2025-01-01T00:00:00Z',
+        });
+
+        await storage.append({
+          id: 3,
+          decision: 'Item 3',
+          context: '',
+          status: 'in-progress',
+          tags: [],
+          priority: 'medium',
+          created_at: '2025-01-02T00:00:00Z',
+          updated_at: '2025-01-02T00:00:00Z',
+        });
+      });
+
+      test('sorts by created_at ascending', async () => {
+        const result = await handleList({
+          orderBy: [{ field: 'created_at', direction: 'ASC' }],
+        }, storage);
+
+        expect(result.items.map(i => i.id)).toEqual([2, 3, 1]);
+      });
+
+      test('sorts by priority descending', async () => {
+        const result = await handleList({
+          orderBy: [{ field: 'priority', direction: 'DESC' }],
+        }, storage);
+
+        expect(result.items[0].priority).toBe('high');
+        expect(result.items[1].priority).toBe('medium');
+        expect(result.items[2].priority).toBe('low');
+      });
+
+      test('sorts by multiple fields', async () => {
+        const result = await handleList({
+          orderBy: [
+            { field: 'status', direction: 'DESC' },
+            { field: 'created_at', direction: 'ASC' },
+          ],
+        }, storage);
+
+        // Status order: in-progress > pending > done > archived
+        expect(result.items[0].status).toBe('in-progress');
+      });
+    });
+
+    describe('pagination', () => {
+      beforeEach(async () => {
+        // Create 20 items
+        for (let i = 1; i <= 20; i++) {
+          await storage.append({
+            id: i,
+            decision: `Item ${i}`,
+            context: '',
+            status: 'pending',
+            tags: [],
+            priority: 'medium',
+            created_at: new Date(2025, 0, i).toISOString(),
+            updated_at: new Date(2025, 0, i).toISOString(),
+          });
+        }
+      });
+
+      test('paginates with first parameter', async () => {
+        const result = await handleList({
+          pagination: { first: 5 },
+        }, storage);
+
+        expect(result.items.length).toBe(5);
+        expect(result.pageInfo?.hasNextPage).toBe(true);
+        expect(result.pageInfo?.hasPrevPage).toBe(false);
+        expect(result.pageInfo?.totalCount).toBe(20);
+      });
+
+      test('paginates with after cursor', async () => {
+        // Get first page
+        const firstPage = await handleList({
+          pagination: { first: 5 },
+        }, storage);
+
+        // Get second page using cursor
+        const secondPage = await handleList({
+          pagination: { first: 5, after: firstPage.pageInfo!.endCursor! },
+        }, storage);
+
+        expect(secondPage.items.length).toBe(5);
+        expect(secondPage.pageInfo?.hasPrevPage).toBe(true);
+        expect(secondPage.items[0].id).not.toBe(firstPage.items[0].id);
+      });
+
+      test('paginates with last parameter', async () => {
+        const result = await handleList({
+          pagination: { last: 5 },
+        }, storage);
+
+        expect(result.items.length).toBe(5);
+        expect(result.pageInfo?.hasNextPage).toBe(false);
+        expect(result.pageInfo?.hasPrevPage).toBe(true);
+      });
+
+      test('includes pagination info in formatted output', async () => {
+        const result = await handleList({
+          pagination: { first: 5 },
+        }, storage);
+
+        expect(result.formatted_output).toContain('Showing 5 of 20 items');
+        expect(result.formatted_output).toContain('(more available)');
+      });
+    });
+
+    describe('backward compatibility', () => {
+      beforeEach(async () => {
+        await storage.append({
+          id: 1,
+          decision: 'Item 1',
+          context: '',
+          status: 'pending',
+          tags: ['tag1'],
+          priority: 'high',
+          created_at: '2025-01-01T00:00:00Z',
+          updated_at: '2025-01-01T00:00:00Z',
+        });
+
+        await storage.append({
+          id: 2,
+          decision: 'Item 2',
+          context: '',
+          status: 'done',
+          tags: ['tag2'],
+          priority: 'low',
+          created_at: '2025-01-02T00:00:00Z',
+          updated_at: '2025-01-02T00:00:00Z',
+        });
+      });
+
+      test('legacy status filter still works', async () => {
+        const result = await handleList({ status: 'pending' }, storage);
+
+        expect(result.items.length).toBe(1);
+        expect(result.items[0].id).toBe(1);
+      });
+
+      test('legacy priority filter still works', async () => {
+        const result = await handleList({ priority: 'high' }, storage);
+
+        expect(result.items.length).toBe(1);
+        expect(result.items[0].id).toBe(1);
+      });
+
+      test('legacy tags filter still works', async () => {
+        const result = await handleList({ tags: ['tag1'] }, storage);
+
+        expect(result.items.length).toBe(1);
+        expect(result.items[0].id).toBe(1);
+      });
+
+      test('legacy limit still works', async () => {
+        const result = await handleList({ limit: 1 }, storage);
+
+        expect(result.items.length).toBe(1);
+      });
+
+      test('can mix legacy and advanced filters', async () => {
+        const result = await handleList({
+          status: 'pending',
+          filters: {
+            priority: { eq: 'high' },
+          },
+        }, storage);
+
+        expect(result.items.length).toBe(1);
+        expect(result.items[0].id).toBe(1);
+      });
+    });
+  });
 });

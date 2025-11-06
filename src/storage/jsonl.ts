@@ -79,6 +79,39 @@ export class JSONLStorage implements Storage {
     });
   }
 
+  async delete(id: number): Promise<void> {
+    await this.withLock(async () => {
+      const items = await this.readAll();
+      const index = items.findIndex((i) => i.id === id);
+
+      if (index === -1) {
+        throw new Error(`Item #${id} not found`);
+      }
+
+      // Remove item from array
+      const filteredItems = items.filter((i) => i.id !== id);
+
+      // Atomic write: write to temp file, then rename
+      const tempFile = `${this.itemsFile}.tmp.${process.pid}`;
+      try {
+        await fs.writeFile(
+          tempFile,
+          filteredItems.map((i) => JSON.stringify(i)).join('\n') + '\n'
+        );
+
+        // Atomic rename (single syscall)
+        await fs.rename(tempFile, this.itemsFile);
+
+        // Ensure proper permissions
+        await this.setSecurePermissions();
+      } catch (error) {
+        // Clean up temp file on error
+        await fs.unlink(tempFile).catch(() => {});
+        throw error;
+      }
+    });
+  }
+
   async getNextId(): Promise<number> {
     const items = await this.readAll();
     if (items.length === 0) return 1;

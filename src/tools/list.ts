@@ -1,5 +1,9 @@
-import type { ListArgs, DeferredItem } from '../types.js';
+import type { ListArgs, DeferredItem, PageInfo } from '../types.js';
 import type { Storage } from '../storage/interface.js';
+import { applyFilters, applySorting, paginateResults } from '../utils/query.js';
+import { createLogger } from '../utils/logger.js';
+
+const log = createLogger('later:list');
 
 export interface ListResult {
   success: boolean;
@@ -9,6 +13,7 @@ export interface ListResult {
   formatted_output?: string;
   message?: string;
   error?: string;
+  pageInfo?: PageInfo; // Phase 2: Pagination info
 }
 
 const STATUS_ICONS: Record<DeferredItem['status'], string> = {
@@ -103,7 +108,8 @@ function filterItems(
 
 /**
  * Handles the later_list tool invocation
- * @param args - List arguments (filters)
+ * Phase 2: Enhanced with advanced filtering, sorting, and pagination
+ * @param args - List arguments (filters, sorting, pagination)
  * @param storage - Storage instance
  * @returns List result with items and formatted output
  */
@@ -111,34 +117,72 @@ export async function handleList(
   args: ListArgs,
   storage: Storage
 ): Promise<ListResult> {
+  const startTime = Date.now();
+
   try {
     // Read all items
-    const allItems = await storage.readAll();
+    let items = await storage.readAll();
+    const originalCount = items.length;
 
-    // Apply filters
-    let filtered = filterItems(allItems, args);
+    // Apply legacy filters (backward compatibility)
+    items = filterItems(items, args);
+    const afterLegacyFilter = items.length;
 
-    // Sort by created_at descending (newest first)
-    filtered.sort((a, b) => {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
-
-    const totalCount = filtered.length;
-
-    // Apply limit if specified
-    let showing = filtered;
-    if (args.limit && args.limit > 0) {
-      showing = filtered.slice(0, args.limit);
+    // Apply advanced filters (Phase 2)
+    if (args.filters) {
+      items = applyFilters(items, args.filters);
+      log.info('advanced_filters_applied', {
+        before: afterLegacyFilter,
+        after: items.length,
+      });
     }
 
-    // Handle empty results
-    if (totalCount === 0) {
+    const totalFiltered = items.length;
+
+    // Handle empty results early
+    if (totalFiltered === 0) {
+      const duration = Date.now() - startTime;
+      log.info('list_empty', {
+        original_count: originalCount,
+        duration_ms: duration,
+      });
+
       return {
         success: true,
         items: [],
         total_count: 0,
+        showing_count: 0,
         message: 'No items found matching the criteria',
       };
+    }
+
+    // Apply sorting (Phase 2)
+    const sortOptions = args.orderBy || [
+      { field: 'created_at', direction: 'DESC' },
+    ];
+    items = applySorting(items, sortOptions);
+
+    // Apply pagination (Phase 2)
+    let pageInfo: PageInfo | undefined;
+    let showing: DeferredItem[];
+
+    if (args.pagination) {
+      // Use cursor-based pagination
+      const paginated = paginateResults(items, args.pagination);
+      showing = paginated.items;
+      pageInfo = paginated.pageInfo;
+
+      log.info('pagination_applied', {
+        total_items: totalFiltered,
+        page_size: showing.length,
+        has_next: pageInfo.hasNextPage,
+        has_prev: pageInfo.hasPrevPage,
+      });
+    } else if (args.limit && args.limit > 0) {
+      // Legacy limit (backward compatibility)
+      showing = items.slice(0, args.limit);
+    } else {
+      showing = items;
     }
 
     // Format output
@@ -146,26 +190,48 @@ export async function handleList(
     let formattedOutput = lines.join('\n');
 
     // Add summary footer
-    if (args.limit && showing.length < totalCount) {
-      formattedOutput += `\n\nShowing ${showing.length} of ${totalCount} items`;
+    if (pageInfo) {
+      formattedOutput += `\n\nShowing ${showing.length} of ${totalFiltered} items`;
+      if (pageInfo.hasNextPage) {
+        formattedOutput += ' (more available)';
+      }
+    } else if (args.limit && showing.length < totalFiltered) {
+      formattedOutput += `\n\nShowing ${showing.length} of ${totalFiltered} items`;
     } else {
-      formattedOutput += `\n\nTotal: ${totalCount} item${totalCount === 1 ? '' : 's'}`;
+      formattedOutput += `\n\nTotal: ${totalFiltered} item${totalFiltered === 1 ? '' : 's'}`;
     }
+
+    const duration = Date.now() - startTime;
+    log.info('list_success', {
+      original_count: originalCount,
+      filtered_count: totalFiltered,
+      returned_count: showing.length,
+      duration_ms: duration,
+    });
 
     return {
       success: true,
       items: showing,
-      total_count: totalCount,
+      total_count: totalFiltered,
       showing_count: showing.length,
       formatted_output: formattedOutput,
-      message: `Found ${totalCount} item${totalCount === 1 ? '' : 's'}`,
+      message: `Found ${totalFiltered} item${totalFiltered === 1 ? '' : 's'}`,
+      pageInfo,
     };
   } catch (error) {
+    const duration = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    log.error('list_failed', {
+      error: errorMessage,
+      duration_ms: duration,
+    });
+
     return {
       success: false,
       items: [],
       total_count: 0,
-      error: `Failed to list items: ${(error as Error).message}`,
+      error: `Failed to list items: ${errorMessage}`,
     };
   }
 }
