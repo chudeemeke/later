@@ -4,6 +4,9 @@
   "description": "MCP server for /later - deferred decision management",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "later": "./bin/later"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
