@@ -93,4 +93,48 @@ describe('delete command handler', () => {
     expect(mockConsoleError).toHaveBeenCalled();
     expect(exitCode).toBe(1);
   });
+
+  it('should display warnings if present', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      message: 'Deleted item #5',
+      warnings: ['Warning: This item has dependencies', 'Warning: Check related items'],
+    });
+
+    const parsed = createParsedArgs(['5']);
+    const exitCode = await handleDelete(parsed, mockClient);
+
+    expect(mockConsoleLog).toHaveBeenCalledWith('Deleted item #5');
+    expect(mockConsoleLog).toHaveBeenCalledWith('⚠️  Warning: This item has dependencies');
+    expect(mockConsoleLog).toHaveBeenCalledWith('⚠️  Warning: Check related items');
+    expect(exitCode).toBe(0);
+  });
+
+  it('should handle empty warnings array', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      message: 'Deleted item #5',
+      warnings: [],
+    });
+
+    const parsed = createParsedArgs(['5']);
+    const exitCode = await handleDelete(parsed, mockClient);
+
+    // Should only log the success message
+    expect(mockConsoleLog).toHaveBeenCalledTimes(1);
+    expect(mockConsoleLog).toHaveBeenCalledWith('Deleted item #5');
+    expect(exitCode).toBe(0);
+  });
+
+  it('should handle non-Error exception', async () => {
+    mockClient.callTool.mockRejectedValue('String error');
+
+    const parsed = createParsedArgs(['5']);
+    const exitCode = await handleDelete(parsed, mockClient);
+
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Unknown error')
+    );
+    expect(exitCode).toBe(1);
+  });
 });

@@ -162,4 +162,103 @@ describe('update command handler', () => {
     });
     expect(exitCode).toBe(0);
   });
+
+  it('should update decision field', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      message: 'Item updated',
+    });
+
+    const parsed = createParsedArgs(['5'], { decision: 'New decision text' });
+    const exitCode = await handleUpdate(parsed, mockClient);
+
+    expect(mockClient.callTool).toHaveBeenCalledWith('later_update', {
+      id: 5,
+      decision: 'New decision text',
+    });
+    expect(exitCode).toBe(0);
+  });
+
+  it('should update context field', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      message: 'Item updated',
+    });
+
+    const parsed = createParsedArgs(['5'], { context: 'New context' });
+    const exitCode = await handleUpdate(parsed, mockClient);
+
+    expect(mockClient.callTool).toHaveBeenCalledWith('later_update', {
+      id: 5,
+      context: 'New context',
+    });
+    expect(exitCode).toBe(0);
+  });
+
+  it('should update status field', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      message: 'Item updated',
+    });
+
+    const parsed = createParsedArgs(['5'], { status: 'done' });
+    const exitCode = await handleUpdate(parsed, mockClient);
+
+    expect(mockClient.callTool).toHaveBeenCalledWith('later_update', {
+      id: 5,
+      status: 'done',
+    });
+    expect(exitCode).toBe(0);
+  });
+
+  it('should display warnings if present', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      message: 'Item updated',
+      warnings: ['Warning: Invalid transition', 'Warning: Check dependencies'],
+    });
+
+    const parsed = createParsedArgs(['5'], { priority: 'high' });
+    const exitCode = await handleUpdate(parsed, mockClient);
+
+    expect(mockConsoleLog).toHaveBeenCalledWith('Item updated');
+    expect(mockConsoleLog).toHaveBeenCalledWith('⚠️  Warning: Invalid transition');
+    expect(mockConsoleLog).toHaveBeenCalledWith('⚠️  Warning: Check dependencies');
+    expect(exitCode).toBe(0);
+  });
+
+  it('should handle empty warnings array', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      message: 'Item updated',
+      warnings: [],
+    });
+
+    const parsed = createParsedArgs(['5'], { priority: 'high' });
+    const exitCode = await handleUpdate(parsed, mockClient);
+
+    expect(mockConsoleLog).toHaveBeenCalledTimes(1);
+    expect(mockConsoleLog).toHaveBeenCalledWith('Item updated');
+    expect(exitCode).toBe(0);
+  });
+
+  it('should handle non-Error exception', async () => {
+    mockClient.callTool.mockRejectedValue('String error');
+
+    const parsed = createParsedArgs(['5'], { priority: 'high' });
+    const exitCode = await handleUpdate(parsed, mockClient);
+
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Unknown error')
+    );
+    expect(exitCode).toBe(1);
+  });
+
+  it('should throw error for invalid dependency ID', async () => {
+    const parsed = createParsedArgs(['5'], { deps: ['1', 'invalid', '3'] });
+
+    await expect(async () => {
+      await handleUpdate(parsed, mockClient);
+    }).rejects.toThrow('Invalid dependency ID: invalid');
+  });
 });
