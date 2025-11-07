@@ -307,6 +307,18 @@ describe('CLI Orchestration', () => {
       expect(mockStderr.join('')).toContain('No subcommand provided');
     });
 
+    it('should error when only flags are provided without subcommand', async () => {
+      deps.argv = ['--json']; // Only global flags, no subcommand
+
+      const cli = new CLI(deps);
+      const exitCode = await cli.run();
+
+      expect(exitCode).toBe(1);
+      const stderrOutput = mockStderr.join('');
+      // Parser will return error for no subcommand
+      expect(stderrOutput).toContain('No subcommand provided');
+    });
+
     it('should show help tip for subcommand errors', async () => {
       deps.argv = ['capture']; // Missing argument
 
@@ -340,6 +352,28 @@ describe('CLI Orchestration', () => {
 
       expect(exitCode).toBe(2);
       expect(mockStderr.join('')).toContain('Unexpected error');
+    });
+
+    it('should handle CliError with proper formatting', async () => {
+      const { CliError, ExitCode } = await import('../../src/cli/errors.js');
+
+      deps.argv = ['list'];
+
+      // Mock client factory to throw CliError
+      (deps.createMcpClient as any) = jest.fn(() => {
+        throw new CliError(
+          'Test CLI error',
+          ExitCode.USER_ERROR,
+          'Try running with --help'
+        );
+      });
+
+      const cli = new CLI(deps);
+      const exitCode = await cli.run();
+
+      expect(exitCode).toBe(1); // USER_ERROR maps to exit code 1
+      const stderrOutput = mockStderr.join('');
+      expect(stderrOutput).toContain('Test CLI error');
     });
   });
 

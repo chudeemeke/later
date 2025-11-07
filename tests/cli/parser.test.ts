@@ -367,5 +367,55 @@ describe('CLI Argument Parser', () => {
       expect(result.globalFlags?.debug).toBe(true);
       expect(result.globalFlags?.noColor).toBe(true);
     });
+
+    it('should handle unknown short flags', () => {
+      const result = parseArgs(['capture', 'Decision', '-x']); // -x is not a valid short flag
+
+      expect(result.errors).toContain('Unknown flag: -x');
+    });
+
+    it('should handle boolean short flags', () => {
+      const result = parseArgs(['delete', '1', '--hard']);
+
+      expect(result.flags?.hard).toBe(true);
+    });
+
+    it('should error when short flag is missing value', () => {
+      const result = parseArgs(['capture', 'Decision', '-p']); // -p requires a value
+
+      expect(result.errors).toContain('Flag -p requires a value');
+    });
+
+    it('should error when short flag value is another flag', () => {
+      const result = parseArgs(['capture', 'Decision', '-p', '--tags']);
+
+      expect(result.errors).toContain('Flag -p requires a value');
+    });
+  });
+
+  describe('required flag validation', () => {
+    it('should detect missing required flags', async () => {
+      // Import the module dynamically to modify the schema
+      const parserModule = await import('../../src/cli/parser.js');
+      const { commandSchemas } = parserModule;
+      const originalSchema = { ...commandSchemas.capture };
+
+      // Add a required flag for testing
+      commandSchemas.capture.flags = {
+        ...commandSchemas.capture.flags,
+        requiredTest: {
+          type: 'string',
+          description: 'Required test flag',
+          required: true,
+        },
+      };
+
+      const result = parseArgs(['capture', 'Decision']);
+
+      // Restore original schema
+      commandSchemas.capture = originalSchema;
+
+      expect(result.errors.some(e => e.includes('Required flag'))).toBe(true);
+    });
   });
 });
