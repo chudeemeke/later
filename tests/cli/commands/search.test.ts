@@ -230,4 +230,87 @@ describe('search command handler', () => {
     const output = mockConsoleLog.mock.calls[0][0];
     expect(typeof output).toBe('string');
   });
+
+  it('should transform results with matchedFields for table display', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      results: [
+        {
+          item: { id: 1, decision: 'Test decision', status: 'pending', priority: 'high', tags: [] },
+          score: 0.95,
+          matches: { decision: 2, context: 1 },  // Multiple matched fields
+        },
+      ],
+    });
+
+    const parsed = createParsedArgs(['test']);
+
+    const exitCode = await handleSearch(parsed, mockClient);
+
+    expect(exitCode).toBe(0);
+    expect(mockConsoleLog).toHaveBeenCalled();
+  });
+
+  it('should handle result with undefined error field', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: false,
+      // No error field - should use default message
+    });
+
+    const parsed = createParsedArgs(['test']);
+
+    await expect(async () => {
+      await handleSearch(parsed, mockClient);
+    }).rejects.toThrow('Search failed');
+  });
+
+  it('should handle non-Error exceptions', async () => {
+    mockClient.callTool.mockRejectedValue('String error');  // Not an Error object
+
+    const parsed = createParsedArgs(['test']);
+    const exitCode = await handleSearch(parsed, mockClient);
+
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Unknown error')
+    );
+    expect(exitCode).toBe(1);
+  });
+
+  it('should handle results with empty matches object', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      results: [
+        {
+          item: { id: 1, decision: 'Test', status: 'pending', priority: 'high', tags: [] },
+          score: 0.5,
+          matches: {},  // Empty matches
+        },
+      ],
+    });
+
+    const parsed = createParsedArgs(['test']);
+
+    const exitCode = await handleSearch(parsed, mockClient);
+
+    expect(exitCode).toBe(0);
+  });
+
+  it('should handle results with undefined matches', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      results: [
+        {
+          item: { id: 1, decision: 'Test', status: 'pending', priority: 'high', tags: [] },
+          score: 0.5,
+          // No matches field
+        },
+      ],
+    });
+
+    const parsed = createParsedArgs(['test']);
+
+    const exitCode = await handleSearch(parsed, mockClient);
+
+    expect(exitCode).toBe(0);
+  });
 });

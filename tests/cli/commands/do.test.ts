@@ -111,4 +111,26 @@ describe('do command handler', () => {
     expect(mockConsoleLog).toHaveBeenCalledWith('Warning: This item has dependencies');
     expect(exitCode).toBe(0);
   });
+
+  it('should use default error message when result.error is undefined', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: false,
+      // No error field
+    });
+
+    await expect(async () => {
+      await handleDo(['999'], mockClient);
+    }).rejects.toThrow('Item #999 not found');
+  });
+
+  it('should handle non-Error exceptions', async () => {
+    mockClient.callTool.mockRejectedValue('String error');  // Not an Error object
+
+    const exitCode = await handleDo(['1'], mockClient);
+
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Unknown error')
+    );
+    expect(exitCode).toBe(1);
+  });
 });
