@@ -1,0 +1,463 @@
+COMPREHENSIVE PROMPT: Implement Production-Ready CLI for /later (All Phases)
+
+I need you to implement a PRODUCTION-READY CLI for the /later project, following the same quality standards as the V1.0.0 MCP server (99% test coverage, comprehensive error handling, production-grade).
+
+**Project Context:**
+- Repository: https://github.com/chudeemeke/later
+- Current Status: Production MCP server V1.0.0 with 9 tools, 99% test coverage
+- Goal: Add CLI as thin client over MCP server, achieving production-ready status
+- Quality Bar: Same as MCP V1.0.0 - ready for real-world use
+
+**Implementation Plan:**
+Read the COMPLETE plan here (all phases documented):
+https://raw.githubusercontent.com/chudeemeke/later/main/docs/cli/implementation-plan.md
+
+**Project Guidelines:**
+Read WoW compliance requirements:
+https://raw.githubusercontent.com/chudeemeke/later/main/CLAUDE.md
+
+**Complete Implementation Scope (Phases 1-3):**
+
+## Phase 1: MVP Foundation (1-2 days)
+
+Implement core infrastructure:
+
+1. **MCP Client** (`src/cli/mcp-client.ts`)
+   - Spawn MCP server via stdio
+   - JSON-RPC communication with @modelcontextprotocol/sdk
+   - Connection management (connect, close)
+   - Timeout handling (5s default, configurable)
+   - Error parsing (validation, tool not found, timeout)
+   - Debug logging support
+
+2. **Argument Parser** (`src/cli/parser.ts`)
+   - Parse argv into structured ParsedArgs
+   - Extract subcommand, positional args, flags
+   - Global flags (--help, --version, --json, --debug, --no-color)
+   - Type definitions (ParsedArgs interface)
+
+3. **Command Handlers** (`src/cli/commands/`)
+   - capture.ts - Basic capture (decision only)
+   - list.ts - List all items (no filters)
+   - show.ts - Show by ID
+
+4. **Main Entry Point** (`src/cli/cli.ts`)
+   - Subcommand routing
+   - Error handling with try/catch
+   - Exit codes (0=success, 1=user error, 2=system error)
+   - MCP client lifecycle (connect → execute → close)
+
+5. **Basic Output** (`src/cli/output/formatter.ts`)
+   - Plain text formatter interface
+   - Success messages
+   - Simple item display
+
+6. **Executable** (`bin/later`)
+   - Node shebang (#!/usr/bin/env node)
+   - Require compiled CLI
+
+**Phase 1 Deliverables:**
+- ✅ Working: `later capture "text"`, `later list`, `later show 5`
+- ✅ MCP communication functional
+- ✅ Basic error handling
+
+## Phase 2: Full Feature Parity (2-3 days)
+
+Implement all features:
+
+1. **Enhanced Parser** (`src/cli/parser.ts`)
+   - Schema-based validation (ArgSchema interface)
+   - Type coercion (string → number, CSV → array)
+   - Enum validation (status, priority values)
+   - Required/optional argument checking
+   - Shorthand flag support (-p for --priority)
+
+2. **All Command Handlers** (`src/cli/commands/`)
+   - capture.ts - Full flags (--context, --priority, --tags, -c, -p)
+   - list.ts - Filters (--status, --priority, --tags, --limit)
+   - show.ts - ID with error handling
+   - do.ts - Start working (convert to todos)
+   - update.ts - Full update (--decision, --context, --status, --priority, --tags, --add-tags, --remove-tags, --deps)
+   - delete.ts - Soft/hard delete (--hard flag)
+   - bulk-update.ts - Batch updates (ids + options)
+   - bulk-delete.ts - Batch deletes (ids + --hard)
+   - search.ts - Full-text search (--fields, --limit, --min-score)
+
+3. **Help System** (`src/cli/help.ts`)
+   - HelpGenerator class
+   - Main help (later --help)
+   - Subcommand help (later capture --help)
+   - Subcommand schemas (all 9 commands)
+   - Usage examples in help text
+
+4. **Error Handling** (`src/cli/errors.ts`)
+   - Error classes (CliError, UserError, SystemError)
+   - Exit codes enum (SUCCESS=0, USER_ERROR=1, SYSTEM_ERROR=2)
+   - ErrorFormatter with tips and context
+   - User-friendly error messages
+
+5. **JSON Output** (`src/cli/output/json-formatter.ts`)
+   - JSON formatter implementation
+   - All format methods (capture, list, show, do, search, update, delete, bulk)
+
+6. **Global Flags**
+   - --help (context-aware, shows main or subcommand help)
+   - --version (shows CLI + MCP server versions)
+   - --json (switches to JSON output)
+   - --debug (enables debug logging)
+
+**Phase 2 Deliverables:**
+- ✅ All 9 subcommands working with full flags
+- ✅ Help system complete (main + all subcommands)
+- ✅ JSON output mode functional
+- ✅ Structured error handling with exit codes
+
+## Phase 3: Production-Grade UX (2-3 days)
+
+Polish to production quality:
+
+1. **Table Formatter** (`src/cli/output/table-formatter.ts`)
+   - cli-table3 integration
+   - Color-coded output (chalk)
+   - Status/priority color mapping
+   - Text truncation for long content
+   - Date formatting (ISO → human-readable)
+   - All format methods implemented
+
+2. **Color Support** (`src/cli/output/colors.ts`)
+   - ColorSupport.isSupported() detection
+   - Check NO_COLOR, FORCE_COLOR env vars
+   - TTY detection (disable if pipe/redirect)
+   - TERM env var check
+   - Graceful degradation
+
+3. **Enhanced Help** (`src/cli/help.ts`)
+   - Rich help text with formatting
+   - Examples for all commands
+   - Argument descriptions
+   - Flag descriptions with defaults
+   - Error context help (shown on errors)
+
+4. **Enhanced Errors** (`src/cli/errors.ts`)
+   - Error formatting with icons
+   - Actionable tips
+   - Context-aware suggestions
+   - Color-coded error messages
+   - Global error handlers (uncaughtException, unhandledRejection)
+
+5. **Configuration** (`src/cli/config.ts`)
+   - ConfigLoader class
+   - Config file (~/.later/cli-config.json)
+   - Environment variable support
+   - Precedence: flags > env vars > config > defaults
+   - Default config generation
+
+6. **Progress Indicators**
+   - Spinner for long operations (ora)
+   - Search progress indication
+   - Success/failure messages
+
+7. **Enhanced MCP Client** (`src/cli/mcp-client.ts`)
+   - Version compatibility check
+   - Server availability check (McpClient.isAvailable())
+   - Better timeout messages
+   - Debug mode output formatting
+
+**Phase 3 Deliverables:**
+- ✅ Beautiful table output with colors
+- ✅ Auto-detection of color support
+- ✅ Config file + env var support
+- ✅ Professional error messages with tips
+- ✅ Progress indicators for long operations
+
+## Testing Requirements (Throughout All Phases)
+
+**Unit Tests** (`tests/cli/unit/`)
+- parser.test.ts - 100% coverage
+  - Parse subcommands, args, flags
+  - Global flags parsing
+  - Type coercion (numbers, arrays)
+  - Enum validation
+  - Error cases
+
+- formatter.test.ts - 95% coverage
+  - Table formatter (all format methods)
+  - JSON formatter (all format methods)
+  - Text truncation
+  - Date formatting
+  - Color handling (with/without colors)
+
+- errors.test.ts - 100% coverage
+  - Error classes (UserError, SystemError)
+  - ErrorFormatter.format()
+  - Exit code mapping
+  - Tip generation
+
+- help.test.ts - 90% coverage
+  - Main help generation
+  - Subcommand help generation
+  - Schema-driven help
+
+- config.test.ts - 95% coverage
+  - Config loading
+  - Environment variable override
+  - Precedence rules
+  - Default config generation
+
+**Integration Tests** (`tests/cli/integration/`)
+- All 9 command tests (capture, list, show, do, update, delete, bulk-update, bulk-delete, search)
+- Each test verifies:
+  - Happy path (command succeeds)
+  - Error cases (validation failures, item not found)
+  - Flag combinations
+  - Output format (text vs JSON)
+
+**E2E Tests** (`tests/cli/e2e/`)
+- workflows.test.ts
+  - Full workflow: capture → list → show → do
+  - Search workflow
+  - Bulk operations workflow
+  - Error handling workflow
+
+- edge-cases.test.ts
+  - Large datasets
+  - Special characters in decision text
+  - Concurrent operations
+  - MCP server unavailable scenarios
+
+**Mock MCP Server** (`tests/cli/fixtures/mock-server.ts`)
+- Implements all 9 tools
+- In-memory storage
+- Controllable responses
+- Error injection for testing
+
+**Coverage Target:** 90% overall code coverage
+
+## Package Configuration
+
+**Update package.json:**
+```json
+{
+  "bin": {
+    "later": "./bin/later"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:cli": "tsc --project tsconfig.cli.json",
+    "test": "vitest run",
+    "test:cli": "vitest run tests/cli",
+    "test:coverage": "vitest run --coverage",
+    "install:cli": "npm run build:cli && npm link"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "chalk": "^5.0.0",
+    "cli-table3": "^0.6.3",
+    "ora": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0"
+  }
+}
+```
+
+**Create tsconfig.cli.json:**
+```json
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/cli/**/*"],
+  "exclude": ["tests"]
+}
+```
+
+## Documentation Requirements
+
+**Create in docs/cli/:**
+
+1. **README.md** - CLI user guide
+   - Installation instructions
+   - Quick start
+   - Command overview
+   - Global flags
+   - Configuration
+
+2. **commands.md** - Command reference
+   - All 9 commands documented
+   - Every flag explained
+   - Examples for each command
+   - Error scenarios
+
+3. **installation.md** - Installation guide
+   - npm global install
+   - npm link (development)
+   - Manual symlink
+   - Verification steps
+   - Troubleshooting
+
+4. **examples.md** - Usage examples
+   - Common workflows
+   - Advanced usage
+   - Scripting examples
+   - Integration with MCP
+
+**Update existing docs:**
+- README.md - Add CLI section
+- CHANGELOG.md - Document CLI addition
+- CLAUDE.md - Update with CLI info (if needed)
+
+## Production-Ready Criteria (Must Meet All)
+
+**Functionality:**
+- ✅ All 9 subcommands working with full flags
+- ✅ Help system complete (main + subcommand)
+- ✅ Both output modes working (table, JSON)
+- ✅ Configuration management working
+- ✅ All error cases handled gracefully
+
+**Quality:**
+- ✅ 90% test coverage (unit + integration + e2e)
+- ✅ All tests passing
+- ✅ No breaking changes to MCP server
+- ✅ Zero business logic duplication (thin client verified)
+
+**User Experience:**
+- ✅ Beautiful output (tables, colors)
+- ✅ Helpful error messages with tips
+- ✅ Progress indicators for long operations
+- ✅ Auto-detection of terminal capabilities
+
+**Documentation:**
+- ✅ Complete CLI user guide
+- ✅ All commands documented
+- ✅ Installation guide
+- ✅ Examples provided
+- ✅ README.md updated
+
+**Installation:**
+- ✅ Installable via npm global install
+- ✅ Works with npm link (development)
+- ✅ bin/later executable setup
+- ✅ Version compatibility check
+
+**Integration:**
+- ✅ MCP server unchanged
+- ✅ Both CLI and MCP work concurrently
+- ✅ Shared storage (~/.later/items.jsonl)
+- ✅ No conflicts
+
+## Critical Constraints (MUST FOLLOW)
+
+**Architecture:**
+- ❌ NEVER import src/storage/, src/validation/, or src/tools/
+- ✅ ALWAYS delegate to MCP server via McpClient
+- ✅ CLI is pure adapter - zero business logic
+- ✅ All validation happens at MCP layer (except argument parsing)
+
+**Code Quality:**
+- ✅ Follow WoW file structure (src/cli/, tests/cli/, docs/cli/)
+- ✅ One file = one responsibility
+- ✅ TypeScript strict mode
+- ✅ No emojis in code/commits (per WoW)
+- ✅ Professional commit messages
+
+**Testing:**
+- ✅ Follow TDD where practical
+- ✅ Write tests before implementation (RED → GREEN → REFACTOR)
+- ✅ 90% coverage minimum
+- ✅ Test all error cases
+
+**Git:**
+- ✅ Author: Chude <chude@emeke.org>
+- ✅ No Claude references in commits
+- ✅ Clean, professional commit messages
+
+## Implementation Order
+
+**Recommended approach:**
+
+1. **Start with infrastructure** (Phase 1)
+   - MCP client first (foundation)
+   - Parser second (needed by all commands)
+   - Basic formatter third
+   - Three command handlers (capture, list, show)
+   - Wire together in cli.ts
+   - Test manually
+
+2. **Add all features** (Phase 2)
+   - Enhanced parser with validation
+   - Remaining 6 command handlers
+   - Help system
+   - Error handling
+   - JSON formatter
+   - Write integration tests
+
+3. **Polish to production** (Phase 3)
+   - Table formatter with colors
+   - Enhanced help with examples
+   - Enhanced errors with tips
+   - Configuration management
+   - Progress indicators
+   - Complete documentation
+   - Achieve 90% test coverage
+
+4. **Verify production-ready**
+   - All criteria met (checklist above)
+   - Manual testing of all workflows
+   - README updated
+   - CHANGELOG updated
+
+## Expected Timeline
+
+- Phase 1 (MVP): 1-2 days
+- Phase 2 (Full Parity): 2-3 days
+- Phase 3 (Production Polish): 2-3 days
+- **Total: 6-9 days to production-ready**
+
+## Starting Point
+
+**First steps:**
+
+1. Read implementation plan thoroughly:
+   https://raw.githubusercontent.com/chudeemeke/later/main/docs/cli/implementation-plan.md
+
+2. Read project guidelines:
+   https://raw.githubusercontent.com/chudeemeke/later/main/CLAUDE.md
+
+3. Create directory structure:
+   ```bash
+   mkdir -p src/cli/commands src/cli/output
+   mkdir -p tests/cli/unit tests/cli/integration tests/cli/e2e tests/cli/fixtures
+   mkdir -p docs/cli
+   mkdir -p bin
+   ```
+
+4. Install dependencies:
+   ```bash
+   npm install @modelcontextprotocol/sdk chalk cli-table3 ora
+   npm install -D @types/node vitest @vitest/coverage-v8
+   ```
+
+5. Start with McpClient implementation (foundation)
+
+6. Follow TDD - write tests, make them pass, refactor
+
+7. Track progress - mark off items from production-ready criteria
+
+## When You're Done
+
+Verify all criteria met, then respond with:
+
+"CLI implementation complete. Production-ready status achieved:
+- ✅ All 9 commands working
+- ✅ 90%+ test coverage
+- ✅ Complete documentation
+- ✅ Ready for npm install -g"
+
+Then create a summary commit and push to GitHub.
+
+---
+
+**Start by saying:** "I'll implement the production-ready CLI for /later, following the plan through all three phases to match the V1.0.0 MCP server quality bar..."

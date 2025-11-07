@@ -1,0 +1,77 @@
+I need you to implement Phase 1 (MVP) of the CLI for the /later project following the implementation plan.
+
+**Project Context:**
+- Repository: https://github.com/chudeemeke/later
+- This is a deferred decision management tool with a production MCP server (V1.0.0)
+- The CLI will be a thin client that delegates 100% to the existing MCP server
+- No business logic duplication - CLI is pure adapter
+
+**Implementation Plan:**
+Read the complete plan here:
+https://raw.githubusercontent.com/chudeemeke/later/main/docs/cli/implementation-plan.md
+
+**Project Guidelines:**
+Read the project CLAUDE.md for WoW compliance:
+https://raw.githubusercontent.com/chudeemeke/later/main/CLAUDE.md
+
+**Phase 1 MVP Scope (1-2 days):**
+Implement the following with minimal features:
+
+1. Basic MCP client (`src/cli/mcp-client.ts`)
+   - Spawn MCP server via stdio
+   - JSON-RPC communication
+   - Basic error handling
+
+2. Basic argument parser (`src/cli/parser.ts`)
+   - Manual argv parsing
+   - Extract subcommand and args
+   - No validation yet
+
+3. Three command handlers (`src/cli/commands/`):
+   - `capture.ts` - Capture decision (decision text only, no context/tags/priority)
+   - `list.ts` - List all items (no filters)
+   - `show.ts` - Show item by ID
+
+4. Main CLI entry point (`src/cli/cli.ts`)
+   - Route to command handlers
+   - Basic error handling
+   - Exit codes
+
+5. Executable setup (`bin/later`)
+   - Node shebang
+   - Require compiled CLI
+
+6. Basic output formatter (`src/cli/output/formatter.ts`)
+   - Plain text output (no tables/colors yet)
+   - Success messages
+   - Simple item display
+
+**Deliverables:**
+- Working: `later capture "text"`, `later list`, `later show 5`
+- No help system yet (Phase 2)
+- No flags/options yet (Phase 2)
+- No pretty output yet (Phase 3)
+
+**Critical Constraints:**
+- MUST follow thin client pattern (zero business logic in CLI)
+- MUST use TypeScript (matches MCP server)
+- MUST follow WoW file structure (src/cli/, tests/cli/)
+- MUST delegate 100% to MCP server via McpClient
+- MUST NOT import src/storage/, src/validation/, or src/tools/
+
+**Testing:**
+Write basic integration tests to verify:
+- CLI can spawn MCP server
+- Commands execute successfully
+- Output is displayed correctly
+
+**Start by:**
+1. Reading the implementation plan thoroughly
+2. Creating directory structure (src/cli/, tests/cli/, bin/)
+3. Implementing McpClient first (foundation)
+4. Then parser, then command handlers
+5. Finally, wire everything together in cli.ts
+
+Please follow TDD where practical and ensure all code follows the patterns documented in the implementation plan.
+
+When ready, start with: "I'll implement Phase 1 (MVP) of the CLI following the plan..."

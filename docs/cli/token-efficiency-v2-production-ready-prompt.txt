@@ -1,0 +1,1543 @@
+COMPREHENSIVE IMPLEMENTATION: Token-Efficient /later MCP Server (V2.0 Production + Market Ready)
+
+═══════════════════════════════════════════════════════════════════════════════
+CRITICAL: This is a COMPLETE implementation bringing /later from V1.0.0 to V2.0
+with orders of magnitude token efficiency gains. This is NOT a prototype or POC.
+This MUST be production AND market ready with 95%+ test coverage, 100% pass rate.
+═══════════════════════════════════════════════════════════════════════════════
+
+## Project Context
+
+**Repository:** https://github.com/chudeemeke/later
+**Current Version:** V1.0.0 (Production MCP server, 9 tools, 99% test coverage)
+**Target Version:** V2.0 (Token-efficient, progressive disclosure, PII protection)
+**Quality Bar:** Production + Market Ready (not just functional, but demonstrable value)
+
+**Source Analysis:**
+Read the complete token efficiency analysis:
+https://raw.githubusercontent.com/chudeemeke/later/main/docs/guides/mcp-code-execution-patterns-analysis.md
+
+**Source Blog:**
+Reference patterns from: https://www.anthropic.com/engineering/code-execution-with-mcp
+
+**Project Guidelines:**
+WoW compliance: https://raw.githubusercontent.com/chudeemeke/later/main/CLAUDE.md
+
+**Current Implementation Plan:**
+CLI plan (reference architecture): https://raw.githubusercontent.com/chudeemeke/later/main/docs/cli/implementation-plan.md
+
+## Executive Summary: What You're Building
+
+You are implementing a revolutionary upgrade to the /later MCP server that achieves:
+
+**Token Efficiency Gains:**
+- Simple operations: ~5,000 → ~500 tokens (90% reduction)
+- Complex operations: ~8,000 → ~800 tokens (90% reduction)
+- As tool count grows (9 → 25 tools): ~15,000 → ~1,500 tokens (90% reduction)
+
+**Security Enhancements:**
+- PII detection: 80% → 95%+ (automatic tokenization)
+- Zero sensitive data in model context
+- Deterministic security rules
+
+**Architectural Improvements:**
+- Filesystem-based tool organization
+- Progressive tool disclosure (load on-demand)
+- Skills library foundation (reusable workflows)
+- Backward compatible (existing usage unchanged)
+
+**Deliverables:**
+1. Token-efficient MCP server (V2.0)
+2. Updated CLI (inherits all efficiency gains)
+3. Comprehensive test suite (95%+ coverage, 100% pass rate)
+4. Performance benchmarks (measurable token savings)
+5. Production-ready deployment
+6. Market-ready demonstration
+
+## Critical Constraints (MUST FOLLOW)
+
+### 1. WoW Compliance
+- **ALWAYS** adhere to Ways of Working from CLAUDE.md
+- **NEVER** use emojis in code, commits, or documentation
+- **ALWAYS** use author: Chude <chude@emeke.org>
+- **NO** Claude references in commits
+- **ALWAYS** update CHANGELOG.md (central development log)
+
+### 2. Architecture Principles
+- **System thinking:** Big picture view, no hacky fixes
+- **SOLID principles:** Apply to every design decision
+- **Zero business logic duplication:** MCP server is SSOT
+- **Backward compatibility:** Existing V1.0.0 usage must work
+- **Edge cases:** Consider and test ALL edge cases
+- **Security is CORE:** Not an add-on, baked into design
+
+### 3. Quality Gates
+- **95%+ test coverage:** Meaningful tests, not just line coverage
+- **100% pass rate:** ALL tests must pass before completion
+- **All test types:** Unit, integration, E2E, security, performance
+- **Production tested:** Triple-check everything in production scenarios
+- **No breaking changes:** V1.0.0 functionality preserved
+
+### 4. Documentation Philosophy
+- **Don't proliferate:** Only create necessary documentation
+- **Industry standard:** Follow best practices (CHANGELOG, README, API docs)
+- **Stay current:** Documentation must not become outdated
+- **Historical value:** CHANGELOG tracks decision path
+
+### 5. File Management
+- **NO file suffixes:** Edit/update existing files instead of creating new
+- **Elevate elegance:** Only create new files if it improves architecture
+- **Organized structure:** Follow WoW file organization
+
+## Implementation Scope (Complete V2.0 Upgrade)
+
+### Phase 1: Foundation & Reorganization
+
+**Goal:** Prepare infrastructure for progressive disclosure
+
+**Tasks:**
+
+1. **Reorganize Tool Structure**
+   ```
+   src/
+   ├── index.ts                    # Main MCP server entry (update)
+   ├── tools/
+   │   ├── core/                   # NEW: Core operations
+   │   │   ├── capture.ts
+   │   │   ├── list.ts
+   │   │   ├── show.ts
+   │   │   └── index.ts
+   │   ├── workflow/               # NEW: Workflow operations
+   │   │   ├── do.ts
+   │   │   ├── update.ts
+   │   │   └── index.ts
+   │   ├── batch/                  # NEW: Batch operations
+   │   │   ├── bulk-update.ts
+   │   │   ├── bulk-delete.ts
+   │   │   └── index.ts
+   │   ├── search/                 # NEW: Search operations
+   │   │   ├── search.ts
+   │   │   └── index.ts
+   │   └── meta/                   # NEW: Meta-tools
+   │       ├── search-tools.ts     # Tool discovery
+   │       └── index.ts
+   ├── utils/
+   │   ├── pii-tokenization.ts     # NEW: PII detection & tokenization
+   │   └── token-metrics.ts        # NEW: Token usage tracking
+   └── types/
+       └── tool-metadata.ts        # NEW: Tool categorization types
+   ```
+
+2. **Move Existing Tools**
+   - Move capture.ts → tools/core/capture.ts
+   - Move list.ts → tools/core/list.ts
+   - Move show.ts → tools/core/show.ts
+   - Move do.ts → tools/workflow/do.ts
+   - Move update.ts → tools/workflow/update.ts
+   - Move delete.ts → tools/workflow/delete.ts
+   - Move bulk-update.ts → tools/batch/bulk-update.ts
+   - Move bulk-delete.ts → tools/batch/bulk-delete.ts
+   - Move search.ts → tools/search/search.ts
+
+3. **Add Tool Metadata**
+   ```typescript
+   // src/types/tool-metadata.ts
+   export interface ToolMetadata {
+     name: string;
+     category: 'core' | 'workflow' | 'batch' | 'search' | 'meta';
+     keywords: string[];
+     priority: number;
+     description: string;
+     schema: any;
+     hidden?: boolean;
+   }
+   ```
+
+4. **Update imports** in src/index.ts to reflect new structure
+
+**Testing:**
+- Verify all existing tests still pass
+- No breaking changes to V1.0.0 functionality
+- All 9 tools still work as before
+
+### Phase 2: Progressive Tool Disclosure
+
+**Goal:** Implement on-demand tool loading (98.7% token reduction)
+
+**Tasks:**
+
+1. **Implement search_tools Meta-Tool**
+   ```typescript
+   // src/tools/meta/search-tools.ts
+   import { z } from 'zod';
+   import { toolRegistry } from '../../registry';
+
+   const searchToolsSchema = z.object({
+     query: z.string().describe('Natural language description of desired operation'),
+     detail: z.enum(['brief', 'full']).default('brief')
+       .describe('Level of detail: brief (names only) or full (complete schemas)')
+   });
+
+   export async function searchTools(args: z.infer<typeof searchToolsSchema>) {
+     const { query, detail } = args;
+
+     // Score tools based on keyword matching
+     const scored = toolRegistry.tools
+       .filter(t => !t.hidden)
+       .map(tool => ({
+         ...tool,
+         score: calculateRelevance(query, tool)
+       }))
+       .filter(t => t.score > 0)
+       .sort((a, b) => b.score - a.score)
+       .slice(0, 5);
+
+     if (detail === 'brief') {
+       return scored.map(t => ({
+         name: t.name,
+         category: t.category,
+         description: t.description
+       }));
+     } else {
+       return scored.map(t => ({
+         name: t.name,
+         category: t.category,
+         description: t.description,
+         schema: t.schema
+       }));
+     }
+   }
+
+   function calculateRelevance(query: string, tool: ToolMetadata): number {
+     const queryLower = query.toLowerCase();
+     let score = 0;
+
+     // Keyword matching
+     score += tool.keywords.filter(kw =>
+       queryLower.includes(kw.toLowerCase())
+     ).length * tool.priority;
+
+     // Name matching
+     if (queryLower.includes(tool.name.toLowerCase())) {
+       score += 10;
+     }
+
+     // Description matching
+     if (tool.description.toLowerCase().includes(queryLower)) {
+       score += 5;
+     }
+
+     return score;
+   }
+   ```
+
+2. **Create Tool Registry**
+   ```typescript
+   // src/registry.ts
+   import { ToolMetadata } from './types/tool-metadata';
+
+   class ToolRegistry {
+     private tools: Map<string, ToolMetadata> = new Map();
+
+     register(tool: ToolMetadata) {
+       this.tools.set(tool.name, tool);
+     }
+
+     get(name: string): ToolMetadata | undefined {
+       return this.tools.get(name);
+     }
+
+     getAll(): ToolMetadata[] {
+       return Array.from(this.tools.values());
+     }
+
+     getByCategory(category: string): ToolMetadata[] {
+       return this.getAll().filter(t => t.category === category);
+     }
+   }
+
+   export const toolRegistry = new ToolRegistry();
+   ```
+
+3. **Register Tools with Metadata**
+   ```typescript
+   // src/tools/core/index.ts
+   import { toolRegistry } from '../../registry';
+   import * as capture from './capture';
+   import * as list from './list';
+   import * as show from './show';
+
+   toolRegistry.register({
+     name: 'later_capture',
+     category: 'core',
+     keywords: ['create', 'add', 'capture', 'defer', 'save', 'new'],
+     priority: 1,
+     description: 'Capture a new deferred decision',
+     schema: capture.schema
+   });
+
+   // ... register list, show
+   ```
+
+4. **Update MCP Server to Support Progressive Disclosure**
+   ```typescript
+   // src/index.ts
+   import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+   import { toolRegistry } from './registry';
+   import { searchTools } from './tools/meta/search-tools';
+
+   const server = new Server({
+     name: 'later',
+     version: '2.0.0'
+   }, {
+     capabilities: {
+       tools: {}
+     }
+   });
+
+   // Register only search_tools initially (progressive disclosure)
+   server.setRequestHandler('tools/list', async () => ({
+     tools: [{
+       name: 'search_tools',
+       description: 'Discover and load tools on-demand based on your needs',
+       inputSchema: searchTools.schema
+     }]
+   }));
+
+   // Dynamic tool loading
+   server.setRequestHandler('tools/call', async (request) => {
+     const { name, arguments: args } = request.params;
+
+     if (name === 'search_tools') {
+       return await searchTools(args);
+     }
+
+     // Load tool dynamically
+     const toolMeta = toolRegistry.get(name);
+     if (!toolMeta) {
+       throw new Error(`Tool not found: ${name}`);
+     }
+
+     // Import and execute tool
+     const tool = await import(`./tools/${toolMeta.category}/${name.replace('later_', '')}`);
+     return await tool.execute(args);
+   });
+   ```
+
+**Testing:**
+- Unit tests for search_tools (keyword matching, scoring)
+- Integration tests for dynamic tool loading
+- Verify only search_tools in initial tool list
+- Verify tools load correctly when called
+- Performance tests (measure token savings)
+
+### Phase 3: PII Tokenization
+
+**Goal:** Implement automatic PII detection and tokenization (95%+ detection, zero sensitive data exposure)
+
+**Tasks:**
+
+1. **Implement PII Detection**
+   ```typescript
+   // src/utils/pii-tokenization.ts
+   import crypto from 'crypto';
+
+   const PII_PATTERNS = {
+     apiKey: /\b(sk-[a-zA-Z0-9]{32,}|ghp_[a-zA-Z0-9]{36}|api[_-]?key[:\s=]+[^\s]{20,})\b/gi,
+     password: /\b(password|passwd|pwd|secret)[:\s=]+[^\s]{6,}\b/gi,
+     ssn: /\b\d{3}-\d{2}-\d{4}\b/g,
+     creditCard: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
+     email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+     ipAddress: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g,
+     phoneNumber: /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g,
+     money: /\$\d{1,3}(,\d{3})*(\.\d{2})?/g,
+     dbHost: /\b(host|server|hostname)[:\s=]+[^\s]+\b/gi,
+     dbUser: /\b(user|username)[:\s=]+[^\s]+\b/gi,
+     url: /\b(https?:\/\/[^\s]+)\b/g
+   };
+
+   export interface TokenizedData {
+     text: string;
+     tokens: Record<string, string>;
+     detectedTypes: Record<string, number>;
+   }
+
+   export function tokenize(text: string, options?: {
+     sensitive?: boolean;  // More aggressive detection
+     preserveUrls?: boolean;
+   }): TokenizedData {
+     let tokenized = text;
+     const tokens: Record<string, string> = {};
+     const detectedTypes: Record<string, number> = {};
+     let tokenCounter = 1;
+
+     for (const [type, pattern] of Object.entries(PII_PATTERNS)) {
+       // Skip URLs if preserveUrls is true
+       if (options?.preserveUrls && type === 'url') continue;
+
+       // More aggressive for email, phone in sensitive mode
+       if (options?.sensitive && ['email', 'phoneNumber'].includes(type)) {
+         // Enhanced detection logic
+       }
+
+       tokenized = tokenized.replace(pattern, (match) => {
+         const tokenId = `PII_TOKEN_${tokenCounter++}`;
+         tokens[tokenId] = match;
+         detectedTypes[type] = (detectedTypes[type] || 0) + 1;
+         return `[${tokenId}]`;
+       });
+     }
+
+     return { text: tokenized, tokens, detectedTypes };
+   }
+
+   export function detokenize(tokenized: TokenizedData): string {
+     let text = tokenized.text;
+
+     for (const [tokenId, value] of Object.entries(tokenized.tokens)) {
+       text = text.replace(`[${tokenId}]`, value);
+     }
+
+     return text;
+   }
+
+   export function sanitizeForModel(text: string): TokenizedData {
+     return tokenize(text, { sensitive: true });
+   }
+   ```
+
+2. **Integrate PII Tokenization in Tools**
+   ```typescript
+   // src/tools/core/capture.ts
+   import { tokenize, detokenize } from '../../utils/pii-tokenization';
+
+   export async function execute(args: CaptureArgs) {
+     // Tokenize context before storage
+     const tokenizedContext = args.context ?
+       tokenize(args.context, { sensitive: true }) : null;
+
+     const item = {
+       id: generateId(),
+       decision: args.decision,
+       context: tokenizedContext?.text,
+       context_tokens: tokenizedContext?.tokens,
+       context_pii_types: tokenizedContext?.detectedTypes,
+       priority: args.priority || 'medium',
+       tags: args.tags || [],
+       created_at: new Date().toISOString(),
+       updated_at: new Date().toISOString()
+     };
+
+     await storage.append(item);
+
+     // Return detokenized version to user
+     return {
+       success: true,
+       item: {
+         ...item,
+         context: tokenizedContext ? detokenize(tokenizedContext) : null,
+         // Don't expose tokens to model
+         context_tokens: undefined,
+         context_pii_types: undefined
+       }
+     };
+   }
+   ```
+
+3. **Update JSONL Schema**
+   ```typescript
+   // src/validation/schemas.ts
+   export const laterItemSchema = z.object({
+     id: z.number(),
+     decision: z.string().min(1).max(500),
+     context: z.string().optional(),
+     context_tokens: z.record(z.string()).optional(),  // NEW
+     context_pii_types: z.record(z.number()).optional(), // NEW
+     status: z.enum(['pending', 'in-progress', 'done', 'archived']),
+     priority: z.enum(['low', 'medium', 'high']),
+     tags: z.array(z.string()),
+     dependencies: z.array(z.number()).optional(),
+     created_at: z.string(),
+     updated_at: z.string()
+   });
+   ```
+
+4. **Handle Tokenization in Read Operations**
+   ```typescript
+   // src/tools/core/show.ts
+   export async function execute(args: ShowArgs) {
+     const item = await storage.read(args.id);
+
+     if (!item) {
+       throw new Error(`Item #${args.id} not found`);
+     }
+
+     // Detokenize context for user
+     if (item.context_tokens) {
+       item.context = detokenize({
+         text: item.context,
+         tokens: item.context_tokens,
+         detectedTypes: item.context_pii_types || {}
+       });
+     }
+
+     // Remove token data from response
+     delete item.context_tokens;
+     delete item.context_pii_types;
+
+     return {
+       success: true,
+       item
+     };
+   }
+   ```
+
+**Testing:**
+- Unit tests for PII detection (all pattern types)
+- Test edge cases (false positives, false negatives)
+- Test tokenization/detokenization round-trip
+- Test integration in capture, update, show
+- Security tests (verify zero PII in model context)
+- Test with real-world PII examples
+
+### Phase 4: Skills Library Foundation
+
+**Goal:** Provide reusable workflow patterns
+
+**Tasks:**
+
+1. **Create Skills Directory Structure**
+   ```
+   skills/
+   ├── README.md
+   ├── weekly-standup.ts
+   ├── urgent-capture.ts
+   ├── auto-categorize.ts
+   └── dependency-chain.ts
+   ```
+
+2. **Implement Example Skills**
+   ```typescript
+   // skills/weekly-standup.ts
+   /**
+    * SKILL: Weekly Standup
+    * Generates weekly standup report
+    */
+   import { list } from '../src/tools/core/list';
+
+   export async function weeklyStandup() {
+     const now = Date.now();
+     const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+     const allItems = await list({});
+
+     const captured = allItems.filter(i =>
+       new Date(i.created_at).getTime() > weekAgo
+     );
+
+     const completed = allItems.filter(i =>
+       i.status === 'done' &&
+       new Date(i.updated_at).getTime() > weekAgo
+     );
+
+     const highPriorityPending = allItems.filter(i =>
+       i.status === 'pending' && i.priority === 'high'
+     );
+
+     return {
+       summary: {
+         captured: captured.length,
+         completed: completed.length,
+         highPriorityPending: highPriorityPending.length
+       },
+       details: {
+         captured: captured.slice(0, 5),
+         completed: completed.slice(0, 5),
+         highPriorityPending
+       }
+     };
+   }
+   ```
+
+3. **Document Skills Pattern**
+   ```markdown
+   // skills/README.md
+   # /later Skills
+
+   Skills are reusable code patterns that build on MCP tools.
+
+   ## Available Skills
+
+   - `weekly-standup` - Weekly progress report
+   - `urgent-capture` - Quick capture with high priority + todos
+   - `auto-categorize` - Automatic tagging based on keywords
+   - `dependency-chain` - Create chain of dependent decisions
+
+   ## Usage
+
+   Skills are TypeScript functions you can import and use in code execution:
+
+   ```typescript
+   import { weeklyStandup } from './skills/weekly-standup';
+   const report = await weeklyStandup();
+   console.log(report);
+   ```
+
+   ## Creating Skills
+
+   1. Create new .ts file in skills/
+   2. Export async function
+   3. Import tools from ../src/tools/
+   4. Document with JSDoc comments
+   ```
+
+**Testing:**
+- Unit tests for each skill
+- Integration tests (skills calling MCP tools)
+- Examples in documentation
+
+### Phase 5: Token Usage Metrics
+
+**Goal:** Measure and prove token efficiency gains
+
+**Tasks:**
+
+1. **Implement Token Counter**
+   ```typescript
+   // src/utils/token-metrics.ts
+   export class TokenMetrics {
+     private static metrics: Map<string, number[]> = new Map();
+
+     static recordToolLoad(toolName: string, tokenCount: number) {
+       if (!this.metrics.has(toolName)) {
+         this.metrics.set(toolName, []);
+       }
+       this.metrics.get(toolName)!.push(tokenCount);
+     }
+
+     static getStats(toolName?: string) {
+       if (toolName) {
+         const data = this.metrics.get(toolName) || [];
+         return {
+           tool: toolName,
+           calls: data.length,
+           totalTokens: data.reduce((a, b) => a + b, 0),
+           avgTokens: data.length ? data.reduce((a, b) => a + b, 0) / data.length : 0,
+           minTokens: data.length ? Math.min(...data) : 0,
+           maxTokens: data.length ? Math.max(...data) : 0
+         };
+       }
+
+       // All tools
+       const allStats = {};
+       for (const [tool, data] of this.metrics.entries()) {
+         allStats[tool] = this.getStats(tool);
+       }
+       return allStats;
+     }
+
+     static reset() {
+       this.metrics.clear();
+     }
+   }
+   ```
+
+2. **Add Metrics to MCP Server**
+   ```typescript
+   // src/index.ts
+   import { TokenMetrics } from './utils/token-metrics';
+
+   server.setRequestHandler('tools/list', async () => {
+     const toolList = [{ name: 'search_tools', ... }];
+
+     // Estimate token count (rough approximation)
+     const tokenCount = JSON.stringify(toolList).length / 4;
+     TokenMetrics.recordToolLoad('initial', tokenCount);
+
+     return { tools: toolList };
+   });
+   ```
+
+3. **Add Benchmarks**
+   ```typescript
+   // tests/benchmarks/token-efficiency.test.ts
+   import { TokenMetrics } from '../../src/utils/token-metrics';
+
+   describe('Token Efficiency Benchmarks', () => {
+     beforeEach(() => {
+       TokenMetrics.reset();
+     });
+
+     it('should demonstrate 90% token reduction for simple operations', async () => {
+       // Baseline (V1.0.0 approach): Load all tools
+       const allTools = await server.listTools();
+       const v1Tokens = JSON.stringify(allTools).length / 4;
+
+       // V2.0 approach: Load only search_tools
+       const minimalTools = [{ name: 'search_tools', ... }];
+       const v2Tokens = JSON.stringify(minimalTools).length / 4;
+
+       const reduction = ((v1Tokens - v2Tokens) / v1Tokens) * 100;
+       expect(reduction).toBeGreaterThan(90);
+
+       console.log(`Token reduction: ${reduction.toFixed(1)}%`);
+       console.log(`V1.0.0: ${v1Tokens} tokens`);
+       console.log(`V2.0: ${v2Tokens} tokens`);
+     });
+
+     it('should scale efficiently with tool count', async () => {
+       // Simulate 25 tools (V2.0 roadmap)
+       const tools25 = Array(25).fill({ name: 'tool', schema: {...} });
+       const v1With25Tools = JSON.stringify(tools25).length / 4;
+
+       // V2.0: Still just search_tools
+       const v2With25Tools = JSON.stringify([{ name: 'search_tools', ... }]).length / 4;
+
+       const scalingEfficiency = v2With25Tools / v1With25Tools;
+       expect(scalingEfficiency).toBeLessThan(0.1); // 90%+ reduction
+
+       console.log(`Scaling efficiency: ${scalingEfficiency.toFixed(3)}`);
+     });
+   });
+   ```
+
+**Testing:**
+- Benchmark tests for token counting
+- Comparison with V1.0.0 baseline
+- Scaling tests (9 tools vs 25 tools)
+
+### Phase 6: CLI Update
+
+**Goal:** Update CLI to inherit all token efficiency gains
+
+**Tasks:**
+
+1. **Update CLI MCP Client**
+   ```typescript
+   // src/cli/mcp-client.ts
+   export class McpClient {
+     async discoverTools(query: string): Promise<ToolMetadata[]> {
+       // Use search_tools for discovery
+       const results = await this.callTool('search_tools', {
+         query,
+         detail: 'full'
+       });
+       return results;
+     }
+
+     async callToolByName(toolName: string, args: any): Promise<any> {
+       // Tool will be loaded dynamically by server
+       return this.callTool(toolName, args);
+     }
+   }
+   ```
+
+2. **Update CLI Commands**
+   ```typescript
+   // src/cli/commands/capture.ts
+   export async function handleCapture(
+     mcpClient: McpClient,
+     parsed: ParsedArgs,
+     formatter: Formatter
+   ): Promise<string> {
+     // CLI doesn't need to know about PII tokenization
+     // MCP server handles it automatically
+     const result = await mcpClient.callTool('later_capture', {
+       decision: parsed.args[0],
+       context: parsed.flags.context,
+       priority: parsed.flags.priority,
+       tags: parsed.flags.tags
+     });
+
+     // PII automatically detokenized by server
+     return formatter.formatCaptureResult(result.item);
+   }
+   ```
+
+**Testing:**
+- CLI integration tests with V2.0 server
+- Verify PII tokenization transparent to CLI
+- Verify progressive disclosure works with CLI
+
+### Phase 7: Comprehensive Testing
+
+**Goal:** Achieve 95%+ coverage with 100% pass rate across all test types
+
+**Testing Requirements:**
+
+1. **Unit Tests (90%+ coverage)**
+   ```typescript
+   // tests/unit/
+   ├── pii-tokenization.test.ts      # PII detection & tokenization
+   ├── search-tools.test.ts          # Tool discovery & scoring
+   ├── tool-registry.test.ts         # Tool registration
+   ├── token-metrics.test.ts         # Token counting
+   └── skills/
+       ├── weekly-standup.test.ts
+       └── urgent-capture.test.ts
+   ```
+
+   **Coverage:**
+   - All PII patterns (10+ types)
+   - Edge cases (false positives, false negatives)
+   - Tokenization/detokenization round-trips
+   - search_tools keyword matching
+   - Tool registry CRUD operations
+   - Token metric calculations
+
+2. **Integration Tests (95%+ coverage)**
+   ```typescript
+   // tests/integration/
+   ├── progressive-disclosure.test.ts   # End-to-end tool discovery
+   ├── pii-workflow.test.ts            # Capture → Store → Retrieve with PII
+   ├── tool-loading.test.ts            # Dynamic tool loading
+   └── cli-integration.test.ts         # CLI with V2.0 server
+   ```
+
+   **Coverage:**
+   - Tool discovery workflow
+   - PII tokenization in full workflow
+   - Dynamic tool loading
+   - CLI compatibility with V2.0
+   - Backward compatibility (V1.0.0 tools still work)
+
+3. **E2E Tests**
+   ```typescript
+   // tests/e2e/
+   ├── token-efficiency.test.ts        # Measure actual token savings
+   ├── security-workflow.test.ts       # PII protection end-to-end
+   └── skills-workflow.test.ts         # Skills usage patterns
+   ```
+
+   **Coverage:**
+   - Complete user workflows
+   - Token counting accuracy
+   - Security guarantees
+   - Skills execution
+
+4. **Security Tests**
+   ```typescript
+   // tests/security/
+   ├── pii-detection.test.ts           # Comprehensive PII detection
+   ├── pii-leakage.test.ts            # Verify zero PII in model context
+   └── tokenization-security.test.ts   # Cryptographic token security
+   ```
+
+   **Coverage:**
+   - All PII types detected
+   - No false negatives for common PII
+   - Tokens cannot be reverse-engineered
+   - Model context contains zero PII
+
+5. **Performance Tests**
+   ```typescript
+   // tests/performance/
+   ├── token-efficiency.test.ts        # Benchmark token savings
+   ├── tool-loading-speed.test.ts     # Dynamic loading overhead
+   └── scaling.test.ts                # Performance with 25+ tools
+   ```
+
+   **Coverage:**
+   - Token count comparisons
+   - Loading latency measurements
+   - Scaling characteristics
+
+**Test Quality Requirements:**
+- **Meaningful coverage:** Not just line coverage, but edge cases and scenarios
+- **100% pass rate:** No skipped or failing tests
+- **Fast execution:** Full suite < 5 minutes
+- **Deterministic:** No flaky tests
+- **Isolated:** Tests don't depend on each other
+
+### Phase 8: Documentation Updates
+
+**Goal:** Update only necessary documentation (no proliferation)
+
+**Required Updates:**
+
+1. **CHANGELOG.md** (CRITICAL - Central development log)
+   ```markdown
+   ## [2.0.0] - 2025-11-07
+
+   ### Added - Token Efficiency Revolution
+
+   **Progressive Tool Disclosure:**
+   - Implemented filesystem-based tool organization
+   - Added `search_tools` meta-tool for on-demand discovery
+   - Reduced initial token load by 90% (5,000 → 500 tokens)
+   - Scales efficiently (25 tools still ~500 tokens vs 15,000)
+
+   **PII Tokenization & Security:**
+   - Automatic PII detection (95%+ accuracy)
+   - 10 PII pattern types (API keys, SSNs, emails, phones, etc.)
+   - Zero sensitive data in model context (tokenized)
+   - Deterministic security rules (no accidental exposure)
+   - Added context_tokens and context_pii_types to JSONL schema
+
+   **Skills Library:**
+   - Foundation for reusable workflow patterns
+   - 4 example skills (weekly-standup, urgent-capture, auto-categorize, dependency-chain)
+   - Documentation in skills/README.md
+
+   **Architecture Improvements:**
+   - Tool registry with metadata (keywords, categories, priorities)
+   - Dynamic tool loading (reduced memory footprint)
+   - Token usage metrics and benchmarks
+   - Organized tool structure (core, workflow, batch, search, meta)
+
+   **Testing:**
+   - 95% test coverage (unit, integration, E2E, security, performance)
+   - 100% pass rate (478 → 623 tests)
+   - Comprehensive security tests (PII detection)
+   - Performance benchmarks (token savings validated)
+
+   ### Changed - Backward Compatible
+
+   **MCP Server:**
+   - Initial tool list now shows only `search_tools` (progressive disclosure)
+   - Tools loaded dynamically on first call (transparent to clients)
+   - JSONL schema extended (backward compatible - old items still work)
+
+   **CLI:**
+   - Updated to work with V2.0 server
+   - Inherits all token efficiency gains
+   - PII tokenization transparent to CLI users
+
+   ### Performance Metrics
+
+   **Token Efficiency:**
+   - Simple operations: 5,000 → 500 tokens (90% reduction)
+   - Complex operations: 8,000 → 800 tokens (90% reduction)
+   - With 25 tools: 15,000 → 1,500 tokens (90% reduction)
+
+   **Security:**
+   - PII detection: 80% → 95%+
+   - False positive rate: <5%
+   - Zero sensitive data exposure: ✅ Verified
+
+   **Test Coverage:**
+   - Unit tests: 90%+ coverage
+   - Integration tests: 95%+ coverage
+   - Overall: 95%+ meaningful coverage
+   - Pass rate: 100% (623/623 tests)
+
+   ### Migration Guide
+
+   **For Existing Users:**
+   - V1.0.0 usage still works (100% backward compatible)
+   - No action required for existing integrations
+   - PII tokenization automatic (transparent)
+   - Old JSONL items work with new server
+
+   **To Use Progressive Disclosure:**
+   - Tools discovered via `search_tools("what I want to do")`
+   - Claude Code automatically uses progressive disclosure
+   - CLI automatically uses progressive disclosure
+
+   **To Use Skills:**
+   - Import skills from `skills/` directory
+   - See skills/README.md for examples
+   - Create custom skills following pattern
+
+   ### Breaking Changes
+
+   **None** - V2.0 is fully backward compatible with V1.0.0
+   ```
+
+2. **README.md** (Update features section)
+   ```markdown
+   ## Features
+
+   - **Token Efficient:** 90% reduction in token usage through progressive disclosure
+   - **Secure:** Automatic PII tokenization (95%+ detection, zero exposure)
+   - **9 Core Tools:** capture, list, show, do, update, delete, bulk-update, bulk-delete, search
+   - **Progressive Disclosure:** Tools loaded on-demand for efficiency
+   - **Skills Library:** Reusable workflow patterns
+   - **Production Ready:** 95% test coverage, 100% pass rate
+
+   ## Token Efficiency
+
+   V2.0 achieves orders of magnitude improvement:
+
+   - Simple operations: ~500 tokens (vs 5,000 in V1.0.0)
+   - Complex operations: ~800 tokens (vs 8,000 in V1.0.0)
+   - Scales to 25+ tools: ~1,500 tokens (vs 15,000)
+
+   See [Token Efficiency Analysis](docs/guides/mcp-code-execution-patterns-analysis.md)
+   ```
+
+3. **API Documentation** (If it exists, update; don't create new)
+   - Document `search_tools` meta-tool
+   - Note: PII tokenization is automatic and transparent
+
+**Documentation Philosophy:**
+- **CHANGELOG.md:** Always update (central development log)
+- **README.md:** Update features, installation, quick start
+- **API docs:** Only if they exist
+- **Don't create:** Architecture diagrams that become outdated
+- **Don't create:** Implementation details that change frequently
+- **Reference:** Link to analysis doc for deep dive
+
+### Phase 9: Production Verification
+
+**Goal:** Verify production readiness and market readiness
+
+**Production Checklist:**
+
+1. **Functionality**
+   - [ ] All 9 V1.0.0 tools work identically
+   - [ ] Progressive disclosure works (search_tools returns relevant tools)
+   - [ ] Dynamic tool loading works (tools execute correctly)
+   - [ ] PII tokenization works (95%+ detection)
+   - [ ] PII detokenization works (transparent to users)
+   - [ ] Skills work (all 4 example skills execute)
+   - [ ] CLI works with V2.0 server
+   - [ ] Token metrics accurate
+
+2. **Quality**
+   - [ ] 95%+ test coverage (run: `npm run test:coverage`)
+   - [ ] 100% pass rate (run: `npm test`)
+   - [ ] All test types pass (unit, integration, E2E, security, performance)
+   - [ ] No flaky tests (run test suite 10 times)
+   - [ ] No security vulnerabilities (run: `npm audit`)
+   - [ ] TypeScript strict mode (no `any` types)
+
+3. **Performance**
+   - [ ] Token reduction verified (benchmarks pass)
+   - [ ] Loading latency acceptable (<500ms for tool load)
+   - [ ] Memory usage reasonable (dynamic loading reduces footprint)
+   - [ ] Scales to 25+ tools efficiently
+
+4. **Security**
+   - [ ] PII never in model context (verified in tests)
+   - [ ] Tokens cryptographically secure (cannot be guessed)
+   - [ ] No sensitive data in logs
+   - [ ] Edge cases covered (false positives/negatives)
+
+5. **Compatibility**
+   - [ ] V1.0.0 usage works unchanged
+   - [ ] Existing JSONL data loads correctly
+   - [ ] Old items work with new server
+   - [ ] CLI backward compatible
+
+6. **Documentation**
+   - [ ] CHANGELOG.md updated (comprehensive entry)
+   - [ ] README.md updated (features, token efficiency)
+   - [ ] Skills documented (README in skills/)
+   - [ ] No outdated documentation
+
+**Market Readiness Checklist:**
+
+1. **Demonstrable Value**
+   - [ ] Token savings measurable (benchmarks show 90% reduction)
+   - [ ] Performance improvements visible (faster operations)
+   - [ ] Security enhancements provable (PII tests)
+   - [ ] Can create demo showing token efficiency
+
+2. **User Experience**
+   - [ ] Progressive disclosure transparent (users don't notice)
+   - [ ] PII tokenization transparent (users don't notice)
+   - [ ] Error messages helpful
+   - [ ] Skills easy to use
+
+3. **Installation**
+   - [ ] `npm install` works
+   - [ ] `npm test` passes
+   - [ ] `npm run build` succeeds
+   - [ ] MCP server starts correctly
+   - [ ] CLI installs correctly
+
+4. **Presentation**
+   - [ ] Can articulate value proposition (90% token reduction)
+   - [ ] Can demonstrate security (PII tokenization)
+   - [ ] Can show backward compatibility
+   - [ ] Can explain progressive disclosure
+
+### Phase 10: Final Verification & Git Commit
+
+**Goal:** Final checks and clean commit to GitHub
+
+**Final Verification Steps:**
+
+1. **Run All Tests**
+   ```bash
+   npm test                    # All tests pass
+   npm run test:coverage       # 95%+ coverage
+   npm run test:security       # Security tests pass
+   npm run test:performance    # Benchmarks pass
+   ```
+
+2. **Verify Functionality**
+   ```bash
+   # Start MCP server
+   npm run build
+   node dist/index.js
+
+   # Test via Claude Code
+   # - Verify search_tools works
+   # - Verify PII tokenization works
+   # - Verify backward compatibility
+   ```
+
+3. **Check Code Quality**
+   ```bash
+   npm run lint                # No linting errors
+   npm audit                   # No vulnerabilities
+   tsc --noEmit               # No TypeScript errors
+   ```
+
+4. **Verify Documentation**
+   ```bash
+   # Check CHANGELOG.md updated
+   # Check README.md updated
+   # Check skills/README.md exists
+   # Check no outdated docs
+   ```
+
+**Git Commit:**
+
+```bash
+# Stage all changes
+git add .
+
+# Verify what's staged
+git status
+
+# Create commit
+git commit -m "feat: implement token-efficient V2.0 with progressive disclosure and PII tokenization
+
+Implement revolutionary token efficiency upgrade achieving 90% token reduction
+through progressive disclosure, automatic PII tokenization, and skills foundation.
+
+Token Efficiency:
+- Progressive tool disclosure (search_tools meta-tool)
+- On-demand tool loading (filesystem-based organization)
+- Simple operations: 5,000 → 500 tokens (90% reduction)
+- Complex operations: 8,000 → 800 tokens (90% reduction)
+- Scales efficiently (25 tools: 15,000 → 1,500 tokens)
+
+Security Enhancements:
+- Automatic PII tokenization (95%+ detection)
+- 10 PII pattern types (API keys, SSNs, emails, phones, etc.)
+- Zero sensitive data in model context
+- Deterministic security rules
+- Transparent to users (auto detokenization)
+
+Architecture Improvements:
+- Tool registry with metadata (keywords, categories, priorities)
+- Dynamic tool loading system
+- Organized tool structure (core, workflow, batch, search, meta)
+- Token usage metrics and benchmarks
+- Skills library foundation (4 example skills)
+
+Testing:
+- 95% test coverage (623 tests, 100% pass rate)
+- Comprehensive test suite (unit, integration, E2E, security, performance)
+- Security tests (PII detection, leakage prevention)
+- Performance benchmarks (token savings validated)
+
+Compatibility:
+- 100% backward compatible with V1.0.0
+- Existing JSONL data works with new server
+- CLI updated and compatible
+- No breaking changes
+
+Production Ready:
+- All quality gates met
+- Security verified
+- Performance benchmarked
+- Documentation updated (CHANGELOG, README)
+- Market ready demonstration
+
+See CHANGELOG.md for complete details." --author="Chude <chude@emeke.org>"
+
+# Push to GitHub
+git push origin main
+```
+
+## Implementation Guidelines
+
+### System Thinking Approach
+
+**Before coding anything:**
+
+1. **Understand the big picture**
+   - How does this change affect the entire system?
+   - What are the ripple effects?
+   - What could break?
+
+2. **Design before implementing**
+   - Think through architecture
+   - Consider SOLID principles
+   - Plan for edge cases
+
+3. **Implement incrementally**
+   - Build foundation first (reorganization)
+   - Add features layer by layer
+   - Test continuously
+
+4. **Verify holistically**
+   - Does it work in isolation? (unit tests)
+   - Does it work together? (integration tests)
+   - Does it work end-to-end? (E2E tests)
+
+### Edge Cases to Consider
+
+**PII Tokenization:**
+- [ ] Text with no PII (should return unchanged)
+- [ ] Text with only PII (should tokenize all)
+- [ ] Mixed PII types (should tokenize all types)
+- [ ] False positives (email-like text that isn't email)
+- [ ] False negatives (PII that doesn't match patterns)
+- [ ] Very long context (>10k chars with PII)
+- [ ] Unicode/international characters
+- [ ] Already-tokenized text (don't double-tokenize)
+
+**Progressive Disclosure:**
+- [ ] Query matches no tools (should return empty)
+- [ ] Query matches all tools (should return top 5)
+- [ ] Ambiguous query (should rank by relevance)
+- [ ] Misspelled tool name (should still match)
+- [ ] Very long query (should handle gracefully)
+- [ ] Empty query (should return error)
+
+**Dynamic Tool Loading:**
+- [ ] Tool exists (should load and execute)
+- [ ] Tool doesn't exist (should error gracefully)
+- [ ] Tool throws error (should propagate correctly)
+- [ ] Concurrent tool calls (should handle race conditions)
+- [ ] Tool import fails (should error with details)
+
+**Backward Compatibility:**
+- [ ] Old JSONL items (without context_tokens field)
+- [ ] Direct tool calls (without search_tools)
+- [ ] V1.0.0 CLI (should still work)
+- [ ] Existing integrations (should be unaffected)
+
+### Security Considerations
+
+**MUST verify:**
+- [ ] No PII in model context (verify in tests)
+- [ ] Tokens cannot be reverse-engineered
+- [ ] Token storage secure (not logged)
+- [ ] Detokenization only for authorized users
+- [ ] No PII in error messages
+- [ ] No PII in debug logs
+
+**MUST NOT:**
+- [ ] Log tokenized data with tokens
+- [ ] Expose tokens in API responses (unless detokenized)
+- [ ] Cache PII data
+- [ ] Send PII to model
+
+### UX/Usability Considerations
+
+**MUST ensure:**
+- [ ] Progressive disclosure transparent (user doesn't notice)
+- [ ] PII tokenization transparent (user doesn't notice)
+- [ ] Error messages helpful and actionable
+- [ ] Performance acceptable (no noticeable slowdown)
+- [ ] Skills easy to use and understand
+
+**MUST NOT:**
+- [ ] Break existing workflows
+- [ ] Require user configuration
+- [ ] Add friction to common operations
+- [ ] Expose internal complexity
+
+## Success Criteria
+
+**You are DONE when ALL of the following are true:**
+
+### Functionality
+- [x] All 9 V1.0.0 tools work identically to before
+- [x] search_tools returns relevant tools based on query
+- [x] Tools load dynamically when called
+- [x] PII tokenization detects 95%+ of common PII types
+- [x] PII detokenization works transparently
+- [x] Skills execute correctly (all 4 examples)
+- [x] CLI works with V2.0 server
+- [x] Token metrics track usage accurately
+
+### Quality
+- [x] 95%+ test coverage (measured with `npm run test:coverage`)
+- [x] 100% pass rate (measured with `npm test`)
+- [x] All test types implemented (unit, integration, E2E, security, performance)
+- [x] No flaky tests (verified with 10 consecutive runs)
+- [x] No TypeScript errors (`tsc --noEmit`)
+- [x] No linting errors (`npm run lint`)
+- [x] No security vulnerabilities (`npm audit`)
+
+### Performance
+- [x] Token reduction ≥90% (verified in benchmarks)
+- [x] Simple operations ≤500 tokens
+- [x] Complex operations ≤800 tokens
+- [x] Scales to 25+ tools efficiently (~1,500 tokens)
+- [x] Tool loading latency <500ms
+- [x] Memory usage acceptable (measured)
+
+### Security
+- [x] Zero PII in model context (verified in tests)
+- [x] PII detection ≥95% (verified with test cases)
+- [x] False positive rate <5%
+- [x] Tokens cryptographically secure
+- [x] No sensitive data in logs (verified)
+
+### Compatibility
+- [x] V1.0.0 functionality preserved (100% backward compatible)
+- [x] Existing JSONL data works (old items load correctly)
+- [x] CLI backward compatible (works with V2.0 server)
+- [x] No breaking changes (verified with regression tests)
+
+### Documentation
+- [x] CHANGELOG.md updated (comprehensive V2.0 entry)
+- [x] README.md updated (features, token efficiency)
+- [x] skills/README.md created (usage guide)
+- [x] No outdated documentation (verified)
+
+### Production Readiness
+- [x] Can deploy to production without issues
+- [x] Error handling robust (all error paths tested)
+- [x] Logging appropriate (no PII, useful for debugging)
+- [x] Performance acceptable under load
+
+### Market Readiness
+- [x] Value proposition demonstrable (token savings proven)
+- [x] Can show 90% token reduction to users
+- [x] Can demonstrate security (PII protection)
+- [x] Installation smooth (`npm install` works)
+- [x] User experience polished (transparent, no friction)
+
+**Final Verification Command:**
+
+```bash
+# Run this to verify everything is ready
+npm test && \
+npm run test:coverage && \
+npm run test:security && \
+npm run test:performance && \
+npm run lint && \
+npm audit && \
+tsc --noEmit && \
+echo "✅ All checks passed - Ready for production and market"
+```
+
+## Response Format
+
+When you complete this implementation, respond with:
+
+```
+Token-Efficient V2.0 Implementation Complete
+
+═══════════════════════════════════════════════════════════════════════════════
+PRODUCTION + MARKET READY
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Token Efficiency Gains:
+  - Simple operations: 5,000 → 500 tokens (90% reduction)
+  - Complex operations: 8,000 → 800 tokens (90% reduction)
+  - With 25 tools: 15,000 → 1,500 tokens (90% reduction)
+  - Verified in benchmarks
+
+✅ Security Enhancements:
+  - PII detection: 95.3% (verified with 200+ test cases)
+  - Zero sensitive data in model context (verified)
+  - False positive rate: 3.2%
+  - All security tests pass
+
+✅ Testing:
+  - Test coverage: 95.7% (595/623 tests pass)
+  - Pass rate: 100%
+  - Test types: Unit (90%), Integration (95%), E2E (90%), Security (100%), Performance (100%)
+  - No flaky tests (verified with 10 runs)
+
+✅ Compatibility:
+  - V1.0.0 functionality: 100% preserved
+  - Backward compatible: ✅ Verified
+  - No breaking changes: ✅ Verified
+
+✅ Documentation:
+  - CHANGELOG.md: ✅ Updated (comprehensive V2.0 entry)
+  - README.md: ✅ Updated (features, token efficiency)
+  - skills/README.md: ✅ Created
+
+✅ Production Readiness:
+  - All quality gates met
+  - Error handling robust
+  - Performance verified
+  - Security validated
+
+✅ Market Readiness:
+  - Value demonstrable (90% token reduction)
+  - Installation smooth
+  - User experience polished
+  - Ready for demonstration
+
+GitHub Commit: [commit hash]
+GitHub URL: https://github.com/chudeemeke/later
+
+Next Steps:
+1. Merge to main ✅ Done
+2. Tag release: git tag v2.0.0 && git push --tags
+3. Update MCP marketplace listing
+4. Announce token efficiency gains
+```
+
+---
+
+## Self-Reflection Rubric (MANDATORY - Iterate Until Top Marks)
+
+Before considering the implementation complete, evaluate against this rubric across ALL categories. If you don't score top marks in EVERY category, iterate until you do. This is non-negotiable.
+
+**Scoring Scale:** 1-5 (1=Inadequate, 2=Poor, 3=Acceptable, 4=Good, 5=Excellent/World-Class)
+
+### 1. Completeness & Implementation Quality (Weight: 25%)
+
+**Score 5 requires:**
+- [ ] ALL 10 phases completed (no shortcuts, no "mostly done")
+- [ ] Every feature from V1.0.0 works identically
+- [ ] ALL new features work as specified (progressive disclosure, PII tokenization, skills)
+- [ ] Edge cases explicitly handled (not assumed to work)
+- [ ] Error paths tested and robust
+- [ ] No TODO or FIXME comments in code
+- [ ] Code follows SOLID principles throughout
+- [ ] No hacky workarounds or quick fixes
+
+**If score <5:** Identify gaps, implement missing pieces, iterate.
+
+### 2. Testing & Quality Assurance (Weight: 25%)
+
+**Score 5 requires:**
+- [ ] 95%+ meaningful code coverage (not just line coverage)
+- [ ] 100% pass rate (zero failing tests)
+- [ ] ALL test types implemented (unit, integration, E2E, security, performance)
+- [ ] Edge cases have explicit tests (not assumed)
+- [ ] Security tests verify zero PII exposure
+- [ ] Performance benchmarks validate 90% token reduction
+- [ ] Tests are deterministic (no flaky tests)
+- [ ] Tests run fast (<5 minutes for full suite)
+
+**If score <5:** Add missing tests, fix failing tests, iterate.
+
+### 3. Security & Privacy (Weight: 20%)
+
+**Score 5 requires:**
+- [ ] PII detection ≥95% accuracy (measured)
+- [ ] Zero PII in model context (verified in tests)
+- [ ] False positive rate <5%
+- [ ] No hardcoded secrets or credentials
+- [ ] Input validation on all tool arguments
+- [ ] Error messages don't leak sensitive data
+- [ ] Logs don't contain PII
+- [ ] Token storage cryptographically secure
+
+**If score <5:** Enhance PII detection, add security tests, iterate.
+
+### 4. Architecture & System Design (Weight: 15%)
+
+**Score 5 requires:**
+- [ ] System thinking approach evident throughout
+- [ ] SOLID principles applied consistently
+- [ ] Separation of concerns (no business logic in presentation layer)
+- [ ] DRY principle followed (no duplication)
+- [ ] Dependency injection used appropriately
+- [ ] Tool registry pattern properly implemented
+- [ ] Progressive disclosure architecture sound
+- [ ] Skills pattern properly established
+
+**If score <5:** Refactor to improve architecture, iterate.
+
+### 5. User Experience & Usability (Weight: 10%)
+
+**Score 5 requires:**
+- [ ] Progressive disclosure completely transparent to users
+- [ ] PII tokenization completely transparent to users
+- [ ] No breaking changes to V1.0.0 workflows
+- [ ] Error messages helpful and actionable
+- [ ] Performance acceptable (no noticeable degradation)
+- [ ] Skills easy to use and understand
+- [ ] CLI works seamlessly with V2.0 server
+- [ ] Installation smooth and documented
+
+**If score <5:** Improve UX, simplify workflows, iterate.
+
+### 6. Market Readiness & Demonstrability (Weight: 5%)
+
+**Score 5 requires:**
+- [ ] Can demonstrate 90% token reduction (benchmarks)
+- [ ] Can show security improvements (PII detection)
+- [ ] Can prove backward compatibility (regression tests)
+- [ ] Value proposition clear and measurable
+- [ ] Documentation explains benefits clearly
+- [ ] Ready for public demonstration
+- [ ] Ready for enterprise adoption
+- [ ] Installation and setup frictionless
+
+**If score <5:** Create better demos, measure value more clearly, iterate.
+
+## Iteration Protocol (CRITICAL)
+
+**When you encounter ANY of these, you MUST iterate:**
+
+1. **Test Failures:** Don't skip, don't comment out - fix root cause
+2. **Coverage <95%:** Add meaningful tests, not just coverage boosters
+3. **Security Concerns:** Address immediately, verify with tests
+4. **Architecture Smells:** Refactor now, not later
+5. **Poor UX:** Simplify, make transparent, improve
+6. **Documentation Gaps:** Update CHANGELOG, README
+
+**Iteration means:**
+- Analyze root cause (not symptoms)
+- Design proper solution (system thinking)
+- Implement fix
+- Test thoroughly
+- Verify no regressions
+- Re-run rubric
+- Iterate until score=5 in all categories
+
+**DO NOT:**
+- Mark anything complete until it scores 5/5
+- Skip tests "because it probably works"
+- Use hacky workarounds "just to make it pass"
+- Leave TODO comments for later
+- Assume edge cases are handled
+- Stop at "good enough"
+
+## Autonomous Execution Guidelines
+
+**CRITICAL INSTRUCTIONS:**
+
+1. **Continue Without Stopping:**
+   - Do NOT ask user for clarification
+   - Do NOT provide periodic updates
+   - Do NOT stop at phase boundaries
+   - Do NOT wait for approval at checkpoints
+   - ONLY stop when ALL success criteria met AND rubric scores 5/5
+
+2. **Self-Verification:**
+   - After each phase: run relevant tests
+   - After major changes: run full test suite
+   - Before marking complete: run rubric evaluation
+   - If anything fails: iterate immediately
+
+3. **Problem Solving:**
+   - If you encounter issues: debug and fix autonomously
+   - If tests fail: analyze root cause and fix
+   - If performance targets missed: optimize
+   - If security concerns arise: address immediately
+
+4. **Quality Gates:**
+   - After every change: verify no regressions
+   - After every test addition: ensure they pass
+   - After every refactoring: verify functionality preserved
+   - After every phase: check rubric scores
+
+**START BY SAYING:** "I'll implement token-efficient V2.0 for /later, bringing it to production and market readiness with 90% token reduction through progressive disclosure, automatic PII tokenization, and comprehensive testing. Following WoW principles, system thinking approach, and ensuring security, UX, and usability are core to the solution. I will test, fix, review, and iterate continuously until the entire project achieves top marks across all quality dimensions and is ready for both production deployment and market demonstration."
+
+Then proceed with implementation autonomously. No questions, no updates, no stopping. Work through all 10 phases, continuously testing and iterating. Only stop when:
+1. ALL success criteria met (100% checklist completion)
+2. Rubric scores 5/5 in ALL categories
+3. Production + market ready verification complete
+4. Git commit pushed to GitHub
+
+**Your mission:** Deliver a world-class V2.0 that demonstrates orders of magnitude improvement in token efficiency while maintaining security, usability, and backward compatibility. Nothing less than excellence is acceptable.
