@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+/**
+ * Later CLI Executable
+ *
+ * Thin wrapper that loads the compiled CLI and executes it with production dependencies.
+ * All orchestration logic lives in src/cli/cli.ts (CLI class).
+ *
+ * Phase 3 Enhancement: Uses Dependency Injection pattern for testability
+ */
+
+import('../dist/cli/cli.js')
+  .then(async (module) => {
+    // Create CLI with production dependencies
+    const cli = module.createProductionCLI();
+
+    // Run CLI and get exit code
+    const exitCode = await cli.run();
+
+    // Exit with the returned code
+    process.exit(exitCode);
+  })
+  .catch((error) => {
+    console.error('Error: Failed to load CLI');
+    console.error(error.message);
+
+    if (error.code === 'ERR_MODULE_NOT_FOUND') {
+      console.error('\nPlease run: npm run build');
+    }
+
+    process.exit(1);
+  });
+
+// Global error handlers for unexpected issues
+process.on('uncaughtException', (error) => {
+  console.error(`Fatal error: ${error.message}`);
+  process.exit(2);
+});
+
+process.on('unhandledRejection', (reason) => {
+  const message = reason instanceof Error ? reason.message : String(reason);
+  console.error(`Fatal error: ${message}`);
+  process.exit(2);
+});

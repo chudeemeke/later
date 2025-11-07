@@ -509,5 +509,115 @@ describe('JSONLStorage', () => {
       // Cleanup
       await fs.rm(testDir, { recursive: true }).catch(() => {});
     }, 10000);
+
+    test('throws error on lock timeout', async () => {
+      // Create storage with very short timeout
+      const shortTimeoutStorage = new JSONLStorage(TEST_DIR, 100);
+      const lockFile = path.join(TEST_DIR, '.lock');
+
+      // Create a lock that won't be released
+      await fs.writeFile(lockFile, String(process.pid), { flag: 'wx' });
+
+      // Try to append with the locked storage
+      const promise = shortTimeoutStorage.append({
+        id: 1,
+        decision: 'Test',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      // Should timeout
+      await expect(promise).rejects.toThrow(/Failed to acquire lock after.*High contention detected/);
+
+      // Cleanup
+      await fs.unlink(lockFile).catch(() => {});
+    });
+  });
+
+  describe('error handling', () => {
+    test('readAll throws on non-ENOENT errors', async () => {
+      // Write invalid JSON to the file to cause parse error
+      await fs.mkdir(TEST_DIR, { recursive: true });
+      await fs.writeFile(TEST_FILE, 'invalid json content\n');
+
+      // Should throw JSON parse error
+      await expect(storage.readAll()).rejects.toThrow();
+    });
+  });
+
+  describe('getStorage singleton', () => {
+    test('returns same instance on multiple calls', async () => {
+      const { getStorage } = await import('../../src/storage/jsonl.js');
+
+      const instance1 = getStorage();
+      const instance2 = getStorage();
+
+      expect(instance1).toBe(instance2);
+    });
+
+    test('creates instance with default directory', async () => {
+      const { getStorage } = await import('../../src/storage/jsonl.js');
+
+      const instance = getStorage();
+
+      // Append an item to verify it works
+      const id = await instance.append({
+        decision: 'Test default dir',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      expect(id).toBeGreaterThan(0);
+    });
+  });
+
+  describe('auto ID generation', () => {
+    test('generates sequential IDs when not provided', async () => {
+      const id1 = await storage.append({
+        decision: 'First',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const id2 = await storage.append({
+        decision: 'Second',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      expect(id1).toBe(1);
+      expect(id2).toBe(2);
+    });
+
+    test('uses provided ID when specified', async () => {
+      const id = await storage.append({
+        id: 99,
+        decision: 'Custom ID',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      expect(id).toBe(99);
+    });
   });
 });

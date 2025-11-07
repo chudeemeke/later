@@ -1,4 +1,4 @@
-import { handleShow } from '../../src/tools/show.js';
+import { handleShow } from '../../src/tools/core/show.js';
 import type { ShowArgs, DeferredItem } from '../../src/types.js';
 import { JSONLStorage } from '../../src/storage/jsonl.js';
 import * as fs from 'fs/promises';
@@ -231,6 +231,26 @@ describe('later_show Tool', () => {
       expect(result.formatted_output).toContain('Dependency task');
       expect(result.formatted_output?.toLowerCase()).toContain('done');
     });
+
+    test('shows not found for missing dependencies', async () => {
+      await storage.append({
+        id: 2,
+        decision: 'Task 2',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        dependencies: [999],  // Non-existent dependency
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const result = await handleShow({ id: 2 }, storage);
+
+      expect(result.formatted_output).toContain('Dependencies');
+      expect(result.formatted_output).toContain('#999');
+      expect(result.formatted_output).toContain('(not found)');
+    });
   });
 
   describe('conversation linking', () => {
@@ -372,6 +392,87 @@ describe('later_show Tool', () => {
 
       expect(result.formatted_output).toContain(longContext);
       expect(result.success).toBe(true);
+    });
+
+    test('handles context with very long words', async () => {
+      const longWord = 'x'.repeat(100);  // Single word longer than line width
+      const context = `Short word ${longWord} another word`;
+
+      await storage.append({
+        id: 1,
+        decision: 'Test',
+        context,
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const result = await handleShow({ id: 1 }, storage);
+
+      expect(result.formatted_output).toContain(longWord);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('PII detokenization (V2.0)', () => {
+    test('detokenizes context when tokens present', async () => {
+      await storage.append({
+        id: 1,
+        decision: 'Test',
+        context: 'Email: [PII_TOKEN_1]',
+        context_tokens: { PII_TOKEN_1: 'test@example.com' },
+        context_pii_types: { email: 1 },
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const result = await handleShow({ id: 1 }, storage);
+
+      expect(result.success).toBe(true);
+      expect(result.formatted_output).toContain('test@example.com');
+      expect(result.formatted_output).not.toContain('[PII_TOKEN_1]');
+    });
+
+    test('handles items without context tokens', async () => {
+      await storage.append({
+        id: 1,
+        decision: 'Test',
+        context: 'No PII here',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const result = await handleShow({ id: 1 }, storage);
+
+      expect(result.success).toBe(true);
+      expect(result.formatted_output).toContain('No PII here');
+    });
+
+    test('handles empty context_tokens object', async () => {
+      await storage.append({
+        id: 1,
+        decision: 'Test',
+        context: 'Test context',
+        context_tokens: {},
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const result = await handleShow({ id: 1 }, storage);
+
+      expect(result.success).toBe(true);
+      expect(result.formatted_output).toContain('Test context');
     });
   });
 });

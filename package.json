@@ -4,6 +4,9 @@
   "description": "MCP server for /later - deferred decision management",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "later": "./bin/later"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
@@ -13,6 +16,9 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
+    "ora": "^9.0.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

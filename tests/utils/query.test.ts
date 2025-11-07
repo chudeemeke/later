@@ -421,4 +421,73 @@ describe('Query Utils', () => {
       });
     });
   });
+
+  describe('decodeCursor edge cases', () => {
+    it('should return null for invalid base64', () => {
+      const result = decodeCursor('invalid!!!base64');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for non-numeric decoded value', () => {
+      const encoded = Buffer.from('not-a-number').toString('base64');
+      const result = decodeCursor(encoded);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('matchesFilter edge cases', () => {
+    it('should return true for empty filter operator', () => {
+      const items = [
+        createItem({ id: 1, decision: 'Test' }),
+      ];
+
+      const filters: AdvancedFilters = {
+        decision: {}, // Empty operator should match everything
+      };
+
+      const result = applyFilters(items, filters);
+
+      expect(result.length).toBe(1);
+    });
+  });
+
+  describe('applySorting with string fields', () => {
+    it('should sort by string field (decision)', () => {
+      const items = [
+        createItem({ id: 1, decision: 'Zebra decision' }),
+        createItem({ id: 2, decision: 'Apple decision' }),
+        createItem({ id: 3, decision: 'Banana decision' }),
+      ];
+
+      const sortOptions: SortOptions[] = [
+        { field: 'decision' as any, direction: 'ASC' },
+      ];
+
+      const result = applySorting(items, sortOptions);
+
+      expect(result[0].decision).toBe('Apple decision');
+      expect(result[1].decision).toBe('Banana decision');
+      expect(result[2].decision).toBe('Zebra decision');
+    });
+
+    it('should sort by string field descending', () => {
+      const items = [
+        createItem({ id: 1, decision: 'Zebra decision' }),
+        createItem({ id: 2, decision: 'Apple decision' }),
+        createItem({ id: 3, decision: 'Banana decision' }),
+      ];
+
+      const sortOptions: SortOptions[] = [
+        { field: 'decision' as any, direction: 'DESC' },
+      ];
+
+      const result = applySorting(items, sortOptions);
+
+      expect(result[0].decision).toBe('Zebra decision');
+      expect(result[1].decision).toBe('Banana decision');
+      expect(result[2].decision).toBe('Apple decision');
+    });
+  });
 });

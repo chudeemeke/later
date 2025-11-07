@@ -1,4 +1,4 @@
-import { handleDo } from '../../src/tools/do.js';
+import { handleDo } from '../../src/tools/workflow/do.js';
 import type { DoArgs, DeferredItem } from '../../src/types.js';
 import { JSONLStorage } from '../../src/storage/jsonl.js';
 import * as fs from 'fs/promises';

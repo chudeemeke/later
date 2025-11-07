@@ -1,4 +1,4 @@
-import { handleList } from '../../src/tools/list.js';
+import { handleList } from '../../src/tools/core/list.js';
 import type { ListArgs, DeferredItem } from '../../src/types.js';
 import { JSONLStorage } from '../../src/storage/jsonl.js';
 import * as fs from 'fs/promises';

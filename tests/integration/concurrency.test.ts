@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import type { Storage } from '../../src/storage/interface.js';
 import { JSONLStorage } from '../../src/storage/jsonl.js';
-import { handleCapture } from '../../src/tools/capture.js';
-import { handleList } from '../../src/tools/list.js';
-import { handleUpdate } from '../../src/tools/update.js';
-import { handleDelete } from '../../src/tools/delete.js';
-import { handleBulkUpdate, handleBulkDelete } from '../../src/tools/bulk.js';
+import { handleCapture } from '../../src/tools/core/capture.js';
+import { handleList } from '../../src/tools/core/list.js';
+import { handleUpdate } from '../../src/tools/workflow/update.js';
+import { handleDelete } from '../../src/tools/workflow/delete.js';
+import { handleBulkUpdate, handleBulkDelete } from '../../src/tools/batch/bulk.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { homedir } from 'os';

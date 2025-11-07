@@ -1,45 +1,8 @@
 # /later - Development Guide
 
 **Project:** Deferred decision management for Claude Code
-**Version:** 1.0.0 (Production Ready)
-**Status:** MCP server with 9 tools, 99% test coverage
+**Phase:** ✅ Production-ready v1.0.0 (JSONL-based, 96.6% test coverage, 880 tests)
 **Target:** Personal use, designed for power users
-
-## Current Implementation Status
-
-**✅ V1.0.0 Released** - Production-ready MCP server
-- 9 MCP tools (capture, list, show, do, update, delete, bulk_update, bulk_delete, search)
-- 483 tests (478 passing, 99% pass rate)
-- 94.66% code coverage
-- JSONL storage with file locking
-- Full validation, logging, security
-
-**Usage:** Natural language interface (NO slash command)
-- User: "Capture this decision for later: Should we use PostgreSQL?"
-- Claude: ✅ Captured as item #1
-
-## Using /later MCP Tools
-
-This project provides 9 MCP tools for deferred decision management.
-
-**No slash commands** - use natural language to invoke tools:
-- "Capture this for later: [decision]"
-- "Show me deferred items"
-- "Search later items for 'optimization'"
-- "Let's work on item #3 now"
-
-**Available Tools:**
-- `later_capture` - Capture decisions with context
-- `later_list` - List/filter with advanced queries
-- `later_show` - Full item details
-- `later_do` - Convert to todos (TodoWrite integration)
-- `later_update` - Modify any field
-- `later_delete` - Soft/hard delete
-- `later_bulk_update` - Batch updates
-- `later_bulk_delete` - Batch deletes
-- `later_search` - Full-text search (TF-IDF)
-
-See README.md for complete usage examples.
 
 ## Quick Navigation
 

@@ -8,20 +8,39 @@ export class JSONLStorage implements Storage {
   private laterDir: string;
   private itemsFile: string;
   private lockFile: string;
+  private lockTimeoutMs: number; // Lock timeout in milliseconds
 
-  constructor(dataDir?: string) {
+  constructor(dataDir?: string, lockTimeoutMs: number = 30000) {
     this.laterDir = dataDir || path.join(homedir(), '.later');
     this.itemsFile = path.join(this.laterDir, 'items.jsonl');
     this.lockFile = path.join(this.laterDir, '.lock');
+    this.lockTimeoutMs = lockTimeoutMs; // Default 30 seconds for high concurrency
   }
 
-  async append(item: DeferredItem): Promise<void> {
+  async append(item: Omit<DeferredItem, 'id'> & { id?: number }): Promise<number> {
     await this.ensureDir();
+
+    let assignedId: number = 0;
+
     await this.withLock(async () => {
-      await fs.appendFile(this.itemsFile, JSON.stringify(item) + '\n');
+      // If ID not provided, generate it atomically within the lock
+      if (item.id === undefined) {
+        const items = await this.readAll();
+        assignedId = items.length === 0 ? 1 : Math.max(...items.map((i) => i.id)) + 1;
+      } else {
+        assignedId = item.id;
+      }
+
+      // Create full item with assigned ID
+      const fullItem: DeferredItem = { ...item, id: assignedId } as DeferredItem;
+
+      await fs.appendFile(this.itemsFile, JSON.stringify(fullItem) + '\n');
     });
+
     // Ensure proper permissions after write
     await this.setSecurePermissions();
+
+    return assignedId;
   }
 
   async readAll(): Promise<DeferredItem[]> {
@@ -170,12 +189,13 @@ export class JSONLStorage implements Storage {
 
   private async withLock<T>(fn: () => Promise<T>): Promise<T> {
     // File-based locking with exponential backoff and stale lock detection
-    const maxRetries = 50; // 5 seconds max wait with exponential backoff
-    const baseDelay = 100; // ms
+    const baseDelay = 50; // ms - start with smaller delay
+    const maxDelay = 1000; // ms - cap individual delay at 1 second
+    const startTime = Date.now();
     let retries = 0;
     let acquired = false;
 
-    while (!acquired && retries < maxRetries) {
+    while (!acquired && (Date.now() - startTime) < this.lockTimeoutMs) {
       try {
         // Check for and clean stale locks before attempting to acquire
         await this.cleanStaleLock();
@@ -185,8 +205,10 @@ export class JSONLStorage implements Storage {
         acquired = true;
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
-          // Lock held by another process, exponential backoff
-          const delay = Math.min(baseDelay * Math.pow(1.5, retries), 1000);
+          // Lock held by another process, exponential backoff with jitter
+          const exponentialDelay = Math.min(baseDelay * Math.pow(1.5, retries), maxDelay);
+          const jitter = Math.random() * exponentialDelay * 0.3; // Add 30% jitter
+          const delay = exponentialDelay + jitter;
           await new Promise((resolve) => setTimeout(resolve, delay));
           retries++;
         } else {
@@ -196,7 +218,10 @@ export class JSONLStorage implements Storage {
     }
 
     if (!acquired) {
-      throw new Error('Failed to acquire lock after 5 seconds');
+      throw new Error(
+        `Failed to acquire lock after ${this.lockTimeoutMs}ms (${retries} attempts). ` +
+        `High contention detected.`
+      );
     }
 
     try {

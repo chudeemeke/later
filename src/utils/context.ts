@@ -75,7 +75,7 @@ export function isValidContext(context: string): boolean {
  */
 export function enhanceContext(
   context: string,
-  metadata?: Record<string, any>
+  _metadata?: Record<string, any>
 ): string {
   // MVP: Just return the original context
   // Future: Add metadata, generate summary, extract entities

@@ -103,6 +103,17 @@ describe('Duplicate Detection Utilities', () => {
       expect(overlap).toBe(0);
     });
 
+    test('returns 0 when both strings are empty', () => {
+      const overlap = keywordOverlap('', '');
+      expect(overlap).toBe(0);
+    });
+
+    test('handles strings with no keywords', () => {
+      // Strings with only stop words/non-keywords
+      const overlap = keywordOverlap('a the an', 'a the an');
+      expect(overlap).toBe(0);
+    });
+
     test('is case insensitive', () => {
       const overlap = keywordOverlap('TEST', 'test');
       expect(overlap).toBe(100);

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { handleBulkUpdate, handleBulkDelete } from '../../src/tools/bulk.js';
+import { handleBulkUpdate, handleBulkDelete } from '../../src/tools/batch/bulk.js';
 import type { Storage } from '../../src/storage/interface.js';
 import type { DeferredItem } from '../../src/types.js';
 
@@ -45,7 +45,7 @@ describe('Bulk Operations', () => {
     ];
 
     mockStorage = {
-      append: async () => {},
+      append: async () => testItems.length + 1,
       readAll: async () => testItems,
       findById: async (id: number) => testItems.find(i => i.id === id) || null,
       update: async (item: DeferredItem) => {
@@ -285,6 +285,21 @@ describe('Bulk Operations', () => {
       expect(result.failed[0].error).toContain('Storage error');
     });
 
+    it('should handle non-Error exceptions in bulk update', async () => {
+      mockStorage.update = async () => {
+        throw 'String error';
+      };
+
+      const result = await handleBulkUpdate({
+        ids: [1, 2],
+        changes: { priority: 'high' },
+      }, mockStorage);
+
+      expect(result.success).toBe(false);
+      expect(result.failed.length).toBe(2);
+      expect(result.failed[0].error).toContain('Unknown error');
+    });
+
     it('should handle storage errors in bulk delete', async () => {
       mockStorage.delete = async () => {
         throw new Error('Storage error');
@@ -297,6 +312,33 @@ describe('Bulk Operations', () => {
 
       expect(result.success).toBe(false);
       expect(result.failed.length).toBe(2);
+    });
+
+    it('should handle non-Error exceptions in bulk delete', async () => {
+      mockStorage.delete = async () => {
+        throw 'String error';
+      };
+
+      const result = await handleBulkDelete({
+        ids: [1, 2],
+        hard: true,
+      }, mockStorage);
+
+      expect(result.success).toBe(false);
+      expect(result.failed.length).toBe(2);
+      expect(result.failed[0].error).toContain('Unknown error');
+    });
+
+    it('should handle undefined hard flag in bulk delete', async () => {
+      const result = await handleBulkDelete({
+        ids: [1],
+        hard: undefined,
+      }, mockStorage);
+
+      expect(result.success).toBe(true);
+      // Should default to soft delete
+      const item = testItems.find(i => i.id === 1);
+      expect(item?.status).toBe('archived');
     });
   });
 });
