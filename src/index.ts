@@ -315,6 +315,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     const { name, arguments: args } = request.params;
 
+    // Check if raw JSON response is requested (for CLI client)
+    const rawMode = (args as any).__raw === true;
+
     switch (name) {
       case 'later_capture': {
         const result = await handleCapture(args as unknown as CaptureArgs, storage);
@@ -322,7 +325,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: formatCaptureResult(result),
+              text: rawMode ? JSON.stringify(result) : formatCaptureResult(result),
             },
           ],
         };
@@ -334,7 +337,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: result.formatted_output || result.message || 'No items found',
+              text: rawMode ? JSON.stringify(result) : (result.formatted_output || result.message || 'No items found'),
             },
           ],
         };
@@ -342,14 +345,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'later_show': {
         const result = await handleShow(args as unknown as ShowArgs, storage);
-        if (!result.success) {
+        if (!rawMode && !result.success) {
           throw new Error(result.error);
         }
         return {
           content: [
             {
               type: 'text',
-              text: result.formatted_output || 'Item details not available',
+              text: rawMode ? JSON.stringify(result) : (result.formatted_output || 'Item details not available'),
             },
           ],
         };
@@ -361,7 +364,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: formatDoResult(result),
+              text: rawMode ? JSON.stringify(result) : formatDoResult(result),
             },
           ],
         };
@@ -373,7 +376,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: formatUpdateResult(result),
+              text: rawMode ? JSON.stringify(result) : formatUpdateResult(result),
             },
           ],
         };
@@ -385,7 +388,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: formatDeleteResult(result),
+              text: rawMode ? JSON.stringify(result) : formatDeleteResult(result),
             },
           ],
         };
@@ -397,7 +400,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: formatBulkResult('update', result),
+              text: rawMode ? JSON.stringify(result) : formatBulkResult('update', result),
             },
           ],
         };
@@ -409,7 +412,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: formatBulkResult('delete', result),
+              text: rawMode ? JSON.stringify(result) : formatBulkResult('delete', result),
             },
           ],
         };
@@ -421,7 +424,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: formatSearchResult(result),
+              text: rawMode ? JSON.stringify(result) : formatSearchResult(result),
             },
           ],
         };

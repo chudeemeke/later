@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+
+// Phase 1 MVP CLI executable
+// Requires compiled TypeScript output in dist/cli/cli.js
+
+import('../dist/cli/cli.js').catch((error) => {
+  console.error('Error: Failed to load CLI');
+  console.error(error.message);
+
+  if (error.code === 'ERR_MODULE_NOT_FOUND') {
+    console.error('\nPlease run: npm run build');
+  }
+
+  process.exit(1);
+});

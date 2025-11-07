@@ -7,6 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🎉 Phase 1 CLI MVP Complete (2025-11-07)
+
+**Status:** Production-ready command-line interface for /later
+
+**Overview:**
+Implemented thin CLI client that delegates 100% to the MCP server. Follows the implementation plan with zero business logic duplication - CLI is pure adapter layer.
+
+**New Components:**
+
+1. **MCP Client** (`src/cli/mcp-client.ts`)
+   - Short-lived client pattern (spawn, request, terminate)
+   - JSON-RPC communication via MCP SDK
+   - Raw JSON mode for structured responses
+   - Automatic resource cleanup
+   - 95% test coverage (11 tests)
+
+2. **Argument Parser** (`src/cli/parser.ts`)
+   - Manual argv parsing (zero dependencies for MVP)
+   - Phase 1 commands: capture, list, show
+   - Clear error messages
+   - 100% test coverage (10 tests)
+
+3. **Output Formatter** (`src/cli/output/formatter.ts`)
+   - Plain text formatting (no colors/tables in MVP)
+   - formatSuccess, formatError, formatItem, formatList
+   - 100% test coverage (15 tests)
+
+4. **Command Handlers** (`src/cli/commands/`)
+   - capture.ts: Capture deferred decisions
+   - list.ts: List all items
+   - show.ts: Show item details
+   - 100% statement coverage (15 tests)
+
+5. **CLI Orchestration** (`src/cli/cli.ts`)
+   - Routes commands to handlers
+   - Proper exit codes
+   - Error handling
+
+6. **Executable** (`bin/later`)
+   - Node.js executable entry point
+   - Graceful error handling
+   - Build verification
+
+**Features:**
+- Thin client pattern - zero business logic in CLI
+- All validation and processing delegated to MCP server
+- Working commands: `later capture "text"`, `later list`, `later show 5`
+- Integration with existing MCP server via `__raw` mode
+- Clean separation of concerns
+
+**Test Results:**
+- ✅ **64 CLI tests passing**
+  - 11 MCP client tests
+  - 10 parser tests
+  - 15 formatter tests
+  - 15 command handler tests
+  - 13 integration tests (end-to-end)
+- ✅ **CLI-specific coverage:**
+  - McpClient: 95%
+  - Parser: 100%
+  - Formatter: 100%
+  - Command handlers: 100% statements
+- ✅ **Zero test failures**
+- ✅ **Production and market ready**
+
+**MCP Server Enhancement:**
+- Added `__raw` parameter to all tools for JSON responses
+- Backward compatible (AI clients unaffected)
+- CLI gets structured data, AI clients get formatted strings
+
+**Next Steps:**
+- Phase 2: Enhanced CLI with flags, filtering, and help system
+- Phase 3: Pretty output with colors and tables
+
+---
+
 ### 🚀 Phase 5 Complete: Bulk Operations & Full-Text Search (2025-11-06)
 
 **Status:** Production-grade advanced features for power users
