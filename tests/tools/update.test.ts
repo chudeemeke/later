@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { handleUpdate } from '../../src/tools/update.js';
+import { handleUpdate } from '../../src/tools/workflow/update.js';
 import type { Storage } from '../../src/storage/interface.js';
 import type { DeferredItem } from '../../src/types.js';
 

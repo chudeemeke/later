@@ -1,8 +1,9 @@
-import type { CaptureArgs, DeferredItem } from '../types.js';
-import type { Storage } from '../storage/interface.js';
-import { sanitizeSecrets, hasSecrets, getSecretsSummary } from '../utils/security.js';
-import { findSimilarItems } from '../utils/duplicate.js';
-import { extractContext, truncateContext } from '../utils/context.js';
+import type { CaptureArgs, DeferredItem } from '../../types.js';
+import type { Storage } from '../../storage/interface.js';
+import { sanitizeSecrets, hasSecrets, getSecretsSummary } from '../../utils/security.js';
+import { findSimilarItems } from '../../utils/duplicate.js';
+import { extractContext, truncateContext } from '../../utils/context.js';
+import { tokenize } from '../../utils/pii-tokenization.js';
 
 export interface CaptureResult {
   success: boolean;
@@ -47,15 +48,27 @@ export async function handleCapture(
   // Check for secrets in context
   if (hasSecrets(context)) {
     const summary = getSecretsSummary(context);
-    warnings.push(`⚠️  Secrets detected and sanitized: ${summary}`);
+    warnings.push(`Secrets detected and sanitized: ${summary}`);
     context = sanitizeSecrets(context);
   }
 
-  // Check for duplicates
+  // Tokenize PII in context (V2.0 security enhancement)
+  const tokenizedContext = context ? tokenize(context, { sensitive: true }) : null;
+  let contextTokens: Record<string, string> | undefined;
+  let contextPiiTypes: Record<string, number> | undefined;
+
+  if (tokenizedContext && Object.keys(tokenizedContext.detectedTypes).length > 0) {
+    const piiCount = Object.values(tokenizedContext.detectedTypes).reduce((a, b) => a + b, 0);
+    warnings.push(`PII detected and protected: ${piiCount} item(s) tokenized`);
+    contextTokens = tokenizedContext.tokens;
+    contextPiiTypes = tokenizedContext.detectedTypes;
+  }
+
+  // Check for duplicates (use tokenized context for comparison)
   const existingItems = await storage.readAll();
   const newItem: Partial<DeferredItem> = {
     decision: args.decision.trim(),
-    context,
+    context: tokenizedContext?.text || context,
     tags: args.tags || [],
     priority: args.priority || 'medium',
     status: 'pending',
@@ -83,15 +96,23 @@ export async function handleCapture(
   // Create item without ID (will be auto-assigned atomically)
   const now = new Date().toISOString();
 
-  const item = {
+  const item: any = {
     decision: args.decision.trim(),
-    context,
+    context: tokenizedContext?.text || context,
     status: 'pending' as const,
     tags: args.tags || [],
     priority: args.priority || 'medium',
     created_at: now,
     updated_at: now,
   };
+
+  // Add PII tokenization data if present (V2.0)
+  if (contextTokens) {
+    item.context_tokens = contextTokens;
+  }
+  if (contextPiiTypes) {
+    item.context_pii_types = contextPiiTypes;
+  }
 
   // Save to storage (ID assigned atomically within lock for concurrency safety)
   try {

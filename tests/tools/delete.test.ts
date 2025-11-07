@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { handleDelete } from '../../src/tools/delete.js';
+import { handleDelete } from '../../src/tools/workflow/delete.js';
 import type { Storage } from '../../src/storage/interface.js';
 import type { DeferredItem } from '../../src/types.js';
 

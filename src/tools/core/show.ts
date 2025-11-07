@@ -1,5 +1,6 @@
-import type { ShowArgs, DeferredItem } from '../types.js';
-import type { Storage } from '../storage/interface.js';
+import type { ShowArgs, DeferredItem } from '../../types.js';
+import type { Storage } from '../../storage/interface.js';
+import { detokenize } from '../../utils/pii-tokenization.js';
 
 export interface ShowResult {
   success: boolean;
@@ -154,12 +155,25 @@ export async function handleShow(
       };
     }
 
+    // Detokenize PII if present (V2.0)
+    const displayItem = { ...item };
+    if (item.context_tokens && Object.keys(item.context_tokens).length > 0) {
+      displayItem.context = detokenize({
+        text: item.context,
+        tokens: item.context_tokens,
+        detectedTypes: item.context_pii_types || {}
+      });
+      // Remove token data from display (security)
+      delete displayItem.context_tokens;
+      delete displayItem.context_pii_types;
+    }
+
     // Format output
-    const formattedOutput = await formatItemDetails(item, storage);
+    const formattedOutput = await formatItemDetails(displayItem, storage);
 
     return {
       success: true,
-      item,
+      item: displayItem,
       formatted_output: formattedOutput,
     };
   } catch (error) {

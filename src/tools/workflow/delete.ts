@@ -2,9 +2,9 @@
  * Delete tool - Remove deferred items (soft or hard delete)
  */
 
-import type { Storage } from '../storage/interface.js';
-import { validateDelete } from '../utils/validation.js';
-import { createLogger } from '../utils/logger.js';
+import type { Storage } from '../../storage/interface.js';
+import { validateDelete } from '../../utils/validation.js';
+import { createLogger } from '../../utils/logger.js';
 
 const log = createLogger('later:delete');
 

@@ -2,11 +2,11 @@
  * Update tool - Modify existing deferred items
  */
 
-import type { Storage } from '../storage/interface.js';
-import type { DeferredItem } from '../types.js';
-import { validateUpdate } from '../utils/validation.js';
-import { validateTransition, getTransitionError } from '../utils/state-machine.js';
-import { createLogger } from '../utils/logger.js';
+import type { Storage } from '../../storage/interface.js';
+import type { DeferredItem } from '../../types.js';
+import { validateUpdate } from '../../utils/validation.js';
+import { validateTransition, getTransitionError } from '../../utils/state-machine.js';
+import { createLogger } from '../../utils/logger.js';
 
 const log = createLogger('later:update');
 

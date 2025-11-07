@@ -3,10 +3,10 @@
  * Provides powerful search capabilities across all text fields
  */
 
-import type { Storage } from '../storage/interface.js';
-import type { DeferredItem } from '../types.js';
-import { extractKeywords } from '../utils/duplicate.js';
-import { createLogger } from '../utils/logger.js';
+import type { Storage } from '../../storage/interface.js';
+import type { DeferredItem } from '../../types.js';
+import { extractKeywords } from '../../utils/duplicate.js';
+import { createLogger } from '../../utils/logger.js';
 
 const log = createLogger('later:search');
 

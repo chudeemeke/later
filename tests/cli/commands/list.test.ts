@@ -183,4 +183,42 @@ describe('list command handler', () => {
     expect(() => JSON.parse(output)).not.toThrow();
     expect(exitCode).toBe(0);
   });
+
+  it('should handle error without error message', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: false,
+      // No error field - should use default message
+    });
+
+    const parsed = createParsedArgs();
+
+    await expect(async () => {
+      await handleList(parsed, mockClient);
+    }).rejects.toThrow('List failed');
+  });
+
+  it('should handle non-Error exceptions', async () => {
+    mockClient.callTool.mockRejectedValue('String error');  // Not an Error object
+
+    const parsed = createParsedArgs();
+    const exitCode = await handleList(parsed, mockClient);
+
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Unknown error')
+    );
+    expect(exitCode).toBe(1);
+  });
+
+  it('should handle result with undefined items', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      // No items field
+    });
+
+    const parsed = createParsedArgs();
+    const exitCode = await handleList(parsed, mockClient);
+
+    expect(mockConsoleLog).toHaveBeenCalledWith('No items found.');
+    expect(exitCode).toBe(0);
+  });
 });

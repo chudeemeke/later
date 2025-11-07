@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { handleSearch } from '../../src/tools/search.js';
+import { handleSearch } from '../../src/tools/search/search.js';
 import type { Storage } from '../../src/storage/interface.js';
 import type { DeferredItem } from '../../src/types.js';
 

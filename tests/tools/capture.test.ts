@@ -1,4 +1,4 @@
-import { handleCapture } from '../../src/tools/capture.js';
+import { handleCapture } from '../../src/tools/core/capture.js';
 import type { CaptureArgs, DeferredItem } from '../../src/types.js';
 import { JSONLStorage } from '../../src/storage/jsonl.js';
 import * as fs from 'fs/promises';

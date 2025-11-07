@@ -1,5 +1,5 @@
-import type { DoArgs, DeferredItem } from '../types.js';
-import type { Storage } from '../storage/interface.js';
+import type { DoArgs, DeferredItem } from '../../types.js';
+import type { Storage } from '../../storage/interface.js';
 
 export interface DoResult {
   success: boolean;

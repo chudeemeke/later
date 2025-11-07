@@ -9,6 +9,9 @@ export interface DeferredItem {
   updated_at: string;  // ISO 8601
   conversation_id?: string;
   dependencies?: number[];  // IDs of items this depends on
+  // V2.0: PII tokenization fields
+  context_tokens?: Record<string, string>;  // Tokenized PII mapping
+  context_pii_types?: Record<string, number>;  // Detected PII types count
 }
 
 export interface Config {

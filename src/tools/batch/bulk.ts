@@ -3,10 +3,10 @@
  * Provides transactional-style operations with detailed error reporting
  */
 
-import type { Storage } from '../storage/interface.js';
-import { handleUpdate, UpdateArgs } from './update.js';
-import { handleDelete } from './delete.js';
-import { createLogger } from '../utils/logger.js';
+import type { Storage } from '../../storage/interface.js';
+import { handleUpdate, UpdateArgs } from '../workflow/update.js';
+import { handleDelete } from '../workflow/delete.js';
+import { createLogger } from '../../utils/logger.js';
 
 const log = createLogger('later:bulk');
 

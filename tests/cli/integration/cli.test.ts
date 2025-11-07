@@ -33,7 +33,7 @@ describe('CLI Integration Tests', () => {
 
       expect(stdout).toContain('Captured as item');
       expect(stdout).toMatch(/#\d+/);
-      expect(stderr).toContain('Later MCP server running');
+      expect(stderr).toContain('Later MCP Server V2.0 started');
     }, 15000);
 
     it('should show error when decision is missing', async () => {
