@@ -94,4 +94,93 @@ describe('list command handler', () => {
     );
     expect(exitCode).toBe(1);
   });
+
+  it('should filter by status flag', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      items: [],
+    });
+
+    const parsed = createParsedArgs();
+    parsed.flags = { status: 'pending' };
+    const exitCode = await handleList(parsed, mockClient);
+
+    expect(mockClient.callTool).toHaveBeenCalledWith('later_list', { status: 'pending' });
+    expect(exitCode).toBe(0);
+  });
+
+  it('should filter by priority flag', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      items: [],
+    });
+
+    const parsed = createParsedArgs();
+    parsed.flags = { priority: 'high' };
+    const exitCode = await handleList(parsed, mockClient);
+
+    expect(mockClient.callTool).toHaveBeenCalledWith('later_list', { priority: 'high' });
+    expect(exitCode).toBe(0);
+  });
+
+  it('should filter by tags flag', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      items: [],
+    });
+
+    const parsed = createParsedArgs();
+    parsed.flags = { tags: ['urgent'] };
+    const exitCode = await handleList(parsed, mockClient);
+
+    expect(mockClient.callTool).toHaveBeenCalledWith('later_list', { tags: ['urgent'] });
+    expect(exitCode).toBe(0);
+  });
+
+  it('should apply limit flag', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      items: [],
+    });
+
+    const parsed = createParsedArgs();
+    parsed.flags = { limit: 10 };
+    const exitCode = await handleList(parsed, mockClient);
+
+    expect(mockClient.callTool).toHaveBeenCalledWith('later_list', { limit: 10 });
+    expect(exitCode).toBe(0);
+  });
+
+  it('should combine multiple filter flags', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      items: [],
+    });
+
+    const parsed = createParsedArgs();
+    parsed.flags = { status: 'pending', priority: 'high', limit: 5 };
+    const exitCode = await handleList(parsed, mockClient);
+
+    expect(mockClient.callTool).toHaveBeenCalledWith('later_list', {
+      status: 'pending',
+      priority: 'high',
+      limit: 5
+    });
+    expect(exitCode).toBe(0);
+  });
+
+  it('should format output as JSON when --json flag is set', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      items: [],
+    });
+
+    const parsed = createParsedArgs();
+    parsed.globalFlags = { help: false, version: false, json: true, debug: false, noColor: false };
+    const exitCode = await handleList(parsed, mockClient);
+
+    const output = mockConsoleLog.mock.calls[0][0];
+    expect(() => JSON.parse(output)).not.toThrow();
+    expect(exitCode).toBe(0);
+  });
 });

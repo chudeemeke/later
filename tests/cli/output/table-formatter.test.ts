@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import chalk from 'chalk';
 import {
   ColorSupport,
   Colors,
@@ -40,12 +41,19 @@ describe('ColorSupport', () => {
 });
 
 describe('Colors', () => {
+  let originalChalkLevel: number;
+
   beforeEach(() => {
+    // Save original chalk level and force colors on for testing
+    originalChalkLevel = chalk.level;
+    chalk.level = 3 as any; // Force colors enabled (3 = TrueColor)
     ColorSupport.enable();
     delete process.env.NO_COLOR;
   });
 
   afterEach(() => {
+    // Restore original chalk level
+    chalk.level = originalChalkLevel as any;
     ColorSupport.enable();
     delete process.env.NO_COLOR;
   });
@@ -54,16 +62,19 @@ describe('Colors', () => {
     const high = Colors.priority('high');
     const medium = Colors.priority('medium');
     const low = Colors.priority('low');
+    const unknown = Colors.priority('unknown');
 
     // Should return strings
     expect(typeof high).toBe('string');
     expect(typeof medium).toBe('string');
     expect(typeof low).toBe('string');
+    expect(typeof unknown).toBe('string');
 
     // Should contain the priority text
     expect(high).toContain('high');
     expect(medium).toContain('medium');
     expect(low).toContain('low');
+    expect(unknown).toContain('unknown');
   });
 
   it('should color status correctly', () => {
@@ -71,11 +82,20 @@ describe('Colors', () => {
     const inProgress = Colors.status('in_progress');
     const done = Colors.status('done');
     const archived = Colors.status('archived');
+    const unknown = Colors.status('unknown');
 
     expect(typeof pending).toBe('string');
     expect(typeof inProgress).toBe('string');
     expect(typeof done).toBe('string');
     expect(typeof archived).toBe('string');
+    expect(typeof unknown).toBe('string');
+
+    // Should contain the status text
+    expect(pending).toContain('pending');
+    expect(inProgress).toContain('in_progress');
+    expect(done).toContain('done');
+    expect(archived).toContain('archived');
+    expect(unknown).toContain('unknown');
   });
 
   it('should format IDs with hash', () => {

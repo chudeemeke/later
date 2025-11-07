@@ -45,7 +45,7 @@ describe('Search', () => {
     ];
 
     mockStorage = {
-      append: async () => {},
+      append: async () => 1,
       readAll: async () => testItems,
       findById: async (id: number) => testItems.find(i => i.id === id) || null,
       update: async () => {},

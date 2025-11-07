@@ -21,7 +21,7 @@ describe('Delete Tool', () => {
     };
 
     mockStorage = {
-      append: async () => {},
+      append: async () => 1,
       readAll: async () => [existingItem],
       findById: async (id: number) => (id === 1 ? existingItem : null),
       update: async (item: DeferredItem) => {

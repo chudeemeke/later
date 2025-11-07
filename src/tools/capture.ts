@@ -81,24 +81,22 @@ export async function handleCapture(
     }));
   }
 
-  // Generate ID and create item
-  const id = await storage.getNextId();
+  // Create item without ID (will be auto-assigned atomically)
   const now = new Date().toISOString();
 
-  const item: DeferredItem = {
-    id,
+  const item = {
     decision: args.decision.trim(),
     context,
-    status: 'pending',
+    status: 'pending' as const,
     tags: args.tags || [],
     priority: args.priority || 'medium',
     created_at: now,
     updated_at: now,
   };
 
-  // Save to storage
+  // Save to storage (ID assigned atomically within lock for concurrency safety)
   try {
-    await storage.append(item);
+    const id = await storage.append(item);
 
     const result: CaptureResult = {
       success: true,

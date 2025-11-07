@@ -45,7 +45,7 @@ describe('Bulk Operations', () => {
     ];
 
     mockStorage = {
-      append: async () => {},
+      append: async () => testItems.length + 1,
       readAll: async () => testItems,
       findById: async (id: number) => testItems.find(i => i.id === id) || null,
       update: async (item: DeferredItem) => {
