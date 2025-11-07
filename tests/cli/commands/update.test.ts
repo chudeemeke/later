@@ -120,7 +120,7 @@ describe('update command handler', () => {
 
     await expect(async () => {
       await handleUpdate(parsed, mockClient);
-    }).rejects.toThrow('No changes provided');
+    }).rejects.toThrow('No update fields provided');
   });
 
   it('should handle MCP tool errors', async () => {

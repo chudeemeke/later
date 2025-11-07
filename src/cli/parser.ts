@@ -219,8 +219,11 @@ function parseFlags(
   while (i < args.length) {
     const arg = args[i];
 
+    // Check if it's a negative number (treat as positional, not flag)
+    const isNegativeNumber = arg.startsWith('-') && arg.length > 1 && /^-\d+(\.\d+)?$/.test(arg);
+
     // Check if it's a flag
-    if (arg.startsWith('--')) {
+    if (arg.startsWith('--') && !isNegativeNumber) {
       const flagName = arg.substring(2);
       const flagSchema = schema?.flags?.[flagName];
 
@@ -247,7 +250,7 @@ function parseFlags(
       const value = args[i + 1];
       flags[flagName] = coerceValue(value, flagSchema, flagName, errors);
       i += 2;
-    } else if (arg.startsWith('-') && arg.length === 2) {
+    } else if (arg.startsWith('-') && arg.length === 2 && !isNegativeNumber) {
       // Short flag
       const shortFlag = arg[1];
       const flagName = findFlagByShort(shortFlag, schema);

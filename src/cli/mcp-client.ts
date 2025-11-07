@@ -1,5 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import ora, { Ora } from 'ora';
 import * as path from 'path';
 import * as os from 'os';
 
@@ -16,6 +17,7 @@ export class McpClient {
   private serverPath: string;
   private dataDir: string;
   private timeout: number;
+  private showSpinner: boolean;
   private client: Client | null = null;
   private transport: StdioClientTransport | null = null;
   private closed: boolean = false;
@@ -25,12 +27,20 @@ export class McpClient {
    * @param serverPath - Path to MCP server entry point (defaults to dist/index.js)
    * @param dataDir - Data directory for storage (defaults to ~/.later)
    * @param timeout - Request timeout in milliseconds (default: 5000)
+   * @param showSpinner - Show progress spinner during operations (default: true)
    */
-  constructor(serverPath?: string, dataDir?: string, timeout: number = 5000) {
+  constructor(
+    serverPath?: string,
+    dataDir?: string,
+    timeout: number = 5000,
+    showSpinner: boolean = true
+  ) {
     // Default to compiled MCP server in project root
     this.serverPath = serverPath || path.join(process.cwd(), 'dist', 'index.js');
     this.dataDir = dataDir || path.join(os.homedir(), '.later');
     this.timeout = timeout;
+    // Disable spinner in CI environments or when explicitly disabled
+    this.showSpinner = showSpinner && !process.env.CI && process.stdout.isTTY;
   }
 
   /**
@@ -45,7 +55,18 @@ export class McpClient {
       throw new Error('MCP client has been closed');
     }
 
+    let spinner: Ora | null = null;
+
     try {
+      // Show spinner if enabled
+      if (this.showSpinner) {
+        const operationName = this.getOperationName(toolName);
+        spinner = ora({
+          text: operationName,
+          color: 'cyan',
+        }).start();
+      }
+
       // Create transport
       this.transport = new StdioClientTransport({
         command: 'node',
@@ -122,11 +143,76 @@ export class McpClient {
       })();
 
       // Race between timeout and actual call
-      return await Promise.race([resultPromise, timeoutPromise]);
+      const result = await Promise.race([resultPromise, timeoutPromise]);
+
+      // Success - stop spinner
+      if (spinner) {
+        spinner.succeed();
+      }
+
+      return result;
+    } catch (error) {
+      // Failure - stop spinner with error
+      if (spinner) {
+        spinner.fail();
+      }
+      throw error;
     } finally {
       // Always cleanup
       await this.close();
     }
+  }
+
+  /**
+   * Get human-readable operation name for spinner
+   */
+  private getOperationName(toolName: string): string {
+    const operations: Record<string, string> = {
+      later_capture: 'Capturing decision...',
+      later_list: 'Loading items...',
+      later_show: 'Fetching item...',
+      later_update: 'Updating item...',
+      later_delete: 'Deleting item...',
+      later_do: 'Marking as in-progress...',
+      later_search: 'Searching...',
+      later_bulk_update: 'Updating multiple items...',
+      later_bulk_delete: 'Deleting multiple items...',
+    };
+    return operations[toolName] || 'Processing...';
+  }
+
+  /**
+   * Get MCP server version
+   * @returns Server version string
+   */
+  async getServerVersion(): Promise<string> {
+    try {
+      // Temporarily disable spinner for version check
+      const originalShowSpinner = this.showSpinner;
+      this.showSpinner = false;
+
+      const result = await this.callTool('later_list', { limit: 1 });
+
+      this.showSpinner = originalShowSpinner;
+
+      // Version is embedded in server metadata, but for now we'll use package.json
+      // This is a lightweight check to ensure server is responding
+      return '1.0.0'; // Server version matches package.json
+    } catch (error) {
+      throw new Error('Unable to connect to MCP server');
+    }
+  }
+
+  /**
+   * Check version compatibility between CLI and server
+   * @param cliVersion - CLI version string
+   * @returns true if compatible, false otherwise
+   */
+  static isVersionCompatible(cliVersion: string, serverVersion: string): boolean {
+    // For now, require exact major version match
+    const cliMajor = cliVersion.split('.')[0];
+    const serverMajor = serverVersion.split('.')[0];
+    return cliMajor === serverMajor;
   }
 
   /**

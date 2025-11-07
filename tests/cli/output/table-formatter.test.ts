@@ -134,6 +134,51 @@ describe('Colors', () => {
     expect(success).toBe('✓ Done');
     expect(id).toBe('#5');
   });
+
+  it('should handle unknown priority gracefully', () => {
+    const unknown = Colors.priority('unknown');
+    expect(unknown).toBe('unknown');
+  });
+
+  it('should handle unknown status gracefully', () => {
+    const unknown = Colors.status('unknown');
+    expect(unknown).toBe('unknown');
+  });
+
+  it('should format all status types with colors enabled', () => {
+    ColorSupport.enable();
+    const pending = Colors.status('pending');
+    const inProgress = Colors.status('in_progress');
+    const done = Colors.status('done');
+    const archived = Colors.status('archived');
+
+    expect(pending).toContain('pending');
+    expect(inProgress).toContain('in_progress');
+    expect(done).toContain('done');
+    expect(archived).toContain('archived');
+  });
+
+  it('should format all priority types with colors enabled', () => {
+    ColorSupport.enable();
+    const high = Colors.priority('high');
+    const medium = Colors.priority('medium');
+    const low = Colors.priority('low');
+
+    expect(high).toContain('high');
+    expect(medium).toContain('medium');
+    expect(low).toContain('low');
+  });
+
+  it('should format all message types with colors disabled', () => {
+    ColorSupport.disable();
+
+    expect(Colors.error('Error')).toBe('✗ Error');
+    expect(Colors.warning('Warning')).toBe('⚠ Warning');
+    expect(Colors.info('Info')).toBe('ℹ Info');
+    expect(Colors.dim('Dim')).toBe('Dim');
+    expect(Colors.bold('Bold')).toBe('Bold');
+    expect(Colors.tag('tag')).toBe('tag');
+  });
 });
 
 describe('TextUtils', () => {
@@ -201,6 +246,35 @@ describe('TextUtils', () => {
   it('should handle null tags', () => {
     const formatted = TextUtils.formatTags(null as any);
     expect(formatted).toBe('-');
+  });
+
+  it('should truncate at word boundary when space is in good position', () => {
+    // Text with space at 75% position (good for word boundary)
+    const text = 'This is a very long sentence';
+    const result = TextUtils.truncateWords(text, 20);
+    expect(result).toContain('...');
+    expect(result.length).toBeLessThanOrEqual(20);
+  });
+
+  it('should truncate without word boundary when no good break point', () => {
+    // Text with space very early (< 70% of max length)
+    const text = 'Hi verylongtextwithoutspaces';
+    const result = TextUtils.truncateWords(text, 20);
+    expect(result).toContain('...');
+    expect(result.length).toBe(20);
+  });
+
+  it('should format months ago correctly', () => {
+    const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+    const formatted = TextUtils.formatDate(twoMonthsAgo);
+    expect(formatted).toContain('months ago');
+  });
+
+  it('should format old dates as localized date string', () => {
+    const longAgo = new Date(Date.now() - 400 * 24 * 60 * 60 * 1000).toISOString();
+    const formatted = TextUtils.formatDate(longAgo);
+    // Should not contain "ago" - should be a date string
+    expect(formatted).not.toContain('ago');
   });
 });
 
@@ -330,5 +404,133 @@ describe('TableFormatter', () => {
 
     const output = TableFormatter.formatItem(itemNoContext);
     expect(output).not.toContain('Context:');
+  });
+
+  it('should show updated date only if different from created', () => {
+    const createdDate = new Date('2024-01-01').toISOString();
+    const updatedDate = new Date('2024-01-02').toISOString();
+    const itemWithUpdate = {
+      ...sampleItem,
+      created_at: createdDate,
+      updated_at: updatedDate,
+    };
+
+    const output = TableFormatter.formatItem(itemWithUpdate);
+    expect(output).toContain('Updated');
+  });
+
+  it('should not show updated date if same as created', () => {
+    const sameDate = new Date().toISOString();
+    const itemSameDate = {
+      ...sampleItem,
+      created_at: sameDate,
+      updated_at: sameDate,
+    };
+
+    const output = TableFormatter.formatItem(itemSameDate);
+    // "Updated" should not appear as a separate row
+    const updatedCount = (output.match(/Updated/g) || []).length;
+    expect(updatedCount).toBe(0);
+  });
+
+  it('should handle search results with missing score', () => {
+    const results = [
+      {
+        item: sampleItem,
+        matchedFields: ['decision'],
+      },
+    ];
+
+    const output = TableFormatter.formatSearchResults(results);
+    expect(output).toContain('-'); // Missing score shows as dash
+  });
+
+  it('should handle search results with missing matchedFields', () => {
+    const results = [
+      {
+        item: sampleItem,
+        score: 0.8,
+      },
+    ];
+
+    const output = TableFormatter.formatSearchResults(results);
+    expect(output).toContain('-'); // Missing matchedFields shows as dash
+  });
+
+  it('should color search scores appropriately', () => {
+    ColorSupport.enable();
+
+    const highScoreResult = [{ item: sampleItem, score: 0.9 }];
+    const mediumScoreResult = [{ item: sampleItem, score: 0.6 }];
+    const lowScoreResult = [{ item: sampleItem, score: 0.3 }];
+
+    const highOutput = TableFormatter.formatSearchResults(highScoreResult);
+    const mediumOutput = TableFormatter.formatSearchResults(mediumScoreResult);
+    const lowOutput = TableFormatter.formatSearchResults(lowScoreResult);
+
+    expect(highOutput).toContain('0.90');
+    expect(mediumOutput).toContain('0.60');
+    expect(lowOutput).toContain('0.30');
+  });
+
+  it('should handle bulk results with no failures', () => {
+    const output = TableFormatter.formatBulkResults('delete', [1, 2, 3], []);
+    expect(output).toContain('Successfully deleted 3 item');
+    expect(output).not.toContain('Failed');
+  });
+
+  it('should handle bulk results with no successes', () => {
+    const failed = [
+      { id: 1, error: 'Error 1' },
+      { id: 2, error: 'Error 2' },
+    ];
+    const output = TableFormatter.formatBulkResults('update', [], failed);
+    expect(output).toContain('Failed to update 2 item');
+    expect(output).not.toContain('Successfully');
+  });
+
+  it('should handle items without dependencies', () => {
+    const itemNoDeps = {
+      ...sampleItem,
+      dependencies: [],
+    };
+
+    const output = TableFormatter.formatItem(itemNoDeps);
+    expect(output).not.toContain('Blocks on');
+  });
+
+  it('should handle items with undefined dependencies', () => {
+    const itemNoDeps = {
+      ...sampleItem,
+      dependencies: undefined,
+    };
+
+    const output = TableFormatter.formatItem(itemNoDeps);
+    expect(output).not.toContain('Blocks on');
+  });
+
+  it('should truncate long decisions in list view', () => {
+    const longDecision = 'A'.repeat(100);
+    const itemLongDecision = {
+      ...sampleItem,
+      decision: longDecision,
+    };
+
+    const output = TableFormatter.formatList([itemLongDecision]);
+    expect(output).toContain('...');
+  });
+
+  it('should format multiple items in list', () => {
+    const items = [
+      sampleItem,
+      { ...sampleItem, id: 2, decision: 'Second decision' },
+      { ...sampleItem, id: 3, decision: 'Third decision' },
+    ];
+
+    const output = TableFormatter.formatList(items);
+    expect(output).toContain('Found 3 item');
+    expect(output).toContain('#1');
+    expect(output).toContain('#2');
+    expect(output).toContain('#3');
   });
 });

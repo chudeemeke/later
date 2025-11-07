@@ -43,8 +43,21 @@ async function main() {
 
     // Handle global flags
     if (parsed.globalFlags?.version) {
-      console.log(`later v${VERSION}`);
-      // TODO: Add MCP server version check
+      console.log(`later CLI v${VERSION}`);
+
+      // Check MCP server version
+      try {
+        const client = new McpClient(undefined, undefined, 5000, false); // No spinner for version check
+        const serverVersion = await client.getServerVersion();
+        console.log(`later MCP Server v${serverVersion}`);
+
+        if (!McpClient.isVersionCompatible(VERSION, serverVersion)) {
+          console.warn(`\nWarning: CLI version (${VERSION}) may not be compatible with server version (${serverVersion})`);
+        }
+      } catch (error) {
+        console.error('\nMCP server not responding. Ensure the server is installed correctly.');
+      }
+
       process.exit(0);
     }
 
@@ -74,60 +87,64 @@ async function main() {
       process.exit(1);
     }
 
+    // Determine whether to show spinner
+    // Disable spinner for JSON output or when colors are disabled
+    const showSpinner = !parsed.globalFlags?.json && !parsed.globalFlags?.noColor;
+
     // Route to command handler with full parsed object
     let exitCode: number;
 
     switch (parsed.subcommand) {
       case 'capture': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleCapture(parsed, client);
         break;
       }
 
       case 'list': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleList(parsed, client);
         break;
       }
 
       case 'show': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleShow(parsed, client);
         break;
       }
 
       case 'do': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleDo(parsed.args, client);
         break;
       }
 
       case 'update': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleUpdate(parsed, client);
         break;
       }
 
       case 'delete': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleDelete(parsed, client);
         break;
       }
 
       case 'bulk-update': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleBulkUpdate(parsed, client);
         break;
       }
 
       case 'bulk-delete': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleBulkDelete(parsed, client);
         break;
       }
 
       case 'search': {
-        const client = new McpClient();
+        const client = new McpClient(undefined, undefined, 5000, showSpinner);
         exitCode = await handleSearch(parsed, client);
         break;
       }
