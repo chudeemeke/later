@@ -111,4 +111,55 @@ describe('show command handler', () => {
       await handleShow(parsed, mockClient);
     }).rejects.toThrow('Item #99 not found');
   });
+
+  it('should format output as JSON when --json flag is set', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: true,
+      item: {
+        id: 1,
+        decision: 'Test item',
+        context: 'Test context',
+        status: 'pending',
+        priority: 'medium',
+        tags: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    });
+
+    const parsed = createParsedArgs(['1']);
+    parsed.globalFlags = { ...parsed.globalFlags!, json: true };
+
+    const exitCode = await handleShow(parsed, mockClient);
+
+    expect(exitCode).toBe(0);
+    expect(mockConsoleLog).toHaveBeenCalled();
+    const output = mockConsoleLog.mock.calls[0][0];
+    expect(() => JSON.parse(output)).not.toThrow();
+  });
+
+  it('should handle non-Error exceptions', async () => {
+    mockClient.callTool.mockRejectedValue('String error');  // Not an Error object
+
+    const parsed = createParsedArgs(['1']);
+    const exitCode = await handleShow(parsed, mockClient);
+
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      expect.stringContaining('Unknown error')
+    );
+    expect(exitCode).toBe(1);
+  });
+
+  it('should use default error message when result.error is undefined', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: false,
+      // No error field
+    });
+
+    const parsed = createParsedArgs(['999']);
+
+    await expect(async () => {
+      await handleShow(parsed, mockClient);
+    }).rejects.toThrow('Item #999 not found');
+  });
 });

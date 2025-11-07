@@ -137,4 +137,17 @@ describe('delete command handler', () => {
     );
     expect(exitCode).toBe(1);
   });
+
+  it('should use default error message when result.error is undefined', async () => {
+    mockClient.callTool.mockResolvedValue({
+      success: false,
+      // No error field
+    });
+
+    const parsed = createParsedArgs(['999']);
+
+    await expect(async () => {
+      await handleDelete(parsed, mockClient);
+    }).rejects.toThrow('Failed to delete item #999');
+  });
 });
