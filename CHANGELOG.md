@@ -7,6 +7,101 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🚀 Phase 2 CLI Complete: Full Feature Parity (2025-11-07)
+
+**Status:** Production-ready CLI with all 9 commands, flags, and help system
+
+**Overview:**
+Extended Phase 1 MVP to full feature parity with MCP server. Added comprehensive flag support, help system, error handling, and all remaining commands.
+
+**Enhanced Parser:**
+- Command schemas for all 9 commands
+- Full flag parsing (--flag and -f shorthand)
+- Type coercion (string → number, CSV → array)
+- Enum validation (status, priority)
+- Schema-based validation with helpful error messages
+- Global flags (--help, --version, --json, --debug, --no-color)
+
+**All 9 Commands:**
+
+1. **capture** - Enhanced with flags
+   - `--context, -c`: Additional context
+   - `--priority, -p`: Priority level
+   - `--tags, -t`: Comma-separated tags
+   - `--high`: Shorthand for high priority
+
+2. **list** - Enhanced with filtering
+   - `--status, -s`: Filter by status
+   - `--priority, -p`: Filter by priority
+   - `--tags, -t`: Filter by tags (OR logic)
+   - `--limit, -l`: Limit results
+
+3. **show** - View item details (enhanced error handling)
+
+4. **do** - NEW: Mark in-progress, get todos
+   - Shows todo guidance
+   - Updates item status
+
+5. **update** - NEW: Update any field
+   - `--decision, -d`: Update decision text
+   - `--context, -c`: Update context
+   - `--priority, -p`: Change priority
+   - `--status, -s`: Change status
+   - `--tags, -t`: Replace tags
+   - `--add-tags`: Add to existing tags
+   - `--remove-tags`: Remove specific tags
+   - `--deps`: Set dependencies
+
+6. **delete** - NEW: Delete items
+   - `--hard`: Permanent deletion (default: soft delete)
+
+7. **bulk-update** - NEW: Update multiple items
+   - Comma-separated IDs (e.g., `1,2,3`)
+   - Apply same changes to all
+   - Detailed success/failure reporting
+
+8. **bulk-delete** - NEW: Delete multiple items
+   - Comma-separated IDs
+   - `--hard` for permanent deletion
+
+9. **search** - NEW: Full-text search
+   - `--fields`: Specify fields to search
+   - `--limit`: Maximum results
+   - `--min-score`: Minimum relevance score
+
+**Help System:**
+- `later --help`: Main help with all commands
+- `later <command> --help`: Command-specific help
+- Auto-generated from schemas
+- Comprehensive examples for every command
+- Context-aware help suggestions on errors
+
+**Error Handling:**
+- Exit codes (SUCCESS=0, USER_ERROR=1, SYSTEM_ERROR=2)
+- CliError, UserError, SystemError classes
+- Helpful tips in error messages
+- Global error handlers
+- Formatted error output
+
+**Test Results:**
+- ✅ All existing tests passing (updated to ParsedArgs)
+- ✅ 15 command handler tests
+- ✅ 10 parser tests (schemas, flags, validation)
+- ✅ Zero breaking changes
+
+**Production Dependencies:**
+- chalk: Terminal colors
+- cli-table3: Table formatting
+- ora: Progress spinners
+
+**Next:**
+- Table formatter with colors for beautiful output
+- JSON output mode (--json flag)
+- Configuration management
+- Comprehensive integration tests
+
+---
+
 ### 🎉 Phase 1 CLI MVP Complete (2025-11-07)
 
 **Status:** Production-ready command-line interface for /later

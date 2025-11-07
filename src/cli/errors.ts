@@ -1,3 +1,5 @@
+import { Colors } from './output/table-formatter.js';
+
 /**
  * CLI Exit Codes
  */
@@ -46,7 +48,7 @@ export class SystemError extends CliError {
 }
 
 /**
- * Error Formatter - Formats errors for display
+ * Error Formatter - Formats errors for display with colors and helpful context
  */
 export class ErrorFormatter {
   /**
@@ -55,24 +57,47 @@ export class ErrorFormatter {
   static format(error: Error, subcommand?: string): string {
     const lines: string[] = [];
 
-    // Error message
-    if (error instanceof CliError) {
-      lines.push(`❌ Error: ${error.message}`);
+    // Error header with appropriate icon and color
+    lines.push('');
+    if (error instanceof UserError) {
+      lines.push(Colors.error('⚠  User Error'));
+      lines.push(Colors.dim('─'.repeat(60)));
+      lines.push('');
+      lines.push(error.message);
+    } else if (error instanceof SystemError) {
+      lines.push(Colors.error('✗  System Error'));
+      lines.push(Colors.dim('─'.repeat(60)));
+      lines.push('');
+      lines.push(error.message);
+    } else if (error instanceof CliError) {
+      lines.push(Colors.error('✗  Error'));
+      lines.push(Colors.dim('─'.repeat(60)));
+      lines.push('');
+      lines.push(error.message);
     } else {
-      lines.push(`❌ Error: ${error.message}`);
+      lines.push(Colors.error('✗  Unexpected Error'));
+      lines.push(Colors.dim('─'.repeat(60)));
+      lines.push('');
+      lines.push(error.message);
     }
 
     // Add tip if available
     if (error instanceof CliError && error.tip) {
       lines.push('');
-      lines.push(`💡 Tip: ${error.tip}`);
+      lines.push(Colors.info('💡 Tip'));
+      lines.push(Colors.dim('─'.repeat(60)));
+      lines.push('');
+      lines.push(error.tip);
     }
 
     // Add context help for subcommand
     if (subcommand) {
       lines.push('');
-      lines.push(`Run 'later ${subcommand} --help' for usage information.`);
+      lines.push(Colors.dim('─'.repeat(60)));
+      lines.push(Colors.dim(`For more information, run: later ${subcommand} --help`));
     }
+
+    lines.push('');
 
     return lines.join('\n');
   }

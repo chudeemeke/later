@@ -12,6 +12,7 @@ import { handleBulkUpdate } from './commands/bulk-update.js';
 import { handleBulkDelete } from './commands/bulk-delete.js';
 import { handleSearch } from './commands/search.js';
 import { formatError } from './output/formatter.js';
+import { ColorSupport } from './output/table-formatter.js';
 import { HelpGenerator } from './help.js';
 import { ErrorFormatter, CliError, UserError } from './errors.js';
 import * as fs from 'fs';
@@ -34,6 +35,11 @@ async function main() {
   try {
     // Parse command line arguments (skip node and script path)
     const parsed = parseArgs(process.argv.slice(2));
+
+    // Handle --no-color flag
+    if (parsed.globalFlags?.noColor) {
+      ColorSupport.disable();
+    }
 
     // Handle global flags
     if (parsed.globalFlags?.version) {

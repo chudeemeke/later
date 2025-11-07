@@ -43,7 +43,7 @@ describe('CLI Integration Tests', () => {
       } catch (error: any) {
         expect(error.code).toBe(1);
         expect(error.stdout || error.stderr).toContain('Error');
-        expect(error.stdout || error.stderr).toContain('Decision text is required');
+        expect(error.stdout || error.stderr).toContain('requires 1 argument');
       }
     }, 15000);
 
@@ -122,10 +122,10 @@ describe('CLI Integration Tests', () => {
       );
 
       expect(stdout).toContain(`Item #${id}`);
-      expect(stdout).toContain('Decision: Show test item');
-      expect(stdout).toContain('Status: pending');
-      expect(stdout).toContain('Priority: medium');
-      expect(stdout).toContain('Created:');
+      expect(stdout).toContain('Show test item');
+      expect(stdout).toContain('pending');
+      expect(stdout).toContain('medium');
+      expect(stdout).toContain('Created');
     }, 20000);
 
     it('should show error for non-existent item', async () => {
@@ -162,7 +162,7 @@ describe('CLI Integration Tests', () => {
       } catch (error: any) {
         expect(error.code).toBe(1);
         expect(error.stdout || error.stderr).toContain('Error');
-        expect(error.stdout || error.stderr).toContain('Item ID is required');
+        expect(error.stdout || error.stderr).toContain('requires 1 argument');
       }
     }, 15000);
   });
@@ -221,7 +221,7 @@ describe('CLI Integration Tests', () => {
 
       expect(showOut).toContain(`Item #${id}`);
       expect(showOut).toContain('E2E test workflow');
-      expect(showOut).toContain('Status: pending');
+      expect(showOut).toContain('pending');
     }, 30000);
   });
 });

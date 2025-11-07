@@ -1,5 +1,7 @@
 import { McpClient } from '../mcp-client.js';
 import { formatError } from '../output/formatter.js';
+import { TableFormatter } from '../output/table-formatter.js';
+import { JsonFormatter } from '../output/json-formatter.js';
 import { UserError } from '../errors.js';
 import { ParsedArgs } from '../parser.js';
 
@@ -38,35 +40,19 @@ export async function handleSearch(parsed: ParsedArgs, client: McpClient): Promi
 
     // Display result
     if (result.success) {
-      if (result.totalFound === 0) {
-        console.log(`🔍 No results found for "${searchArgs.query}"`);
-        return 0;
+      // Format based on --json flag
+      if (parsed.globalFlags?.json) {
+        console.log(JsonFormatter.formatSearchResult(result));
+      } else {
+        // Transform results to include matchedFields for table display
+        const transformedResults = (result.results || []).map((r: any) => ({
+          score: r.score,
+          item: r.item,
+          matchedFields: Object.keys(r.matches || {}).filter(k => r.matches[k] > 0),
+        }));
+
+        console.log(TableFormatter.formatSearchResults(transformedResults));
       }
-
-      // Header
-      console.log(`🔍 Found ${result.totalFound} result${result.totalFound === 1 ? '' : 's'} for "${searchArgs.query}" (${result.searchTime}ms)`);
-      console.log('');
-
-      // Results
-      result.results.forEach((r: any, i: number) => {
-        console.log(`${i + 1}. [#${r.item.id}] ${r.item.decision}`);
-        console.log(`   Score: ${r.score} | Status: ${r.item.status} | Priority: ${r.item.priority}`);
-
-        if (r.item.tags && r.item.tags.length > 0) {
-          console.log(`   Tags: ${r.item.tags.join(', ')}`);
-        }
-
-        // Match details
-        const matches = [];
-        if (r.matches.decision) matches.push(`decision(${r.matches.decision})`);
-        if (r.matches.context) matches.push(`context(${r.matches.context})`);
-        if (r.matches.tags) matches.push(`tags(${r.matches.tags})`);
-        if (matches.length > 0) {
-          console.log(`   Matches: ${matches.join(', ')}`);
-        }
-
-        console.log('');
-      });
 
       return 0;
     } else {

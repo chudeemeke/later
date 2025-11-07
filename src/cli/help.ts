@@ -1,4 +1,5 @@
 import { commandSchemas, CommandSchema, FlagSchema } from './parser.js';
+import { Colors } from './output/table-formatter.js';
 
 /**
  * Help Generator - Generates help text for commands
@@ -10,36 +11,36 @@ export class HelpGenerator {
   static main(version: string): string {
     const lines: string[] = [];
 
-    lines.push(`later v${version} - Deferred decision management CLI`);
+    lines.push(Colors.bold(`later v${version}`) + Colors.dim(' - Deferred decision management CLI'));
     lines.push('');
-    lines.push('USAGE:');
-    lines.push('  later <command> [options]');
+    lines.push(Colors.bold('USAGE:'));
+    lines.push(`  ${Colors.dim('$')} later ${Colors.dim('<command> [options]')}`);
     lines.push('');
-    lines.push('COMMANDS:');
-    lines.push('  capture        Capture a new deferred decision');
-    lines.push('  list           List deferred items with filtering');
-    lines.push('  show           Show full details of a specific item');
-    lines.push('  do             Mark item as in-progress and get todo guidance');
-    lines.push('  update         Update an existing item');
-    lines.push('  delete         Delete an item (soft or hard)');
-    lines.push('  bulk-update    Update multiple items at once');
-    lines.push('  bulk-delete    Delete multiple items at once');
-    lines.push('  search         Full-text search across items');
+    lines.push(Colors.bold('COMMANDS:'));
+    lines.push(`  ${Colors.bold('capture')}        Capture a new deferred decision`);
+    lines.push(`  ${Colors.bold('list')}           List deferred items with filtering`);
+    lines.push(`  ${Colors.bold('show')}           Show full details of a specific item`);
+    lines.push(`  ${Colors.bold('do')}             Mark item as in-progress and get todo guidance`);
+    lines.push(`  ${Colors.bold('update')}         Update an existing item`);
+    lines.push(`  ${Colors.bold('delete')}         Delete an item (soft or hard)`);
+    lines.push(`  ${Colors.bold('bulk-update')}    Update multiple items at once`);
+    lines.push(`  ${Colors.bold('bulk-delete')}    Delete multiple items at once`);
+    lines.push(`  ${Colors.bold('search')}         Full-text search across items`);
     lines.push('');
-    lines.push('GLOBAL OPTIONS:');
-    lines.push('  --help, -h         Show help information');
-    lines.push('  --version, -v      Show version information');
-    lines.push('  --json             Output in JSON format');
-    lines.push('  --no-color         Disable colored output');
-    lines.push('  --debug            Enable debug mode');
+    lines.push(Colors.bold('GLOBAL OPTIONS:'));
+    lines.push(`  ${Colors.dim('--help, -h')}         Show help information`);
+    lines.push(`  ${Colors.dim('--version, -v')}      Show version information`);
+    lines.push(`  ${Colors.dim('--json')}             Output in JSON format`);
+    lines.push(`  ${Colors.dim('--no-color')}         Disable colored output`);
+    lines.push(`  ${Colors.dim('--debug')}            Enable debug mode`);
     lines.push('');
-    lines.push('EXAMPLES:');
-    lines.push('  later capture "Should we use PostgreSQL or MongoDB?"');
-    lines.push('  later list --status pending --priority high');
-    lines.push('  later show 5');
-    lines.push('  later search "database" --limit 10');
+    lines.push(Colors.bold('EXAMPLES:'));
+    lines.push(`  ${Colors.dim('$')} later capture "Should we use PostgreSQL or MongoDB?"`);
+    lines.push(`  ${Colors.dim('$')} later list --status pending --priority high`);
+    lines.push(`  ${Colors.dim('$')} later show 5`);
+    lines.push(`  ${Colors.dim('$')} later search "database" --limit 10`);
     lines.push('');
-    lines.push('Run \'later <command> --help\' for detailed information on a specific command.');
+    lines.push(Colors.dim('Run \'later <command> --help\' for detailed information on a specific command.'));
 
     return lines.join('\n');
   }
@@ -50,24 +51,24 @@ export class HelpGenerator {
   static subcommand(name: string): string {
     const schema = commandSchemas[name];
     if (!schema) {
-      return `Unknown command: ${name}`;
+      return Colors.error(`Unknown command: ${name}`);
     }
 
     const lines: string[] = [];
 
     // Header
-    lines.push(`later ${name} - ${schema.description}`);
+    lines.push(Colors.bold(`later ${name}`) + Colors.dim(` - ${schema.description}`));
     lines.push('');
 
     // Usage
-    lines.push('USAGE:');
+    lines.push(Colors.bold('USAGE:'));
     const usage = this.generateUsage(name, schema);
-    lines.push(`  ${usage}`);
+    lines.push(`  ${Colors.dim('$')} ${usage}`);
     lines.push('');
 
     // Required positional arguments
     if (schema.requiredPositional) {
-      lines.push('ARGUMENTS:');
+      lines.push(Colors.bold('ARGUMENTS:'));
       const argDescriptions = this.getPositionalDescriptions(name);
       for (const desc of argDescriptions) {
         lines.push(`  ${desc}`);
@@ -77,7 +78,7 @@ export class HelpGenerator {
 
     // Flags/options
     if (schema.flags && Object.keys(schema.flags).length > 0) {
-      lines.push('OPTIONS:');
+      lines.push(Colors.bold('OPTIONS:'));
       const flagLines = this.generateFlagHelp(schema.flags);
       for (const line of flagLines) {
         lines.push(`  ${line}`);
@@ -88,9 +89,9 @@ export class HelpGenerator {
     // Examples
     const examples = this.getExamples(name);
     if (examples.length > 0) {
-      lines.push('EXAMPLES:');
+      lines.push(Colors.bold('EXAMPLES:'));
       for (const example of examples) {
-        lines.push(`  ${example}`);
+        lines.push(`  ${Colors.dim('$')} ${example}`);
       }
       lines.push('');
     }
@@ -166,38 +167,42 @@ export class HelpGenerator {
     for (const [name, schema] of Object.entries(flags)) {
       const parts: string[] = [];
 
-      // Flag name with short form
+      // Flag name with short form (colored)
       if (schema.short) {
-        parts.push(`--${name}, -${schema.short}`);
+        parts.push(Colors.dim(`--${name}, -${schema.short}`));
       } else {
-        parts.push(`--${name}`);
+        parts.push(Colors.dim(`--${name}`));
       }
 
       // Value placeholder for non-boolean flags
       if (schema.type !== 'boolean') {
         const valueName = this.getValuePlaceholder(schema);
-        parts.push(valueName);
+        parts.push(Colors.dim(valueName));
       }
 
-      // Pad to align descriptions
-      const flagPart = parts.join(' ').padEnd(25);
+      // Pad to align descriptions (need to calculate based on original length without colors)
+      const originalLength = schema.short
+        ? `--${name}, -${schema.short}`.length + (schema.type !== 'boolean' ? this.getValuePlaceholder(schema).length + 1 : 0)
+        : `--${name}`.length + (schema.type !== 'boolean' ? this.getValuePlaceholder(schema).length + 1 : 0);
+      const paddingNeeded = Math.max(0, 25 - originalLength);
+      const flagPart = parts.join(' ') + ' '.repeat(paddingNeeded);
 
       // Description
       let description = schema.description;
 
       // Add enum values
       if (schema.type === 'enum' && schema.values) {
-        description += ` (${schema.values.join(', ')})`;
+        description += Colors.dim(` (${schema.values.join(', ')})`);
       }
 
       // Add default value
       if (schema.default !== undefined) {
-        description += ` (default: ${schema.default})`;
+        description += Colors.dim(` (default: ${schema.default})`);
       }
 
       // Add required marker
       if (schema.required) {
-        description += ' [required]';
+        description += Colors.warning(' [required]');
       }
 
       lines.push(`${flagPart} ${description}`);

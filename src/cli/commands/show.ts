@@ -1,5 +1,7 @@
 import { McpClient } from '../mcp-client.js';
 import { formatItem, formatError } from '../output/formatter.js';
+import { TableFormatter } from '../output/table-formatter.js';
+import { JsonFormatter } from '../output/json-formatter.js';
 import { UserError } from '../errors.js';
 import { ParsedArgs } from '../parser.js';
 
@@ -36,7 +38,11 @@ export async function handleShow(parsed: ParsedArgs, client: McpClient): Promise
 
     // Display result
     if (result.success && result.item) {
-      const output = formatItem(result.item);
+      // Format based on --json flag
+      const output = parsed.globalFlags?.json
+        ? JsonFormatter.formatShowResult(result.item)
+        : TableFormatter.formatItem(result.item);
+
       console.log(output);
 
       return 0;

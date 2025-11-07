@@ -1,5 +1,7 @@
 import { McpClient } from '../mcp-client.js';
 import { formatError } from '../output/formatter.js';
+import { TableFormatter } from '../output/table-formatter.js';
+import { JsonFormatter } from '../output/json-formatter.js';
 import { UserError } from '../errors.js';
 import { ParsedArgs } from '../parser.js';
 
@@ -67,22 +69,13 @@ export async function handleBulkUpdate(parsed: ParsedArgs, client: McpClient): P
 
     // Display result
     if (result.success || result.succeeded > 0) {
-      console.log(result.message || `Bulk update completed`);
-      console.log(`Total: ${result.total} | Succeeded: ${result.succeeded} | Failed: ${result.failedCount || 0}`);
-
-      // Show processed IDs
-      if (result.processed && result.processed.length > 0) {
-        console.log('');
-        console.log(`✅ Updated: ${result.processed.join(', ')}`);
-      }
-
-      // Show failures
-      if (result.failed && result.failed.length > 0) {
-        console.log('');
-        console.log('❌ Failed:');
-        result.failed.forEach((failure: any) => {
-          console.log(`  • ID ${failure.id}: ${failure.error}`);
-        });
+      // Format based on --json flag
+      if (parsed.globalFlags?.json) {
+        console.log(JsonFormatter.formatBulkResult(result));
+      } else {
+        const successful = result.processed || [];
+        const failed = result.failed || [];
+        console.log(TableFormatter.formatBulkResults('update', successful, failed));
       }
 
       return result.failedCount > 0 ? 1 : 0;
