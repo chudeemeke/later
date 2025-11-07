@@ -1,10 +1,22 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { handleShow } from '../../../src/cli/commands/show.js';
 import { McpClient } from '../../../src/cli/mcp-client.js';
+import { ParsedArgs } from '../../../src/cli/parser.js';
 
 // Mock console methods
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
 const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+// Helper to create ParsedArgs
+function createParsedArgs(args: string[]): ParsedArgs {
+  return {
+    subcommand: 'show',
+    args,
+    errors: [],
+    flags: {},
+    globalFlags: { help: false, version: false, json: false, debug: false, noColor: false },
+  };
+}
 
 describe('show command handler', () => {
   let mockClient: jest.Mocked<McpClient>;
@@ -33,7 +45,8 @@ describe('show command handler', () => {
       },
     });
 
-    const exitCode = await handleShow(['5'], mockClient);
+    const parsed = createParsedArgs(['5']);
+    const exitCode = await handleShow(parsed, mockClient);
 
     expect(mockClient.callTool).toHaveBeenCalledWith('later_show', { id: 5 });
     expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -46,21 +59,19 @@ describe('show command handler', () => {
   });
 
   it('should return error when no ID provided', async () => {
-    const exitCode = await handleShow([], mockClient);
+    const parsed = createParsedArgs([]);
 
-    expect(mockConsoleError).toHaveBeenCalledWith(
-      expect.stringContaining('Item ID is required')
-    );
-    expect(exitCode).toBe(1);
+    await expect(async () => {
+      await handleShow(parsed, mockClient);
+    }).rejects.toThrow('Item ID is required');
   });
 
   it('should return error for invalid ID', async () => {
-    const exitCode = await handleShow(['abc'], mockClient);
+    const parsed = createParsedArgs(['abc']);
 
-    expect(mockConsoleError).toHaveBeenCalledWith(
-      expect.stringContaining('Invalid ID')
-    );
-    expect(exitCode).toBe(1);
+    await expect(async () => {
+      await handleShow(parsed, mockClient);
+    }).rejects.toThrow('Invalid ID');
   });
 
   it('should handle MCP tool errors', async () => {
@@ -69,18 +80,18 @@ describe('show command handler', () => {
       error: 'Item not found',
     });
 
-    const exitCode = await handleShow(['99'], mockClient);
+    const parsed = createParsedArgs(['99']);
 
-    expect(mockConsoleError).toHaveBeenCalledWith(
-      expect.stringContaining('Item not found')
-    );
-    expect(exitCode).toBe(1);
+    await expect(async () => {
+      await handleShow(parsed, mockClient);
+    }).rejects.toThrow('Item not found');
   });
 
   it('should handle exceptions', async () => {
     mockClient.callTool.mockRejectedValue(new Error('Network error'));
 
-    const exitCode = await handleShow(['5'], mockClient);
+    const parsed = createParsedArgs(['5']);
+    const exitCode = await handleShow(parsed, mockClient);
 
     expect(mockConsoleError).toHaveBeenCalledWith(
       expect.stringContaining('Network error')
@@ -94,11 +105,10 @@ describe('show command handler', () => {
       item: null,
     });
 
-    const exitCode = await handleShow(['99'], mockClient);
+    const parsed = createParsedArgs(['99']);
 
-    expect(mockConsoleError).toHaveBeenCalledWith(
-      expect.stringContaining('Item #99 not found')
-    );
-    expect(exitCode).toBe(1);
+    await expect(async () => {
+      await handleShow(parsed, mockClient);
+    }).rejects.toThrow('Item #99 not found');
   });
 });

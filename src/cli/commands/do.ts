@@ -1,49 +1,59 @@
 import { McpClient } from '../mcp-client.js';
 import { formatItem, formatError } from '../output/formatter.js';
 import { UserError } from '../errors.js';
-import { ParsedArgs } from '../parser.js';
 
 /**
- * Handle the show command
+ * Handle the do command
  *
  * Thin client - delegates all logic to MCP server
  *
- * @param parsed - Parsed arguments with flags
+ * @param args - Command arguments from parser
  * @param client - MCP client instance
  * @returns Exit code (0 = success, 1 = error)
  */
-export async function handleShow(parsed: ParsedArgs, client: McpClient): Promise<number> {
+export async function handleDo(args: string[], client: McpClient): Promise<number> {
   try {
     // Validate arguments
-    if (parsed.args.length === 0) {
+    if (args.length === 0) {
       throw new UserError(
         'Item ID is required',
-        'Provide the ID of the item you want to view'
+        'Provide the ID of the item you want to start working on'
       );
     }
 
     // Parse ID
-    const id = parseInt(parsed.args[0], 10);
+    const id = parseInt(args[0], 10);
     if (isNaN(id)) {
       throw new UserError(
-        `Invalid ID: ${parsed.args[0]}`,
+        `Invalid ID: ${args[0]}`,
         'ID must be a number'
       );
     }
 
     // Call MCP server
-    const result = await client.callTool('later_show', { id });
+    const result = await client.callTool('later_do', { id });
 
     // Display result
-    if (result.success && result.item) {
-      const output = formatItem(result.item);
-      console.log(output);
+    if (result.success) {
+      console.log(result.message);
+
+      // Show todo guidance if available
+      if (result.todo_guidance) {
+        console.log('');
+        console.log(result.todo_guidance);
+      }
+
+      // Show warnings if any
+      if (result.warnings) {
+        console.log('');
+        console.log(result.warnings);
+      }
 
       return 0;
     } else {
       throw new UserError(
         result.error || `Item #${id} not found`,
-        'Check that the item exists with: later list'
+        'Check that the item ID exists with: later list'
       );
     }
   } catch (error) {

@@ -1,10 +1,22 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { handleCapture } from '../../../src/cli/commands/capture.js';
 import { McpClient } from '../../../src/cli/mcp-client.js';
+import { ParsedArgs } from '../../../src/cli/parser.js';
 
 // Mock console methods
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
 const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+// Helper to create ParsedArgs
+function createParsedArgs(args: string[], flags: Record<string, any> = {}): ParsedArgs {
+  return {
+    subcommand: 'capture',
+    args,
+    errors: [],
+    flags,
+    globalFlags: { help: false, version: false, json: false, debug: false, noColor: false },
+  };
+}
 
 describe('capture command handler', () => {
   let mockClient: jest.Mocked<McpClient>;
@@ -27,7 +39,8 @@ describe('capture command handler', () => {
       message: 'Captured as item #1',
     });
 
-    const exitCode = await handleCapture(['Test decision'], mockClient);
+    const parsed = createParsedArgs(['Test decision']);
+    const exitCode = await handleCapture(parsed, mockClient);
 
     expect(mockClient.callTool).toHaveBeenCalledWith('later_capture', {
       decision: 'Test decision',
@@ -37,12 +50,11 @@ describe('capture command handler', () => {
   });
 
   it('should return error when no decision provided', async () => {
-    const exitCode = await handleCapture([], mockClient);
+    const parsed = createParsedArgs([]);
 
-    expect(mockConsoleError).toHaveBeenCalledWith(
-      expect.stringContaining('Decision text is required')
-    );
-    expect(exitCode).toBe(1);
+    await expect(async () => {
+      await handleCapture(parsed, mockClient);
+    }).rejects.toThrow('Decision text is required');
   });
 
   it('should handle MCP tool errors', async () => {
@@ -51,18 +63,18 @@ describe('capture command handler', () => {
       error: 'Failed to capture',
     });
 
-    const exitCode = await handleCapture(['Test'], mockClient);
+    const parsed = createParsedArgs(['Test']);
 
-    expect(mockConsoleError).toHaveBeenCalledWith(
-      expect.stringContaining('Failed to capture')
-    );
-    expect(exitCode).toBe(1);
+    await expect(async () => {
+      await handleCapture(parsed, mockClient);
+    }).rejects.toThrow('Failed to capture');
   });
 
   it('should handle exceptions', async () => {
     mockClient.callTool.mockRejectedValue(new Error('Network error'));
 
-    const exitCode = await handleCapture(['Test'], mockClient);
+    const parsed = createParsedArgs(['Test']);
+    const exitCode = await handleCapture(parsed, mockClient);
 
     expect(mockConsoleError).toHaveBeenCalledWith(
       expect.stringContaining('Network error')
@@ -78,7 +90,8 @@ describe('capture command handler', () => {
       warnings: ['Warning 1', 'Warning 2'],
     });
 
-    const exitCode = await handleCapture(['Test'], mockClient);
+    const parsed = createParsedArgs(['Test']);
+    const exitCode = await handleCapture(parsed, mockClient);
 
     expect(mockConsoleLog).toHaveBeenCalledWith('Captured as item #1');
     expect(mockConsoleLog).toHaveBeenCalledWith('Warning 1');

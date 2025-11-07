@@ -1,10 +1,22 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { handleList } from '../../../src/cli/commands/list.js';
 import { McpClient } from '../../../src/cli/mcp-client.js';
+import { ParsedArgs } from '../../../src/cli/parser.js';
 
 // Mock console methods
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
 const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+// Helper to create ParsedArgs
+function createParsedArgs(args: string[] = [], flags: Record<string, any> = {}): ParsedArgs {
+  return {
+    subcommand: 'list',
+    args,
+    errors: [],
+    flags,
+    globalFlags: { help: false, version: false, json: false, debug: false, noColor: false },
+  };
+}
 
 describe('list command handler', () => {
   let mockClient: jest.Mocked<McpClient>;
@@ -35,7 +47,8 @@ describe('list command handler', () => {
       ],
     });
 
-    const exitCode = await handleList([], mockClient);
+    const parsed = createParsedArgs();
+    const exitCode = await handleList(parsed, mockClient);
 
     expect(mockClient.callTool).toHaveBeenCalledWith('later_list', {});
     expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -50,7 +63,8 @@ describe('list command handler', () => {
       items: [],
     });
 
-    const exitCode = await handleList([], mockClient);
+    const parsed = createParsedArgs();
+    const exitCode = await handleList(parsed, mockClient);
 
     expect(mockConsoleLog).toHaveBeenCalledWith('No items found.');
     expect(exitCode).toBe(0);
@@ -62,18 +76,18 @@ describe('list command handler', () => {
       error: 'Failed to list',
     });
 
-    const exitCode = await handleList([], mockClient);
+    const parsed = createParsedArgs();
 
-    expect(mockConsoleError).toHaveBeenCalledWith(
-      expect.stringContaining('Failed to list')
-    );
-    expect(exitCode).toBe(1);
+    await expect(async () => {
+      await handleList(parsed, mockClient);
+    }).rejects.toThrow('Failed to list');
   });
 
   it('should handle exceptions', async () => {
     mockClient.callTool.mockRejectedValue(new Error('Network error'));
 
-    const exitCode = await handleList([], mockClient);
+    const parsed = createParsedArgs();
+    const exitCode = await handleList(parsed, mockClient);
 
     expect(mockConsoleError).toHaveBeenCalledWith(
       expect.stringContaining('Network error')
