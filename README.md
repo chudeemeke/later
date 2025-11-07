@@ -41,9 +41,11 @@ During complex work, you encounter decisions that:
 
 ## Current Status
 
-**Phase:** Design complete, implementation pending
+**Phase:** ✅ **Production-ready v1.0.0** with comprehensive test coverage
 
-**Next:** MVP (JSONL-based, 200 lines bash, 4-6 hours)
+**Implementation:** Full MCP server with CLI, 96.6% statement coverage, 880 passing tests
+
+**Next:** Real-world usage and feedback-driven enhancements
 
 ## Documentation
 
@@ -54,7 +56,7 @@ During complex work, you encounter decisions that:
 - **[docs/SCHEMA.md](docs/SCHEMA.md)** - JSONL and SQLite data formats
 - **[docs/CONTEXT.md](docs/CONTEXT.md)** - How this project started
 
-## Quick Start (When Implemented)
+## Quick Start
 
 ```bash
 # Capture decision

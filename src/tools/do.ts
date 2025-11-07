@@ -106,7 +106,7 @@ export async function handleDo(
       };
     }
 
-    let warnings: string[] = [];
+    const warnings: string[] = [];
 
     // Check current status
     if (item.status === 'done') {

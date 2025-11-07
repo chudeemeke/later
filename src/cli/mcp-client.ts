@@ -191,7 +191,7 @@ export class McpClient {
       const originalShowSpinner = this.showSpinner;
       this.showSpinner = false;
 
-      const result = await this.callTool('later_list', { limit: 1 });
+      const _result = await this.callTool('later_list', { limit: 1 });
 
       this.showSpinner = originalShowSpinner;
 

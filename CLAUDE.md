@@ -1,7 +1,7 @@
 # /later - Development Guide
 
 **Project:** Deferred decision management for Claude Code
-**Phase:** Design complete, implementation pending
+**Phase:** ✅ Production-ready v1.0.0 (JSONL-based, 96.6% test coverage, 880 tests)
 **Target:** Personal use, designed for power users
 
 ## Quick Navigation

@@ -4,7 +4,6 @@
  */
 
 import type { Storage } from '../storage/interface.js';
-import type { DeferredItem } from '../types.js';
 import { handleUpdate, UpdateArgs } from './update.js';
 import { handleDelete } from './delete.js';
 import { createLogger } from '../utils/logger.js';

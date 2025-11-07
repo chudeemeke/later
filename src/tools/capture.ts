@@ -1,6 +1,5 @@
 import type { CaptureArgs, DeferredItem } from '../types.js';
 import type { Storage } from '../storage/interface.js';
-import type { SimilarItem } from '../utils/duplicate.js';
 import { sanitizeSecrets, hasSecrets, getSecretsSummary } from '../utils/security.js';
 import { findSimilarItems } from '../utils/duplicate.js';
 import { extractContext, truncateContext } from '../utils/context.js';
