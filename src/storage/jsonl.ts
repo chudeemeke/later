@@ -242,3 +242,14 @@ export function getStorage(dataDir?: string): Storage {
   }
   return storageInstance;
 }
+
+/**
+ * Close storage and release resources
+ * Called during graceful shutdown
+ */
+export async function closeStorage(): Promise<void> {
+  if (storageInstance) {
+    // Clear singleton reference
+    storageInstance = null;
+  }
+}

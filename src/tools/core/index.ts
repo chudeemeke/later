@@ -1,12 +1,19 @@
 /**
  * Core Tools - Essential operations (capture, list, show)
  * These are the most frequently used tools
+ *
+ * MCP 2025-06 Compliant: Includes outputSchema for typed responses
  */
 
 import { toolRegistry } from '../../registry.js';
 import { handleCapture } from './capture.js';
 import { handleList } from './list.js';
 import { handleShow } from './show.js';
+import {
+  captureOutputSchema,
+  listOutputSchema,
+  showOutputSchema
+} from '../../schemas/output-schemas.js';
 
 // Register capture tool
 toolRegistry.register({
@@ -39,6 +46,7 @@ toolRegistry.register({
     },
     required: ['decision']
   },
+  outputSchema: captureOutputSchema,
   handler: handleCapture
 });
 
@@ -73,6 +81,7 @@ toolRegistry.register({
       }
     }
   },
+  outputSchema: listOutputSchema,
   handler: handleList
 });
 
@@ -93,6 +102,7 @@ toolRegistry.register({
     },
     required: ['id']
   },
+  outputSchema: showOutputSchema,
   handler: handleShow
 });
 

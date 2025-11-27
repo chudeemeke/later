@@ -1,19 +1,58 @@
 {
-  "name": "later-mcp-server",
-  "version": "1.0.0",
-  "description": "MCP server for /later - deferred decision management",
+  "name": "@anthropic-claude/later",
+  "version": "2.0.0",
+  "description": "MCP server for deferred decision management - capture decisions with context, revisit later without memory overhead",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "later": "./bin/later"
+    "later": "./bin/later",
+    "later-mcp": "./dist/index.js"
   },
+  "files": [
+    "dist/",
+    "bin/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "lint": "eslint src/**/*.ts"
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "lint": "eslint src/**/*.ts",
+    "prepublishOnly": "npm run build && npm test",
+    "preversion": "npm test",
+    "postversion": "git push && git push --tags"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "anthropic",
+    "ai",
+    "decision-management",
+    "productivity",
+    "deferred-decisions",
+    "context-capture"
+  ],
+  "author": "Chude <chude@emeke.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chudeemeke/later.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chudeemeke/later/issues"
+  },
+  "homepage": "https://github.com/chudeemeke/later#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "chalk": "^5.6.2",

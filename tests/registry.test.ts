@@ -21,7 +21,7 @@ describe('Tool Registry', () => {
         keywords: ['test'],
         priority: 1,
         description: 'Test tool',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 
@@ -40,7 +40,7 @@ describe('Tool Registry', () => {
           keywords: ['test1'],
           priority: 1,
           description: 'Tool 1',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           handler: async () => ({ success: true })
         },
         {
@@ -49,7 +49,7 @@ describe('Tool Registry', () => {
           keywords: ['test2'],
           priority: 2,
           description: 'Tool 2',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           handler: async () => ({ success: true })
         }
       ];
@@ -66,7 +66,7 @@ describe('Tool Registry', () => {
         keywords: ['old'],
         priority: 1,
         description: 'Old description',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 
@@ -76,7 +76,7 @@ describe('Tool Registry', () => {
         keywords: ['new'],
         priority: 2,
         description: 'New description',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: false })
       };
 
@@ -97,7 +97,7 @@ describe('Tool Registry', () => {
         keywords: ['test'],
         priority: 1,
         description: 'Test tool',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 
@@ -126,7 +126,7 @@ describe('Tool Registry', () => {
         keywords: ['test1'],
         priority: 1,
         description: 'Tool 1',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 
@@ -136,7 +136,7 @@ describe('Tool Registry', () => {
         keywords: ['test2'],
         priority: 2,
         description: 'Tool 2',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 
@@ -159,7 +159,7 @@ describe('Tool Registry', () => {
           keywords: ['test'],
           priority: 1,
           description: 'Core tool 1',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           handler: async () => ({ success: true })
         },
         {
@@ -168,7 +168,7 @@ describe('Tool Registry', () => {
           keywords: ['test'],
           priority: 1,
           description: 'Core tool 2',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           handler: async () => ({ success: true })
         },
         {
@@ -177,7 +177,7 @@ describe('Tool Registry', () => {
           keywords: ['test'],
           priority: 1,
           description: 'Workflow tool 1',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           handler: async () => ({ success: true })
         }
       ];
@@ -211,7 +211,7 @@ describe('Tool Registry', () => {
           keywords: ['create', 'add', 'capture', 'new'],
           priority: 10,
           description: 'Capture a new decision',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           handler: async () => ({ success: true })
         },
         {
@@ -220,7 +220,7 @@ describe('Tool Registry', () => {
           keywords: ['list', 'show', 'all'],
           priority: 10,
           description: 'List all items',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           handler: async () => ({ success: true })
         },
         {
@@ -229,7 +229,7 @@ describe('Tool Registry', () => {
           keywords: ['delete', 'remove'],
           priority: 5,
           description: 'Delete an item',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           handler: async () => ({ success: true })
         },
         {
@@ -238,7 +238,7 @@ describe('Tool Registry', () => {
           keywords: ['hidden'],
           priority: 1,
           description: 'Hidden tool',
-          inputSchema: {},
+          inputSchema: { type: 'object' },
           hidden: true,
           handler: async () => ({ success: true })
         }
@@ -317,7 +317,7 @@ describe('Tool Registry', () => {
         keywords: ['test'],
         priority: 1,
         description: 'Test tool',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 
@@ -337,7 +337,7 @@ describe('Tool Registry', () => {
         keywords: ['test'],
         priority: 1,
         description: 'Test tool',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 
@@ -354,7 +354,7 @@ describe('Tool Registry', () => {
         keywords: [],
         priority: 1,
         description: 'Tool with no keywords',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 
@@ -372,7 +372,7 @@ describe('Tool Registry', () => {
         keywords: ['test'],
         priority: 0,
         description: 'Zero priority tool',
-        inputSchema: {},
+        inputSchema: { type: 'object' },
         handler: async () => ({ success: true })
       };
 

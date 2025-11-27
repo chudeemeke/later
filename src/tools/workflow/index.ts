@@ -1,11 +1,18 @@
 /**
  * Workflow Tools - Operations that change item state (do, update, delete)
+ *
+ * MCP 2025-06 Compliant: Includes outputSchema for typed responses
  */
 
 import { toolRegistry } from '../../registry.js';
 import { handleDo } from './do.js';
 import { handleUpdate } from './update.js';
 import { handleDelete } from './delete.js';
+import {
+  doOutputSchema,
+  updateOutputSchema,
+  deleteOutputSchema
+} from '../../schemas/output-schemas.js';
 
 // Register do tool
 toolRegistry.register({
@@ -24,6 +31,7 @@ toolRegistry.register({
     },
     required: ['id']
   },
+  outputSchema: doOutputSchema,
   handler: handleDo
 });
 
@@ -72,6 +80,7 @@ toolRegistry.register({
     },
     required: ['id']
   },
+  outputSchema: updateOutputSchema,
   handler: handleUpdate
 });
 
@@ -96,6 +105,7 @@ toolRegistry.register({
     },
     required: ['id']
   },
+  outputSchema: deleteOutputSchema,
   handler: handleDelete
 });
 

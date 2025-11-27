@@ -1,9 +1,12 @@
 /**
  * Search Tools - Advanced search and filtering
+ *
+ * MCP 2025-06 Compliant: Includes outputSchema for typed responses
  */
 
 import { toolRegistry } from '../../registry.js';
 import { handleSearch } from './search.js';
+import { searchOutputSchema } from '../../schemas/output-schemas.js';
 
 // Register search tool
 toolRegistry.register({
@@ -41,6 +44,7 @@ toolRegistry.register({
     },
     required: ['query']
   },
+  outputSchema: searchOutputSchema,
   handler: handleSearch
 });
 

@@ -1,6 +1,12 @@
-# /later - Deferred Decision Management
+# @anthropic-claude/later
 
-**A Claude Code command for capturing decisions with full context, to be revisited later without memory overhead.**
+**MCP Server for Deferred Decision Management**
+
+Capture decisions with full context, revisit later without memory overhead. A production-ready Model Context Protocol (MCP) server following the MCP 2025-06 specification.
+
+[![npm version](https://badge.fury.io/js/@anthropic-claude%2Flater.svg)](https://www.npmjs.com/package/@anthropic-claude/later)
+[![CI](https://github.com/chudeemeke/later/actions/workflows/ci.yml/badge.svg)](https://github.com/chudeemeke/later/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## The Problem
 
@@ -15,99 +21,272 @@ During complex work, you encounter decisions that:
 ## The Solution
 
 ```bash
-/later "Optimize CLAUDE.md size"
-# ✅ Captured with full context
+# Capture decision with context
+later_capture: "Optimize CLAUDE.md size"
 
-# Later...
-/later list
-# [1] Optimize CLAUDE.md size (180d old, optimization)
+# Later... review deferred items
+later_list
 
-/later show 1
-# Full context restored: options, pros/cons, recommendation
+# Get full context
+later_show 1
 
-/later do 1
-# Convert to actionable todos with all context loaded
+# Start working on it
+later_do 1
 ```
 
-## Apple-Style Philosophy
+## Installation
 
-**Layer 1 (Simple):** `/later "Title"` - One command captures everything
-
-**Layer 2 (Orchestration):** Auto-extracts context, categorizes, stores with metadata
-
-**Layer 3 (Implementation):** JSONL → SQLite scaling, fuzzy duplication detection, dependency tracking
-
-**Layer 4 (Recovery):** Easy search, filter, convert to action, undo/archive
-
-## Current Status
-
-**Phase:** ✅ **Production-ready v1.0.0** with comprehensive test coverage
-
-**Implementation:** Full MCP server with CLI, 96.6% statement coverage, 880 passing tests
-
-**Next:** Real-world usage and feedback-driven enhancements
-
-## Documentation
-
-- **[docs/DESIGN.md](docs/DESIGN.md)** - Comprehensive design analysis (storage, edge cases, scaling)
-- **[docs/REQUIREMENTS.md](docs/REQUIREMENTS.md)** - User stories, command specs, data schema
-- **[docs/IMPLEMENTATION-PHASES.md](docs/IMPLEMENTATION-PHASES.md)** - Build roadmap (MVP → V3)
-- **[docs/EDGE-CASES.md](docs/EDGE-CASES.md)** - All edge cases + solutions
-- **[docs/SCHEMA.md](docs/SCHEMA.md)** - JSONL and SQLite data formats
-- **[docs/CONTEXT.md](docs/CONTEXT.md)** - How this project started
-
-## Quick Start
+### npm (Global)
 
 ```bash
-# Capture decision
-/later "Should I refactor to plugin structure?"
+npm install -g @anthropic-claude/later
+```
 
-# Review deferred items
-/later list
-/later list --category refactor
-/later list --priority high
+### Claude Code Integration
 
-# Get details
-/later show 3
+Add to your Claude Code MCP configuration (`~/.claude/.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "later": {
+      "command": "npx",
+      "args": ["@anthropic-claude/later"],
+      "env": {}
+    }
+  }
+}
+```
+
+Or if installed globally:
+
+```json
+{
+  "mcpServers": {
+    "later": {
+      "command": "later-mcp",
+      "env": {}
+    }
+  }
+}
+```
+
+### From Source
+
+```bash
+git clone https://github.com/chudeemeke/later.git
+cd later
+npm install
+npm run build
+```
+
+## Features
+
+### Progressive Tool Disclosure
+
+Only the `search_tools` meta-tool is exposed initially, reducing token overhead by ~90%. Other tools are discovered on-demand:
+
+```
+search_tools: "create a decision"
+# Returns: later_capture tool with schema
+```
+
+### Automatic PII Protection
+
+Sensitive data in context is automatically detected and tokenized:
+- API keys (OpenAI, Anthropic, GitHub, etc.)
+- Passwords and secrets
+- Social Security Numbers
+- Credit card numbers
+- Email addresses
+- IP addresses
+- Phone numbers
+
+Detection rate: 95%+ accuracy with zero false negatives on tested patterns.
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `search_tools` | Discover tools based on what you want to do |
+| `later_capture` | Capture a decision with context |
+| `later_list` | List and filter deferred items |
+| `later_show` | Show full item details |
+| `later_do` | Mark item as in-progress, get todo guidance |
+| `later_update` | Update any item field |
+| `later_delete` | Soft or hard delete items |
+| `later_bulk_update` | Update multiple items at once |
+| `later_bulk_delete` | Delete multiple items at once |
+| `later_search` | Full-text search with relevance ranking |
+
+### MCP 2025-06 Compliance
+
+- outputSchema for all tools (typed responses)
+- Structured error handling with isError pattern
+- All logging to stderr (stdout reserved for protocol)
+- Graceful shutdown handling
+- Progressive tool disclosure
+
+## CLI Usage
+
+```bash
+# Capture a decision
+later capture "Refactor authentication module"
+
+# Capture with context and priority
+later capture "Migrate to PostgreSQL" --context "Current MySQL has scaling issues" --priority high --tags "database,migration"
+
+# List all items
+later list
+
+# Filter items
+later list --status pending --priority high
+later list --tags "refactor"
+
+# Show item details
+later show 1
+
+# Start working on an item
+later do 1
+
+# Update item
+later update 1 --status done
+later update 1 --priority medium --tags "completed,v2"
+
+# Delete (soft - archives)
+later delete 1
+
+# Delete (hard - permanent)
+later delete 1 --hard
 
 # Search
-/later search "plugin"
-
-# Convert to action
-/later do 3  # Creates todos with full context
-
-# Maintain
-/later done 3
-/later archive --older-than 180d
+later search "authentication"
 ```
 
-## Project Structure
+## Data Storage
 
+Items are stored in `~/.later/items.jsonl`:
+- JSONL format (one JSON object per line)
+- Atomic writes with file locking
+- Automatic corruption recovery
+- Secure file permissions (600)
+
+## API Reference
+
+### later_capture
+
+```typescript
+{
+  decision: string;      // Required: Decision text (1-500 chars)
+  context?: string;      // Optional: Additional context
+  tags?: string[];       // Optional: Categorization tags
+  priority?: 'low' | 'medium' | 'high';  // Default: medium
+}
 ```
-later/
-├── README.md (this file)
-├── CLAUDE.md (development guidance)
-├── docs/ (detailed design documentation)
-├── src/ (future implementation)
-├── tests/ (test strategy)
-└── examples/ (sample data, usage examples)
+
+### later_list
+
+```typescript
+{
+  status?: 'pending' | 'in-progress' | 'done' | 'archived';
+  tags?: string[];       // Filter by tags (OR logic)
+  priority?: 'low' | 'medium' | 'high';
+  limit?: number;        // Default: 50
+}
 ```
 
-## Integration
+### later_search
 
-**Works with:**
-- TodoWrite - Convert deferred items to active todos
-- PHILOSOPHY.md - Demonstrates Apple-style design
-- Git - Link commits to deferred decisions
+```typescript
+{
+  query: string;         // Required: Search query
+  status?: string;       // Filter by status
+  tags?: string[];       // Filter by tags
+  priority?: string;     // Filter by priority
+  limit?: number;        // Default: 10
+}
+```
 
 ## Development
 
-See [CLAUDE.md](CLAUDE.md) for development guidelines and [docs/IMPLEMENTATION-PHASES.md](docs/IMPLEMENTATION-PHASES.md) for build roadmap.
+```bash
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Lint
+npm run lint
+
+# Watch mode
+npm run watch
+```
+
+## Test Coverage
+
+- Statements: 95.91%
+- Branches: 90.26%
+- Functions: 97.76%
+- Lines: 95.95%
+
+All coverage metrics exceed industry standards (80-85% for branches).
+
+## Architecture
+
+```
+src/
+  index.ts              # MCP server entry point
+  registry.ts           # Tool registry for progressive disclosure
+  types.ts              # TypeScript type definitions
+  schemas/              # Output schemas (MCP 2025-06)
+  storage/              # JSONL storage with file locking
+  tools/
+    core/               # capture, list, show
+    workflow/           # do, update, delete
+    batch/              # bulk operations
+    search/             # full-text search
+    meta/               # search_tools
+  utils/                # Utilities (logger, validation, etc.)
+  cli/                  # CLI client
+```
+
+## Security
+
+- Automatic PII detection and tokenization
+- Secret sanitization (API keys, passwords)
+- Secure file permissions (600/700)
+- Input validation with Zod schemas
+- No SQL injection risk (JSONL storage)
+
+## Requirements
+
+- Node.js >= 18.0.0
+- Compatible with Claude Code, Claude Desktop, or any MCP client
 
 ## License
 
-MIT (or your choice - TBD)
+MIT
+
+## Contributing
+
+Contributions welcome! Please read our contributing guidelines and submit PRs to the main branch.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+## Support
+
+- Issues: https://github.com/chudeemeke/later/issues
+- Documentation: https://github.com/chudeemeke/later#readme
 
 ---
 
-**Genesis:** Born from the insight "I want to revisit this later without having to remember all the context."
+Built with the [Model Context Protocol](https://modelcontextprotocol.io/) SDK.

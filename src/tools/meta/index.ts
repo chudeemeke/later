@@ -1,9 +1,12 @@
 /**
  * Meta Tools - Tool discovery and system operations
+ *
+ * MCP 2025-06 Compliant: Includes outputSchema for typed responses
  */
 
 import { toolRegistry } from '../../registry.js';
 import { handleSearchTools, searchToolsSchema } from './search-tools.js';
+import { searchToolsOutputSchema } from '../../schemas/output-schemas.js';
 
 // Register search_tools meta-tool
 toolRegistry.register({
@@ -13,6 +16,7 @@ toolRegistry.register({
   priority: 15, // Highest priority for meta operations
   description: 'Discover available tools based on what you want to do. This enables progressive disclosure - only loading tools you need. Example: "search_tools: create a new decision" returns later_capture.',
   inputSchema: searchToolsSchema,
+  outputSchema: searchToolsOutputSchema,
   handler: handleSearchTools
 });
 

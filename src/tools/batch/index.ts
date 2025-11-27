@@ -1,9 +1,15 @@
 /**
  * Batch Tools - Bulk operations on multiple items
+ *
+ * MCP 2025-06 Compliant: Includes outputSchema for typed responses
  */
 
 import { toolRegistry } from '../../registry.js';
 import { handleBulkUpdate, handleBulkDelete } from './bulk.js';
+import {
+  bulkUpdateOutputSchema,
+  bulkDeleteOutputSchema
+} from '../../schemas/output-schemas.js';
 
 // Register bulk update tool
 toolRegistry.register({
@@ -43,6 +49,7 @@ toolRegistry.register({
     },
     required: ['ids']
   },
+  outputSchema: bulkUpdateOutputSchema,
   handler: handleBulkUpdate
 });
 
@@ -68,6 +75,7 @@ toolRegistry.register({
     },
     required: ['ids']
   },
+  outputSchema: bulkDeleteOutputSchema,
   handler: handleBulkDelete
 });
 

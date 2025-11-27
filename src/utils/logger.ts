@@ -1,6 +1,9 @@
 /**
  * Structured logger utility for /later MCP server
  * Provides hierarchical log levels with JSON-formatted output
+ *
+ * CRITICAL MCP REQUIREMENT: All output goes to stderr, NEVER stdout
+ * stdout is reserved exclusively for MCP protocol messages
  */
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -97,6 +100,10 @@ function shouldLog(level: LogLevel): boolean {
 
 /**
  * Create a namespaced logger instance
+ *
+ * CRITICAL: All log output goes to stderr to avoid interfering with MCP protocol.
+ * stdout is reserved exclusively for JSON-RPC messages.
+ *
  * @param namespace - Logger namespace (e.g., 'later:storage', 'later:tools')
  * @returns Logger instance with debug, info, warn, error methods
  *
@@ -110,21 +117,23 @@ export function createLogger(namespace: string): Logger {
     debug(message: string, context?: LogContext): void {
       if (shouldLog('debug')) {
         const formatted = formatLogEntry('debug', namespace, message, context);
-        console.log(formatted);
+        // CRITICAL: Use stderr for ALL log levels in MCP servers
+        console.error(formatted);
       }
     },
 
     info(message: string, context?: LogContext): void {
       if (shouldLog('info')) {
         const formatted = formatLogEntry('info', namespace, message, context);
-        console.log(formatted);
+        // CRITICAL: Use stderr for ALL log levels in MCP servers
+        console.error(formatted);
       }
     },
 
     warn(message: string, context?: LogContext): void {
       if (shouldLog('warn')) {
         const formatted = formatLogEntry('warn', namespace, message, context);
-        console.warn(formatted);
+        console.error(formatted);
       }
     },
 

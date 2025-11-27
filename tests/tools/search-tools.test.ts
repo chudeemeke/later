@@ -130,7 +130,7 @@ describe('search_tools', () => {
       expect(tool.category).toBeDefined();
       expect(tool.description).toBeDefined();
       expect(tool.inputSchema).toBeDefined();
-      expect(tool.inputSchema.type).toBe('object');
+      expect(tool.inputSchema?.type).toBe('object');
     });
   });
 

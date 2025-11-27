@@ -37,8 +37,9 @@ describe('Logger Utility', () => {
       const log = createLogger('test:app');
       log.info('test_message', { data: 'value' });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
-      const logOutput = consoleLogSpy.mock.calls[0][0] as string;
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      const logOutput = consoleErrorSpy.mock.calls[0][0] as string;
       expect(logOutput).toContain('test:app');
     });
   });
@@ -48,14 +49,16 @@ describe('Logger Utility', () => {
       const log = createLogger('test');
       log.info('operation_success', { id: 123 });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should include structured data in info logs', () => {
       const log = createLogger('test');
       log.info('user_action', { userId: 'abc', action: 'create' });
 
-      const logOutput = consoleLogSpy.mock.calls[0][0] as string;
+      // MCP compliance: all logging goes to stderr (console.error)
+      const logOutput = consoleErrorSpy.mock.calls[0][0] as string;
       expect(logOutput).toContain('userId');
       expect(logOutput).toContain('abc');
     });
@@ -64,7 +67,8 @@ describe('Logger Utility', () => {
       const log = createLogger('test');
       log.info('timestamp_test');
 
-      const logOutput = consoleLogSpy.mock.calls[0][0] as string;
+      // MCP compliance: all logging goes to stderr (console.error)
+      const logOutput = consoleErrorSpy.mock.calls[0][0] as string;
       expect(logOutput).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
   });
@@ -101,14 +105,16 @@ describe('Logger Utility', () => {
       const log = createLogger('test');
       log.warn('potential_issue', { severity: 'medium' });
 
-      expect(consoleWarnSpy).toHaveBeenCalled();
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should include context in warnings', () => {
       const log = createLogger('test');
       log.warn('deprecated_api', { api: 'oldMethod', replacement: 'newMethod' });
 
-      const logOutput = consoleWarnSpy.mock.calls[0][0] as string;
+      // MCP compliance: all logging goes to stderr (console.error)
+      const logOutput = consoleErrorSpy.mock.calls[0][0] as string;
       expect(logOutput).toContain('oldMethod');
       expect(logOutput).toContain('newMethod');
     });
@@ -120,7 +126,9 @@ describe('Logger Utility', () => {
       const log = createLogger('test');
       log.debug('debug_info', { details: 'verbose' });
 
-      expect(consoleLogSpy).not.toHaveBeenCalled();
+      // Debug should not be called at info level
+      // Note: debug also uses stderr for MCP compliance
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
     it('should log debug messages when log level is debug', () => {
@@ -128,7 +136,8 @@ describe('Logger Utility', () => {
       const log = createLogger('test');
       log.debug('debug_info', { details: 'verbose' });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should include detailed context in debug logs', () => {
@@ -136,7 +145,8 @@ describe('Logger Utility', () => {
       const log = createLogger('test');
       log.debug('function_entry', { function: 'handleUpdate', args: { id: 1 } });
 
-      const logOutput = consoleLogSpy.mock.calls[0][0] as string;
+      // MCP compliance: all logging goes to stderr (console.error)
+      const logOutput = consoleErrorSpy.mock.calls[0][0] as string;
       expect(logOutput).toContain('function_entry');
       expect(logOutput).toContain('handleUpdate');
     });
@@ -152,8 +162,8 @@ describe('Logger Utility', () => {
       log.warn('warn_msg');
       log.error('error_msg');
 
-      expect(consoleLogSpy).not.toHaveBeenCalled();
-      expect(consoleWarnSpy).not.toHaveBeenCalled();
+      // MCP compliance: all logging goes to stderr (console.error)
+      // At error level, only error messages are logged
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -166,9 +176,9 @@ describe('Logger Utility', () => {
       log.warn('warn_msg');
       log.error('error_msg');
 
-      expect(consoleLogSpy).not.toHaveBeenCalled();
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      // MCP compliance: all logging goes to stderr (console.error)
+      // At warn level, warn + error messages are logged
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
     });
 
     it('should respect info log level (info, warn, error)', () => {
@@ -180,9 +190,9 @@ describe('Logger Utility', () => {
       log.warn('warn_msg');
       log.error('error_msg');
 
-      expect(consoleLogSpy).toHaveBeenCalledTimes(1); // info only
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      // MCP compliance: all logging goes to stderr (console.error)
+      // At info level, info + warn + error messages are logged
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(3);
     });
 
     it('should respect debug log level (all messages)', () => {
@@ -194,9 +204,9 @@ describe('Logger Utility', () => {
       log.warn('warn_msg');
       log.error('error_msg');
 
-      expect(consoleLogSpy).toHaveBeenCalledTimes(2); // debug + info
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      // MCP compliance: all logging goes to stderr (console.error)
+      // At debug level, all messages are logged
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(4);
     });
   });
 
@@ -219,21 +229,24 @@ describe('Logger Utility', () => {
       const log = createLogger('test');
       log.info('simple_message');
 
-      expect(consoleLogSpy).toHaveBeenCalled();
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should handle logging with null context', () => {
       const log = createLogger('test');
       log.info('null_context', null as any);
 
-      expect(consoleLogSpy).toHaveBeenCalled();
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should handle logging with undefined context', () => {
       const log = createLogger('test');
       log.info('undefined_context', undefined as any);
 
-      expect(consoleLogSpy).toHaveBeenCalled();
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should handle logging circular references', () => {
@@ -259,7 +272,8 @@ describe('Logger Utility', () => {
       const log = createLogger('test');
       log.info('special_chars', { message: 'Test\n\t\r"quotes"\'apostrophes\'' });
 
-      expect(consoleLogSpy).toHaveBeenCalled();
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalled();
     });
   });
 
@@ -271,10 +285,11 @@ describe('Logger Utility', () => {
       log1.info('storage_operation');
       log2.info('tool_execution');
 
-      expect(consoleLogSpy).toHaveBeenCalledTimes(2);
+      // MCP compliance: all logging goes to stderr (console.error)
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
 
-      const log1Output = consoleLogSpy.mock.calls[0][0] as string;
-      const log2Output = consoleLogSpy.mock.calls[1][0] as string;
+      const log1Output = consoleErrorSpy.mock.calls[0][0] as string;
+      const log2Output = consoleErrorSpy.mock.calls[1][0] as string;
 
       expect(log1Output).toContain('module:storage');
       expect(log2Output).toContain('module:tools');
