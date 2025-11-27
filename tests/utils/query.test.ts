@@ -490,4 +490,115 @@ describe('Query Utils', () => {
       expect(result[2].decision).toBe('Apple decision');
     });
   });
+
+  describe('applySorting with numeric fields', () => {
+    it('should sort by id field ascending', () => {
+      const items = [
+        createItem({ id: 30 }),
+        createItem({ id: 10 }),
+        createItem({ id: 20 }),
+      ];
+
+      const sortOptions: SortOptions[] = [
+        { field: 'id' as any, direction: 'ASC' },
+      ];
+
+      const result = applySorting(items, sortOptions);
+
+      expect(result[0].id).toBe(10);
+      expect(result[1].id).toBe(20);
+      expect(result[2].id).toBe(30);
+    });
+
+    it('should sort by id field descending', () => {
+      const items = [
+        createItem({ id: 10 }),
+        createItem({ id: 30 }),
+        createItem({ id: 20 }),
+      ];
+
+      const sortOptions: SortOptions[] = [
+        { field: 'id' as any, direction: 'DESC' },
+      ];
+
+      const result = applySorting(items, sortOptions);
+
+      expect(result[0].id).toBe(30);
+      expect(result[1].id).toBe(20);
+      expect(result[2].id).toBe(10);
+    });
+  });
+
+  describe('applySorting with status field', () => {
+    it('should sort by status with custom order', () => {
+      const items = [
+        createItem({ id: 1, status: 'done' }),
+        createItem({ id: 2, status: 'in-progress' }),
+        createItem({ id: 3, status: 'pending' }),
+        createItem({ id: 4, status: 'archived' }),
+      ];
+
+      const sortOptions: SortOptions[] = [
+        { field: 'status', direction: 'DESC' },
+      ];
+
+      const result = applySorting(items, sortOptions);
+
+      // in-progress > pending > done > archived
+      expect(result[0].status).toBe('in-progress');
+      expect(result[1].status).toBe('pending');
+      expect(result[2].status).toBe('done');
+      expect(result[3].status).toBe('archived');
+    });
+  });
+
+  describe('applySorting with updated_at field', () => {
+    it('should sort by updated_at ascending', () => {
+      const items = [
+        createItem({ id: 1, updated_at: '2025-01-03T00:00:00Z' }),
+        createItem({ id: 2, updated_at: '2025-01-01T00:00:00Z' }),
+        createItem({ id: 3, updated_at: '2025-01-02T00:00:00Z' }),
+      ];
+
+      const sortOptions: SortOptions[] = [
+        { field: 'updated_at', direction: 'ASC' },
+      ];
+
+      const result = applySorting(items, sortOptions);
+
+      expect(result.map(i => i.id)).toEqual([2, 3, 1]);
+    });
+  });
+
+  describe('paginateResults with invalid cursors', () => {
+    it('should handle invalid after cursor gracefully', () => {
+      const items = Array.from({ length: 10 }, (_, i) =>
+        createItem({ id: i + 1 })
+      );
+
+      // Use an encoded cursor for ID that doesn't exist
+      const invalidCursor = encodeCursor(999);
+      const args: PaginationArgs = { first: 5, after: invalidCursor };
+
+      const result = paginateResults(items, args);
+
+      // Should return first 5 items since cursor not found
+      expect(result.items.length).toBe(5);
+      expect(result.items[0].id).toBe(1);
+    });
+
+    it('should handle invalid before cursor gracefully', () => {
+      const items = Array.from({ length: 10 }, (_, i) =>
+        createItem({ id: i + 1 })
+      );
+
+      const invalidCursor = encodeCursor(999);
+      const args: PaginationArgs = { last: 5, before: invalidCursor };
+
+      const result = paginateResults(items, args);
+
+      // Should return last 5 items since cursor not found
+      expect(result.items.length).toBe(5);
+    });
+  });
 });

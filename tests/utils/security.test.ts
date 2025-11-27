@@ -161,4 +161,33 @@ Second line with ghp_1234567890abcdefghijklmnopqrstuvwxyz`;
       });
     });
   });
+
+  describe('getSecretsSummary', () => {
+    test('returns "No secrets detected" when text has no secrets', async () => {
+      const { getSecretsSummary } = await import('../../src/utils/security.js');
+      const summary = getSecretsSummary('This is normal text without any secrets');
+      expect(summary).toBe('No secrets detected');
+    });
+
+    test('returns summary with detected secret types', async () => {
+      const { getSecretsSummary } = await import('../../src/utils/security.js');
+      const summary = getSecretsSummary('Token: sk-1234567890abcdefghijklmnopqrstuvwxyz');
+      expect(summary).toContain('Detected:');
+      expect(summary).toContain('OpenAI API key');
+    });
+  });
+
+  describe('hasSecrets', () => {
+    test('returns true when text contains secrets', async () => {
+      const { hasSecrets } = await import('../../src/utils/security.js');
+      const result = hasSecrets('Token: sk-1234567890abcdefghijklmnopqrstuvwxyz');
+      expect(result).toBe(true);
+    });
+
+    test('returns false when text has no secrets', async () => {
+      const { hasSecrets } = await import('../../src/utils/security.js');
+      const result = hasSecrets('Normal text without secrets');
+      expect(result).toBe(false);
+    });
+  });
 });

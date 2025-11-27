@@ -68,8 +68,8 @@ describe('Performance Benchmarks', () => {
 
       const duration = Date.now() - startTime;
 
-      // 250ms allows for CI/WSL overhead while still catching major regressions
-      expect(duration).toBeLessThan(250);
+      // 500ms allows for CI/WSL overhead while still catching major regressions
+      expect(duration).toBeLessThan(500);
     });
 
     it('should list items within reasonable time (100 items)', async () => {

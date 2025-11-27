@@ -430,6 +430,19 @@ describe('later_list Tool', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Storage error');
     });
+
+    test('handles non-Error exceptions', async () => {
+      const brokenStorage = {
+        readAll: async () => {
+          throw 'String error'; // Non-Error exception
+        },
+      } as any;
+
+      const result = await handleList({}, brokenStorage);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Unknown error');
+    });
   });
 
   describe('formatted output', () => {
@@ -483,6 +496,63 @@ describe('later_list Tool', () => {
 
       expect(result.formatted_output).toContain('tag1');
       expect(result.formatted_output).toContain('tag2');
+    });
+
+    test('shows relative time in hours for items created hours ago', async () => {
+      // Create item 3 hours ago
+      const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+      await storage.append({
+        id: 1,
+        decision: 'Hours ago item',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: threeHoursAgo,
+        updated_at: threeHoursAgo,
+      });
+
+      const result = await handleList({}, storage);
+
+      expect(result.formatted_output).toContain('3h ago');
+    });
+
+    test('shows relative time in minutes for items created minutes ago', async () => {
+      // Create item 15 minutes ago
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      await storage.append({
+        id: 1,
+        decision: 'Minutes ago item',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: fifteenMinutesAgo,
+        updated_at: fifteenMinutesAgo,
+      });
+
+      const result = await handleList({}, storage);
+
+      expect(result.formatted_output).toContain('m ago');
+    });
+
+    test('shows "just now" for items created seconds ago', async () => {
+      // Create item just now (current time)
+      const justNow = new Date().toISOString();
+      await storage.append({
+        id: 1,
+        decision: 'Just now item',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: justNow,
+        updated_at: justNow,
+      });
+
+      const result = await handleList({}, storage);
+
+      expect(result.formatted_output).toContain('just now');
     });
   });
 

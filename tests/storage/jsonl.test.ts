@@ -549,6 +549,55 @@ describe('JSONLStorage', () => {
     });
   });
 
+  describe('closeStorage', () => {
+    test('closes storage and clears singleton', async () => {
+      const { getStorage, closeStorage } = await import('../../src/storage/jsonl.js');
+
+      // Get the singleton instance
+      const instance = getStorage(TEST_DIR);
+      expect(instance).toBeDefined();
+
+      // Close storage
+      await closeStorage();
+
+      // Getting storage again should create a new instance
+      // (we can't easily verify it's a new instance, but closeStorage should not throw)
+    });
+
+    test('closeStorage is idempotent', async () => {
+      const { closeStorage } = await import('../../src/storage/jsonl.js');
+
+      // Should not throw when called multiple times
+      await closeStorage();
+      await closeStorage();
+      await closeStorage();
+    });
+  });
+
+  describe('setSecurePermissions edge cases', () => {
+    test('handles non-ENOENT errors gracefully', async () => {
+      // This is difficult to test directly since setSecurePermissions
+      // catches most errors silently. We verify by ensuring operations
+      // complete without throwing even if permissions fail.
+      const item: DeferredItem = {
+        id: 1,
+        decision: 'Test permissions',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Append should succeed even if permission setting has issues
+      await storage.append(item);
+
+      const items = await storage.readAll();
+      expect(items.length).toBe(1);
+    });
+  });
+
   describe('getStorage singleton', () => {
     test('returns same instance on multiple calls', async () => {
       const { getStorage } = await import('../../src/storage/jsonl.js');

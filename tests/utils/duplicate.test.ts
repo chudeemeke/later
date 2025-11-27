@@ -218,6 +218,61 @@ describe('Duplicate Detection Utilities', () => {
       const similarity = calculateSimilarity(item1, item2);
       expect(similarity).toBeGreaterThan(60); // Title weight should dominate
     });
+
+    test('handles items with empty decisions', () => {
+      const item1: DeferredItem = {
+        id: 1,
+        decision: '',
+        context: 'Context one',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const item2: DeferredItem = {
+        id: 2,
+        decision: '',
+        context: 'Context two',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const similarity = calculateSimilarity(item1, item2);
+      // Both empty decisions should give 100% title similarity
+      expect(similarity).toBeGreaterThan(0);
+    });
+
+    test('handles items with empty context', () => {
+      const item1: DeferredItem = {
+        id: 1,
+        decision: 'Test decision',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const item2: DeferredItem = {
+        id: 2,
+        decision: 'Test decision',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const similarity = calculateSimilarity(item1, item2);
+      expect(similarity).toBe(100);
+    });
   });
 
   describe('findSimilarItems', () => {
@@ -413,6 +468,50 @@ describe('Duplicate Detection Utilities', () => {
 
       const similar = findSimilarItems(newItem, existingItems, 80);
       expect(similar).toEqual([]);
+    });
+
+    test('uses default threshold of 80 when not specified', () => {
+      const newItem: DeferredItem = {
+        id: 0,
+        decision: 'Optimize code',
+        context: 'Test',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const existingItems: DeferredItem[] = [
+        {
+          id: 1,
+          decision: 'Optimize code',
+          context: 'Test',
+          status: 'pending',
+          tags: [],
+          priority: 'medium',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ];
+
+      // Call without threshold parameter to use default of 80
+      const similar = findSimilarItems(newItem, existingItems);
+      expect(similar.length).toBe(1);
+      expect(similar[0].similarity).toBe(100);
+    });
+  });
+
+  describe('keywordOverlap edge cases', () => {
+    test('handles union of zero (both texts have only stop words)', () => {
+      // Both texts result in empty keyword sets after filtering
+      const overlap = keywordOverlap('the a an', 'is are was');
+      expect(overlap).toBe(0);
+    });
+
+    test('handles one text with keywords and one without', () => {
+      const overlap = keywordOverlap('test keyword', 'the a an');
+      expect(overlap).toBe(0);
     });
   });
 });

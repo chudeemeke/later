@@ -317,6 +317,40 @@ describe('Update Tool', () => {
       expect(result.error?.toLowerCase()).toContain('cycle');
     });
 
+    it('should detect cycle when recursion stack has the same dep', async () => {
+      // Setup: Item 2 depends on itself indirectly through Item 3
+      // Item 2 → Item 3 → Item 2 (cycle in sub-dependencies)
+      const item2: DeferredItem = {
+        ...existingItem,
+        id: 2,
+        dependencies: [3],
+      };
+      const item3: DeferredItem = {
+        ...existingItem,
+        id: 3,
+        dependencies: [2],  // Creates cycle: 2 → 3 → 2
+      };
+
+      mockStorage.findById = async (id: number) => {
+        if (id === 1) return existingItem;
+        if (id === 2) return item2;
+        if (id === 3) return item3;
+        return null;
+      };
+
+      // Try to make item 1 depend on item 2 (would create cycle in 2's dependencies)
+      const result = await handleUpdate(
+        {
+          id: 1,
+          dependencies: [2],
+        },
+        mockStorage
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error?.toLowerCase()).toContain('cycle');
+    });
+
     it('should allow valid dependencies without cycles', async () => {
       const result = await handleUpdate(
         {
@@ -428,6 +462,23 @@ describe('Update Tool', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
+    });
+
+    it('should handle non-Error exceptions', async () => {
+      mockStorage.update = async () => {
+        throw 'String error'; // Non-Error exception
+      };
+
+      const result = await handleUpdate(
+        {
+          id: 1,
+          decision: 'Updated',
+        },
+        mockStorage
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Unknown error');
     });
   });
 

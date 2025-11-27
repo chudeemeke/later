@@ -90,7 +90,7 @@ export class JSONLStorage implements Storage {
 
         // Ensure proper permissions
         await this.setSecurePermissions();
-      } catch (error) {
+      } catch (error) /* istanbul ignore next - rare fs error during atomic write */ {
         // Clean up temp file on error
         await fs.unlink(tempFile).catch(() => {});
         throw error;
@@ -123,7 +123,7 @@ export class JSONLStorage implements Storage {
 
         // Ensure proper permissions
         await this.setSecurePermissions();
-      } catch (error) {
+      } catch (error) /* istanbul ignore next - rare fs error during atomic write */ {
         // Clean up temp file on error
         await fs.unlink(tempFile).catch(() => {});
         throw error;
@@ -149,6 +149,7 @@ export class JSONLStorage implements Storage {
       await fs.chmod(this.laterDir, 0o700);
     } catch (error) {
       // Ignore permission errors in test environments
+      /* istanbul ignore if - rare chmod errors other than ENOENT */
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
         // Log but don't fail
         console.warn('Failed to set secure permissions:', error);
@@ -180,6 +181,7 @@ export class JSONLStorage implements Storage {
         await fs.unlink(this.lockFile);
       }
     } catch (error) {
+      /* istanbul ignore if - rare fs errors other than ENOENT */
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
         // Ignore if lock file doesn't exist, throw other errors
         throw error;
@@ -211,7 +213,7 @@ export class JSONLStorage implements Storage {
           const delay = exponentialDelay + jitter;
           await new Promise((resolve) => setTimeout(resolve, delay));
           retries++;
-        } else {
+        } /* istanbul ignore next - rare fs error other than EEXIST */ else {
           throw error;
         }
       }

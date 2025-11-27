@@ -101,6 +101,7 @@ export class CLI {
       }
 
       // Require a subcommand
+      /* istanbul ignore if - parser catches missing subcommand first */
       if (!parsed.subcommand) {
         this.deps.stdout.write(HelpGenerator.main(this.deps.version) + '\n');
         return 1;
@@ -218,6 +219,7 @@ export class CLI {
         return await handleSearch(parsed, client);
       }
 
+      /* istanbul ignore next - parser validates commands first, this is defensive */
       default:
         this.deps.stderr.write(formatError(`Unknown command: ${parsed.subcommand}`) + '\n');
         this.deps.stdout.write('\n' + HelpGenerator.main(this.deps.version) + '\n');

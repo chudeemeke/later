@@ -235,6 +235,24 @@ describe('later_do Tool', () => {
       expect(result.todo_guidance?.toLowerCase()).toContain('high');
     });
 
+    test('includes low priority message in guidance', async () => {
+      await storage.append({
+        id: 1,
+        decision: 'Nice to have improvement',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'low',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const result = await handleDo({ id: 1 }, storage);
+
+      expect(result.todo_guidance?.toLowerCase()).toContain('low');
+      expect(result.todo_guidance).toContain('time permits');
+    });
+
     test('includes tags in guidance', async () => {
       await storage.append({
         id: 1,

@@ -474,5 +474,26 @@ describe('later_show Tool', () => {
       expect(result.success).toBe(true);
       expect(result.formatted_output).toContain('Test context');
     });
+
+    test('handles context_tokens without context_pii_types', async () => {
+      // Item has context_tokens but no context_pii_types (undefined)
+      await storage.append({
+        id: 1,
+        decision: 'Test',
+        context: 'Email: [PII_TOKEN_1]',
+        context_tokens: { PII_TOKEN_1: 'user@test.com' },
+        // Intentionally omit context_pii_types to test the || {} fallback
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const result = await handleShow({ id: 1 }, storage);
+
+      expect(result.success).toBe(true);
+      expect(result.formatted_output).toContain('user@test.com');
+    });
   });
 });

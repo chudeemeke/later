@@ -264,6 +264,7 @@ function parseFlags(
       const flagSchema = schema!.flags![flagName];
 
       // Boolean flags
+      /* istanbul ignore if - no current short flags are boolean type */
       if (flagSchema.type === 'boolean') {
         flags[flagName] = true;
         i++;

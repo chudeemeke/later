@@ -149,4 +149,92 @@ describe('Search', () => {
     expect(result.success).toBe(true);
     expect(result.searchTime).toBeGreaterThanOrEqual(0);
   });
+
+  it('should handle storage errors gracefully', async () => {
+    const errorStorage: Storage = {
+      ...mockStorage,
+      readAll: async () => {
+        throw new Error('Storage read failed');
+      },
+    };
+
+    const result = await handleSearch({
+      query: 'database',
+    }, errorStorage);
+
+    expect(result.success).toBe(false);
+    expect(result.totalFound).toBe(0);
+  });
+
+  it('should handle non-Error exceptions', async () => {
+    const errorStorage: Storage = {
+      ...mockStorage,
+      readAll: async () => {
+        throw 'String error';
+      },
+    };
+
+    const result = await handleSearch({
+      query: 'database',
+    }, errorStorage);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('should search context field when specified', async () => {
+    const result = await handleSearch({
+      query: 'indexing strategy',
+      fields: ['context'],
+    }, mockStorage);
+
+    expect(result.success).toBe(true);
+    if (result.results.length > 0) {
+      expect(result.results[0].matches.context).toBeDefined();
+    }
+  });
+
+  it('should handle items with empty content', async () => {
+    const emptyStorage: Storage = {
+      ...mockStorage,
+      readAll: async () => [{
+        id: 1,
+        decision: '',
+        context: '',
+        status: 'pending',
+        tags: [],
+        priority: 'medium',
+        created_at: '2025-01-01T00:00:00Z',
+        updated_at: '2025-01-01T00:00:00Z',
+        dependencies: [],
+      }],
+    };
+
+    const result = await handleSearch({
+      query: 'test',
+    }, emptyStorage);
+
+    expect(result.success).toBe(true);
+    expect(result.totalFound).toBe(0);
+  });
+
+  it('should apply minScore filter', async () => {
+    const result = await handleSearch({
+      query: 'database',
+      minScore: 10, // Very high threshold
+    }, mockStorage);
+
+    expect(result.success).toBe(true);
+    // Should filter out low-scoring results
+  });
+
+  it('should search decision field by default', async () => {
+    const result = await handleSearch({
+      query: 'optimize',
+    }, mockStorage);
+
+    expect(result.success).toBe(true);
+    if (result.results.length > 0) {
+      expect(result.results[0].matches.decision).toBeDefined();
+    }
+  });
 });

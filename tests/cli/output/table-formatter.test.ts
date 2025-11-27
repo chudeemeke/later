@@ -284,6 +284,30 @@ describe('TextUtils', () => {
     expect(result.length).toBe(20);
   });
 
+  it('should truncate at word boundary when space is past 70% mark', () => {
+    // Create text where last space in truncated portion is at > 70% of maxLength
+    // For maxLength=20, 70% = 14, so space at index 15+ triggers word boundary
+    const text = 'Aaaaaaaaaaaaaa Bbb'; // Space at index 14 in a 18-char string
+    // With maxLength=20, truncated = 'Aaaaaaaaaaaaaa B' (17 chars, space at 14)
+    // 14 > 14 is FALSE, so need space at 15+
+    const betterText = 'Aaaaaaaaaaaaaaa Bb'; // 18 chars, space at index 15
+    const result = TextUtils.truncateWords(betterText, 20);
+    // Since text length (18) < maxLength (20), it should return as-is
+    expect(result).toBe(betterText);
+  });
+
+  it('should find word boundary at correct position for truncation', () => {
+    // Need a string where: length > maxLength AND lastSpace > 0.7 * maxLength
+    // For maxLength=20: need lastSpace > 14 in first 17 chars
+    // 'Aaaaaaaaaaaaaaa Bbbbbb' - space at 15, text length > 20
+    const text = 'Aaaaaaaaaaaaaaa Bbbbbbb Ccc';
+    const result = TextUtils.truncateWords(text, 20);
+    // Truncated = first 17 chars = 'Aaaaaaaaaaaaaaa Bb', lastSpace = 15
+    // 15 > 14 is TRUE, so should truncate at word boundary
+    expect(result).toBe('Aaaaaaaaaaaaaaa...');
+    expect(result.length).toBe(18);
+  });
+
   it('should format months ago correctly', () => {
     const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
     const formatted = TextUtils.formatDate(twoMonthsAgo);
@@ -552,5 +576,108 @@ describe('TableFormatter', () => {
     expect(output).toContain('#1');
     expect(output).toContain('#2');
     expect(output).toContain('#3');
+  });
+
+  describe('with colors disabled', () => {
+    beforeEach(() => {
+      ColorSupport.disable();
+    });
+
+    afterEach(() => {
+      ColorSupport.enable();
+    });
+
+    it('should format list without colored borders when colors disabled', () => {
+      const items = [sampleItem];
+      const output = TableFormatter.formatList(items);
+
+      expect(output).toContain('Found 1 item');
+      expect(output).toContain('Test decision');
+      // Border styling should be empty array (no colors)
+    });
+
+    it('should format item details without colored borders when colors disabled', () => {
+      const output = TableFormatter.formatItem(sampleItem);
+
+      expect(output).toContain('#1');
+      expect(output).toContain('Test decision');
+      expect(output).toContain('pending');
+    });
+
+    it('should format search results without colored borders when colors disabled', () => {
+      const results = [
+        {
+          score: 0.95,
+          item: sampleItem,
+          matchedFields: ['decision'],
+        },
+      ];
+
+      const output = TableFormatter.formatSearchResults(results);
+
+      expect(output).toContain('Found 1 matching item');
+      expect(output).toContain('0.95');
+    });
+
+    it('should format search results with plain score when colors disabled', () => {
+      // Test all score ranges with colors disabled
+      const highScoreResult = [{ item: sampleItem, score: 0.9 }];
+      const mediumScoreResult = [{ item: sampleItem, score: 0.6 }];
+      const lowScoreResult = [{ item: sampleItem, score: 0.3 }];
+
+      const highOutput = TableFormatter.formatSearchResults(highScoreResult);
+      const mediumOutput = TableFormatter.formatSearchResults(mediumScoreResult);
+      const lowOutput = TableFormatter.formatSearchResults(lowScoreResult);
+
+      // All should show plain scores without ANSI color codes
+      expect(highOutput).toContain('0.90');
+      expect(mediumOutput).toContain('0.60');
+      expect(lowOutput).toContain('0.30');
+    });
+  });
+
+  describe('score coloring with colors enabled', () => {
+    let originalChalkLevel: number;
+
+    beforeEach(() => {
+      originalChalkLevel = chalk.level;
+      chalk.level = 3 as any; // Force TrueColor
+      ColorSupport.enable();
+    });
+
+    afterEach(() => {
+      chalk.level = originalChalkLevel as any;
+      ColorSupport.enable();
+    });
+
+    it('should apply green color to high scores (>= 0.8)', () => {
+      const results = [{ item: sampleItem, score: 0.85 }];
+      const output = TableFormatter.formatSearchResults(results);
+      expect(output).toContain('0.85');
+    });
+
+    it('should apply yellow color to medium scores (>= 0.5, < 0.8)', () => {
+      const results = [{ item: sampleItem, score: 0.55 }];
+      const output = TableFormatter.formatSearchResults(results);
+      expect(output).toContain('0.55');
+    });
+
+    it('should apply gray color to low scores (< 0.5)', () => {
+      const results = [{ item: sampleItem, score: 0.35 }];
+      const output = TableFormatter.formatSearchResults(results);
+      expect(output).toContain('0.35');
+    });
+
+    it('should handle boundary score of exactly 0.8', () => {
+      const results = [{ item: sampleItem, score: 0.8 }];
+      const output = TableFormatter.formatSearchResults(results);
+      expect(output).toContain('0.80');
+    });
+
+    it('should handle boundary score of exactly 0.5', () => {
+      const results = [{ item: sampleItem, score: 0.5 }];
+      const output = TableFormatter.formatSearchResults(results);
+      expect(output).toContain('0.50');
+    });
   });
 });

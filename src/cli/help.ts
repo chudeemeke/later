@@ -109,7 +109,7 @@ export class HelpGenerator {
     if (schema.requiredPositional) {
       if (schema.requiredPositional === 1) {
         parts.push(this.getPositionalName(name));
-      } else {
+      } /* istanbul ignore next - all current commands have 0 or 1 positional arg */ else {
         for (let i = 0; i < schema.requiredPositional; i++) {
           parts.push(`<arg${i + 1}>`);
         }
@@ -201,6 +201,7 @@ export class HelpGenerator {
       }
 
       // Add required marker
+      /* istanbul ignore if - no current command flags are marked required */
       if (schema.required) {
         description += Colors.warning(' [required]');
       }

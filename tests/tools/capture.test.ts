@@ -257,6 +257,28 @@ describe('later_capture Tool', () => {
       expect(item!.context.length).toBeLessThan(6000);
       expect(item!.context).toContain('[truncated]');
     });
+
+    test('handles storage append error gracefully', async () => {
+      // Create a mock storage that throws on append
+      const mockStorage = {
+        append: async () => {
+          throw new Error('Disk full');
+        },
+        readAll: async () => [],
+        findById: async () => null,
+        update: async () => {},
+        delete: async () => {},
+        getNextId: async () => 1,
+      };
+
+      const result = await handleCapture({
+        decision: 'Test decision',
+      }, mockStorage);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Failed to capture item');
+      expect(result.error).toContain('Disk full');
+    });
   });
 
   describe('edge cases', () => {
