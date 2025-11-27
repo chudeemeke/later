@@ -1,5 +1,5 @@
 {
-  "name": "@anthropic-claude/later",
+  "name": "@chude/later",
   "version": "2.0.0",
   "description": "MCP server for deferred decision management - capture decisions with context, revisit later without memory overhead",
   "type": "module",
