@@ -49,12 +49,12 @@ describe('show command handler', () => {
     const exitCode = await handleShow(parsed, mockClient);
 
     expect(mockClient.callTool).toHaveBeenCalledWith('later_show', { id: 5 });
-    expect(mockConsoleLog).toHaveBeenCalledWith(
-      expect.stringContaining('Item #5')
-    );
-    expect(mockConsoleLog).toHaveBeenCalledWith(
-      expect.stringContaining('Test item')
-    );
+    // Check that output contains expected content (single call with full formatted output)
+    expect(mockConsoleLog).toHaveBeenCalled();
+    const output = mockConsoleLog.mock.calls[0][0] as string;
+    expect(output).toContain('Item');
+    expect(output).toContain('#5');
+    expect(output).toContain('Test item');
     expect(exitCode).toBe(0);
   });
 

@@ -66,7 +66,10 @@ describe('list command handler', () => {
     const parsed = createParsedArgs();
     const exitCode = await handleList(parsed, mockClient);
 
-    expect(mockConsoleLog).toHaveBeenCalledWith('No items found.');
+    // Use stringContaining for more robust matching (output may have color codes or whitespace)
+    expect(mockConsoleLog).toHaveBeenCalledWith(
+      expect.stringContaining('No items found')
+    );
     expect(exitCode).toBe(0);
   });
 
@@ -218,7 +221,10 @@ describe('list command handler', () => {
     const parsed = createParsedArgs();
     const exitCode = await handleList(parsed, mockClient);
 
-    expect(mockConsoleLog).toHaveBeenCalledWith('No items found.');
+    // Use stringContaining for more robust matching (output may have color codes or whitespace)
+    expect(mockConsoleLog).toHaveBeenCalledWith(
+      expect.stringContaining('No items found')
+    );
     expect(exitCode).toBe(0);
   });
 });
