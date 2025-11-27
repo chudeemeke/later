@@ -14,11 +14,21 @@ export default {
     ],
   },
   testMatch: ['**/tests/**/*.test.ts'],
+  // Exclude integration tests that require real server connection (slow, timeout-prone)
+  testPathIgnorePatterns: [
+    'tests/cli/mcp-client\\.test\\.ts$',
+    'tests/cli/integration/',
+  ],
   collectCoverage: true,
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
+    // Exclude main entry point (bootstrapping only)
     '!src/index.ts',
+    // Exclude barrel files (pure re-exports, no logic)
+    '!src/tools/**/index.ts',
+    // Exclude pure schema definitions (data only, no executable logic)
+    '!src/schemas/output-schemas.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary'],
