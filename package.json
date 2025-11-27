@@ -22,7 +22,8 @@
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "lint": "eslint src/**/*.ts",
-    "prepublishOnly": "npm run build && npm test",
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathIgnorePatterns='cli/integration|cli/mcp-client|integration/performance'",
+    "prepublishOnly": "npm run build && npm run test:ci",
     "preversion": "npm test",
     "postversion": "git push && git push --tags"
   },
