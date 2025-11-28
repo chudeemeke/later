@@ -1,37 +1,38 @@
 export default {
-  preset: 'ts-jest/presets/default-esm',
-  testEnvironment: 'node',
-  extensionsToTreatAsEsm: ['.ts'],
+  preset: "ts-jest/presets/default-esm",
+  testEnvironment: "node",
+  extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
+    "^(\\.{1,2}/.*)\\.js$": "$1",
   },
   transform: {
-    '^.+\\.ts$': [
-      'ts-jest',
+    "^.+\\.ts$": [
+      "ts-jest",
       {
         useESM: true,
       },
     ],
   },
-  testMatch: ['**/tests/**/*.test.ts'],
+  testMatch: ["**/tests/**/*.test.ts"],
+  setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"],
   // Exclude integration tests that require real server connection (slow, timeout-prone)
   testPathIgnorePatterns: [
-    'tests/cli/mcp-client\\.test\\.ts$',
-    'tests/cli/integration/',
+    "tests/cli/mcp-client\\.test\\.ts$",
+    "tests/cli/integration/",
   ],
   collectCoverage: true,
   collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
+    "src/**/*.ts",
+    "!src/**/*.d.ts",
     // Exclude main entry point (bootstrapping only)
-    '!src/index.ts',
+    "!src/index.ts",
     // Exclude barrel files (pure re-exports, no logic)
-    '!src/tools/**/index.ts',
+    "!src/tools/**/index.ts",
     // Exclude pure schema definitions (data only, no executable logic)
-    '!src/schemas/output-schemas.ts',
+    "!src/schemas/output-schemas.ts",
   ],
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'text-summary'],
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "text-summary"],
   coverageThreshold: {
     global: {
       branches: 95,

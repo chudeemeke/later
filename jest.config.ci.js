@@ -1,12 +1,15 @@
 /**
  * CI-specific Jest configuration
  *
- * Extends the base config but:
- * 1. Excludes integration tests (slow, timeout-prone in CI)
- * 2. Excludes corresponding source files from coverage calculation
+ * Excludes integration tests that are slow, timeout-prone, or require
+ * real server connections. Unit tests (including mcp-client.unit.test.ts)
+ * are still run to maintain coverage.
  *
- * This ensures coverage thresholds are fair - we don't penalize coverage
- * for files whose tests are intentionally excluded in CI.
+ * Excluded in CI:
+ * - mcp-client.test.ts (integration test, spawns real server)
+ * - cli/integration/ (CLI integration tests)
+ * - integration/performance/ (performance benchmarks)
+ * - integration/concurrency/ (flaky race condition tests)
  */
 export default {
   preset: "ts-jest/presets/default-esm",
@@ -24,7 +27,9 @@ export default {
     ],
   },
   testMatch: ["**/tests/**/*.test.ts"],
+  setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"],
   // CI excludes integration tests that are slow or require real connections
+  // NOTE: mcp-client.unit.test.ts is NOT excluded - it provides 100% coverage
   testPathIgnorePatterns: [
     "tests/cli/mcp-client\\.test\\.ts$",
     "tests/cli/integration/",
@@ -41,9 +46,6 @@ export default {
     "!src/tools/**/index.ts",
     // Exclude pure schema definitions (data only, no executable logic)
     "!src/schemas/output-schemas.ts",
-    // CI-specific exclusions: source files whose tests are excluded in CI
-    // This ensures fair coverage calculation
-    "!src/cli/mcp-client.ts",
   ],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "text-summary"],
