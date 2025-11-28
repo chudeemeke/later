@@ -1,6 +1,6 @@
 {
   "name": "@chude/later",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "MCP server for deferred decision management - capture decisions with context, revisit later without memory overhead",
   "type": "module",
   "main": "dist/index.js",
@@ -24,7 +24,7 @@
     "lint": "eslint src/**/*.ts",
     "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.ci.js",
     "prepublishOnly": "npm run build && npm run test:ci",
-    "preversion": "npm test",
+    "preversion": "npm run test:ci",
     "postversion": "git push && git push --tags"
   },
   "publishConfig": {
