@@ -4,21 +4,24 @@
  * Stores user preferences in ~/.later/cli-config.json
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import { createLogger } from "../utils/logger.js";
+
+const log = createLogger("later:cli-config");
 
 /**
  * CLI Configuration Interface
  */
 export interface CliConfig {
   // Output preferences
-  defaultOutputFormat?: 'text' | 'json';
+  defaultOutputFormat?: "text" | "json";
   colorEnabled?: boolean;
 
   // Display preferences
   defaultListLimit?: number;
-  tableStyle?: 'compact' | 'full';
+  tableStyle?: "compact" | "full";
 
   // MCP server preferences
   mcpServerPath?: string;
@@ -32,12 +35,12 @@ export interface CliConfig {
  * Default configuration
  */
 const DEFAULT_CONFIG: CliConfig = {
-  defaultOutputFormat: 'text',
+  defaultOutputFormat: "text",
   colorEnabled: true,
   defaultListLimit: 20,
-  tableStyle: 'full',
+  tableStyle: "full",
   mcpTimeout: 30000, // 30 seconds
-  configVersion: '1.0.0',
+  configVersion: "1.0.0",
 };
 
 /**
@@ -46,8 +49,8 @@ const DEFAULT_CONFIG: CliConfig = {
 export class ConfigManager {
   private static configPath: string = path.join(
     os.homedir(),
-    '.later',
-    'cli-config.json'
+    ".later",
+    "cli-config.json",
   );
 
   private static config: CliConfig | null = null;
@@ -78,7 +81,7 @@ export class ConfigManager {
 
     try {
       if (fs.existsSync(this.configPath)) {
-        const data = fs.readFileSync(this.configPath, 'utf-8');
+        const data = fs.readFileSync(this.configPath, "utf-8");
         const loaded = JSON.parse(data);
 
         // Merge with defaults (in case new fields were added)
@@ -89,7 +92,10 @@ export class ConfigManager {
       }
     } catch (error) {
       // Config file corrupted or unreadable, use defaults
-      console.error(`Warning: Could not load config file, using defaults`);
+      log.warn("cli_config_load_failed", {
+        path: this.configPath,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
       loadedConfig = { ...DEFAULT_CONFIG };
     }
 
@@ -112,13 +118,15 @@ export class ConfigManager {
       fs.writeFileSync(
         this.configPath,
         JSON.stringify(config, null, 2),
-        'utf-8'
+        "utf-8",
       );
 
       // Cache the config
       this.config = { ...config };
     } catch (error) {
-      throw new Error(`Failed to save config: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to save config: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -178,17 +186,17 @@ export class ConfigManager {
     // Validate defaultOutputFormat
     if (
       config.defaultOutputFormat &&
-      !['text', 'json'].includes(config.defaultOutputFormat)
+      !["text", "json"].includes(config.defaultOutputFormat)
     ) {
       errors.push(
-        `Invalid defaultOutputFormat: ${config.defaultOutputFormat} (must be 'text' or 'json')`
+        `Invalid defaultOutputFormat: ${config.defaultOutputFormat} (must be 'text' or 'json')`,
       );
     }
 
     // Validate colorEnabled
     if (
       config.colorEnabled !== undefined &&
-      typeof config.colorEnabled !== 'boolean'
+      typeof config.colorEnabled !== "boolean"
     ) {
       errors.push(`Invalid colorEnabled: must be boolean`);
     }
@@ -196,25 +204,23 @@ export class ConfigManager {
     // Validate defaultListLimit
     if (
       config.defaultListLimit !== undefined &&
-      (typeof config.defaultListLimit !== 'number' || config.defaultListLimit < 1)
+      (typeof config.defaultListLimit !== "number" ||
+        config.defaultListLimit < 1)
     ) {
       errors.push(`Invalid defaultListLimit: must be a positive number`);
     }
 
     // Validate tableStyle
-    if (
-      config.tableStyle &&
-      !['compact', 'full'].includes(config.tableStyle)
-    ) {
+    if (config.tableStyle && !["compact", "full"].includes(config.tableStyle)) {
       errors.push(
-        `Invalid tableStyle: ${config.tableStyle} (must be 'compact' or 'full')`
+        `Invalid tableStyle: ${config.tableStyle} (must be 'compact' or 'full')`,
       );
     }
 
     // Validate mcpTimeout
     if (
       config.mcpTimeout !== undefined &&
-      (typeof config.mcpTimeout !== 'number' || config.mcpTimeout < 1000)
+      (typeof config.mcpTimeout !== "number" || config.mcpTimeout < 1000)
     ) {
       errors.push(`Invalid mcpTimeout: must be >= 1000ms`);
     }
@@ -243,7 +249,7 @@ export class ConfigManager {
 
       if (!validation.valid) {
         throw new Error(
-          `Invalid configuration:\n${validation.errors.join('\n')}`
+          `Invalid configuration:\n${validation.errors.join("\n")}`,
         );
       }
 

@@ -1,8 +1,11 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { homedir } from 'os';
-import type { DeferredItem } from '../types.js';
-import type { Storage } from './interface.js';
+import * as fs from "fs/promises";
+import * as path from "path";
+import { homedir } from "os";
+import type { DeferredItem } from "../types.js";
+import type { Storage } from "./interface.js";
+import { createLogger } from "../utils/logger.js";
+
+const log = createLogger("later:storage");
 
 export class JSONLStorage implements Storage {
   private laterDir: string;
@@ -11,13 +14,15 @@ export class JSONLStorage implements Storage {
   private lockTimeoutMs: number; // Lock timeout in milliseconds
 
   constructor(dataDir?: string, lockTimeoutMs: number = 30000) {
-    this.laterDir = dataDir || path.join(homedir(), '.later');
-    this.itemsFile = path.join(this.laterDir, 'items.jsonl');
-    this.lockFile = path.join(this.laterDir, '.lock');
+    this.laterDir = dataDir || path.join(homedir(), ".later");
+    this.itemsFile = path.join(this.laterDir, "items.jsonl");
+    this.lockFile = path.join(this.laterDir, ".lock");
     this.lockTimeoutMs = lockTimeoutMs; // Default 30 seconds for high concurrency
   }
 
-  async append(item: Omit<DeferredItem, 'id'> & { id?: number }): Promise<number> {
+  async append(
+    item: Omit<DeferredItem, "id"> & { id?: number },
+  ): Promise<number> {
     await this.ensureDir();
 
     let assignedId: number = 0;
@@ -26,15 +31,19 @@ export class JSONLStorage implements Storage {
       // If ID not provided, generate it atomically within the lock
       if (item.id === undefined) {
         const items = await this.readAll();
-        assignedId = items.length === 0 ? 1 : Math.max(...items.map((i) => i.id)) + 1;
+        assignedId =
+          items.length === 0 ? 1 : Math.max(...items.map((i) => i.id)) + 1;
       } else {
         assignedId = item.id;
       }
 
       // Create full item with assigned ID
-      const fullItem: DeferredItem = { ...item, id: assignedId } as DeferredItem;
+      const fullItem: DeferredItem = {
+        ...item,
+        id: assignedId,
+      } as DeferredItem;
 
-      await fs.appendFile(this.itemsFile, JSON.stringify(fullItem) + '\n');
+      await fs.appendFile(this.itemsFile, JSON.stringify(fullItem) + "\n");
     });
 
     // Ensure proper permissions after write
@@ -47,14 +56,14 @@ export class JSONLStorage implements Storage {
     await this.ensureDir();
 
     try {
-      const content = await fs.readFile(this.itemsFile, 'utf-8');
+      const content = await fs.readFile(this.itemsFile, "utf-8");
       return content
         .trim()
-        .split('\n')
+        .split("\n")
         .filter((line) => line.length > 0)
         .map((line) => JSON.parse(line));
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
         return [];
       }
       throw error;
@@ -82,7 +91,7 @@ export class JSONLStorage implements Storage {
       try {
         await fs.writeFile(
           tempFile,
-          items.map((i) => JSON.stringify(i)).join('\n') + '\n'
+          items.map((i) => JSON.stringify(i)).join("\n") + "\n",
         );
 
         // Atomic rename (single syscall)
@@ -115,7 +124,7 @@ export class JSONLStorage implements Storage {
       try {
         await fs.writeFile(
           tempFile,
-          filteredItems.map((i) => JSON.stringify(i)).join('\n') + '\n'
+          filteredItems.map((i) => JSON.stringify(i)).join("\n") + "\n",
         );
 
         // Atomic rename (single syscall)
@@ -150,9 +159,13 @@ export class JSONLStorage implements Storage {
     } catch (error) {
       // Ignore permission errors in test environments
       /* istanbul ignore if - rare chmod errors other than ENOENT */
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
         // Log but don't fail
-        console.warn('Failed to set secure permissions:', error);
+        log.warn("secure_permissions_failed", {
+          file: this.itemsFile,
+          dir: this.laterDir,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       }
     }
   }
@@ -163,7 +176,7 @@ export class JSONLStorage implements Storage {
    */
   private async cleanStaleLock(): Promise<void> {
     try {
-      const lockContent = await fs.readFile(this.lockFile, 'utf-8');
+      const lockContent = await fs.readFile(this.lockFile, "utf-8");
       const lockPid = parseInt(lockContent.trim());
 
       if (isNaN(lockPid)) {
@@ -182,7 +195,7 @@ export class JSONLStorage implements Storage {
       }
     } catch (error) {
       /* istanbul ignore if - rare fs errors other than ENOENT */
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
         // Ignore if lock file doesn't exist, throw other errors
         throw error;
       }
@@ -197,18 +210,21 @@ export class JSONLStorage implements Storage {
     let retries = 0;
     let acquired = false;
 
-    while (!acquired && (Date.now() - startTime) < this.lockTimeoutMs) {
+    while (!acquired && Date.now() - startTime < this.lockTimeoutMs) {
       try {
         // Check for and clean stale locks before attempting to acquire
         await this.cleanStaleLock();
 
         // Try to create lock file exclusively
-        await fs.writeFile(this.lockFile, String(process.pid), { flag: 'wx' });
+        await fs.writeFile(this.lockFile, String(process.pid), { flag: "wx" });
         acquired = true;
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
+        if ((error as NodeJS.ErrnoException).code === "EEXIST") {
           // Lock held by another process, exponential backoff with jitter
-          const exponentialDelay = Math.min(baseDelay * Math.pow(1.5, retries), maxDelay);
+          const exponentialDelay = Math.min(
+            baseDelay * Math.pow(1.5, retries),
+            maxDelay,
+          );
           const jitter = Math.random() * exponentialDelay * 0.3; // Add 30% jitter
           const delay = exponentialDelay + jitter;
           await new Promise((resolve) => setTimeout(resolve, delay));
@@ -222,7 +238,7 @@ export class JSONLStorage implements Storage {
     if (!acquired) {
       throw new Error(
         `Failed to acquire lock after ${this.lockTimeoutMs}ms (${retries} attempts). ` +
-        `High contention detected.`
+          `High contention detected.`,
       );
     }
 

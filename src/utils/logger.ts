@@ -6,7 +6,7 @@
  * stdout is reserved exclusively for MCP protocol messages
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error" | "silent";
 
 interface LogContext {
   [key: string]: any;
@@ -24,9 +24,10 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   info: 1,
   warn: 2,
   error: 3,
+  silent: 4, // Higher than error - suppresses ALL log output
 };
 
-let currentLogLevel: LogLevel = 'info';
+let currentLogLevel: LogLevel = "info";
 
 /**
  * Set global log level
@@ -50,9 +51,9 @@ function safeStringify(obj: any): string {
   const seen = new WeakSet();
 
   return JSON.stringify(obj, (key, value) => {
-    if (typeof value === 'object' && value !== null) {
+    if (typeof value === "object" && value !== null) {
       if (seen.has(value)) {
-        return '[Circular]';
+        return "[Circular]";
       }
       seen.add(value);
     }
@@ -67,7 +68,7 @@ function formatLogEntry(
   level: LogLevel,
   namespace: string,
   message: string,
-  context?: LogContext
+  context?: LogContext,
 ): string {
   const entry = {
     timestamp: new Date().toISOString(),
@@ -86,7 +87,7 @@ function formatLogEntry(
       level,
       namespace,
       message,
-      error: 'Failed to stringify context',
+      error: "Failed to stringify context",
     });
   }
 }
@@ -115,31 +116,31 @@ function shouldLog(level: LogLevel): boolean {
 export function createLogger(namespace: string): Logger {
   return {
     debug(message: string, context?: LogContext): void {
-      if (shouldLog('debug')) {
-        const formatted = formatLogEntry('debug', namespace, message, context);
+      if (shouldLog("debug")) {
+        const formatted = formatLogEntry("debug", namespace, message, context);
         // CRITICAL: Use stderr for ALL log levels in MCP servers
         console.error(formatted);
       }
     },
 
     info(message: string, context?: LogContext): void {
-      if (shouldLog('info')) {
-        const formatted = formatLogEntry('info', namespace, message, context);
+      if (shouldLog("info")) {
+        const formatted = formatLogEntry("info", namespace, message, context);
         // CRITICAL: Use stderr for ALL log levels in MCP servers
         console.error(formatted);
       }
     },
 
     warn(message: string, context?: LogContext): void {
-      if (shouldLog('warn')) {
-        const formatted = formatLogEntry('warn', namespace, message, context);
+      if (shouldLog("warn")) {
+        const formatted = formatLogEntry("warn", namespace, message, context);
         console.error(formatted);
       }
     },
 
     error(message: string, context?: LogContext): void {
-      if (shouldLog('error')) {
-        const formatted = formatLogEntry('error', namespace, message, context);
+      if (shouldLog("error")) {
+        const formatted = formatLogEntry("error", namespace, message, context);
         console.error(formatted);
       }
     },
@@ -149,4 +150,4 @@ export function createLogger(namespace: string): Logger {
 /**
  * Default logger for general use
  */
-export const defaultLogger = createLogger('later');
+export const defaultLogger = createLogger("later");

@@ -1,10 +1,13 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { homedir } from 'os';
-import type { Config } from '../types.js';
+import * as fs from "fs/promises";
+import * as path from "path";
+import { homedir } from "os";
+import type { Config } from "../types.js";
+import { createLogger } from "./logger.js";
 
-const DEFAULT_VERSION = '1.0.0';
-const CONFIG_FILENAME = 'config.json';
+const log = createLogger("later:config");
+
+const DEFAULT_VERSION = "1.0.0";
+const CONFIG_FILENAME = "config.json";
 
 /**
  * Gets the default configuration
@@ -14,9 +17,9 @@ const CONFIG_FILENAME = 'config.json';
 export function getDefaultConfig(dataDir?: string): Config {
   return {
     version: DEFAULT_VERSION,
-    backend: 'mcp-server',
-    storage: 'jsonl',
-    data_dir: dataDir || path.join(homedir(), '.later'),
+    backend: "mcp-server",
+    storage: "jsonl",
+    data_dir: dataDir || path.join(homedir(), ".later"),
     installed_at: new Date().toISOString(),
   };
 }
@@ -30,13 +33,13 @@ function validateConfig(config: any): Config {
   const defaults = getDefaultConfig(config.data_dir);
 
   // Validate backend
-  const validBackends = ['slash-command', 'mcp-server'];
+  const validBackends = ["slash-command", "mcp-server"];
   if (!validBackends.includes(config.backend)) {
     config.backend = defaults.backend;
   }
 
   // Validate storage
-  const validStorage = ['jsonl', 'sqlite'];
+  const validStorage = ["jsonl", "sqlite"];
   if (!validStorage.includes(config.storage)) {
     config.storage = defaults.storage;
   }
@@ -51,9 +54,9 @@ function validateConfig(config: any): Config {
  */
 export async function saveConfig(
   config: Config,
-  dataDir?: string
+  dataDir?: string,
 ): Promise<void> {
-  const dir = dataDir || path.join(homedir(), '.later');
+  const dir = dataDir || path.join(homedir(), ".later");
   const configPath = path.join(dir, CONFIG_FILENAME);
 
   // Ensure directory exists
@@ -72,22 +75,22 @@ export async function saveConfig(
  * @returns Configuration object
  */
 export async function loadConfig(dataDir?: string): Promise<Config> {
-  const dir = dataDir || path.join(homedir(), '.later');
+  const dir = dataDir || path.join(homedir(), ".later");
   const configPath = path.join(dir, CONFIG_FILENAME);
 
   try {
-    const content = await fs.readFile(configPath, 'utf-8');
+    const content = await fs.readFile(configPath, "utf-8");
     const config = JSON.parse(content);
     return validateConfig(config);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       // File doesn't exist, create default config
       const defaultConfig = getDefaultConfig(dir);
       await saveConfig(defaultConfig, dir);
       return defaultConfig;
     } else if (error instanceof SyntaxError) {
       // Corrupted JSON, create new config
-      console.warn('Config file corrupted, creating new config');
+      log.warn("config_corrupted", { path: configPath });
       const defaultConfig = getDefaultConfig(dir);
       await saveConfig(defaultConfig, dir);
       return defaultConfig;
@@ -105,7 +108,7 @@ export async function loadConfig(dataDir?: string): Promise<Config> {
  */
 export async function updateConfig(
   updates: Partial<Config>,
-  dataDir?: string
+  dataDir?: string,
 ): Promise<Config> {
   const currentConfig = await loadConfig(dataDir);
 
@@ -124,7 +127,7 @@ export async function updateConfig(
  * @returns True if config file exists
  */
 export async function configExists(dataDir?: string): Promise<boolean> {
-  const dir = dataDir || path.join(homedir(), '.later');
+  const dir = dataDir || path.join(homedir(), ".later");
   const configPath = path.join(dir, CONFIG_FILENAME);
 
   try {
@@ -154,7 +157,7 @@ export async function needsMigration(dataDir?: string): Promise<boolean> {
   const config = await loadConfig(dataDir);
 
   // Check if using old slash-command backend
-  if (config.backend === 'slash-command') {
+  if (config.backend === "slash-command") {
     return true;
   }
 
