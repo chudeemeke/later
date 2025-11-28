@@ -8,8 +8,8 @@
  * Excluded in CI:
  * - mcp-client.test.ts (integration test, spawns real server)
  * - cli/integration/ (CLI integration tests)
- * - integration/performance/ (performance benchmarks)
- * - integration/concurrency/ (flaky race condition tests)
+ * - performance.test.ts (timing-dependent benchmarks)
+ * - concurrency.test.ts (flaky race condition tests)
  */
 export default {
   preset: "ts-jest/presets/default-esm",
@@ -33,8 +33,8 @@ export default {
   testPathIgnorePatterns: [
     "tests/cli/mcp-client\\.test\\.ts$",
     "tests/cli/integration/",
-    "tests/integration/performance/",
-    "tests/integration/concurrency/",
+    "tests/integration/performance\\.test\\.ts$",
+    "tests/integration/concurrency\\.test\\.ts$",
   ],
   collectCoverage: true,
   collectCoverageFrom: [
