@@ -4,8 +4,6 @@
  * to prevent sensitive data exposure in model context
  */
 
-import crypto from 'crypto';
-
 export interface TokenizedData {
   text: string;
   tokens: Record<string, string>;
@@ -18,7 +16,8 @@ export interface TokenizationOptions {
 }
 
 const PII_PATTERNS: Record<string, RegExp> = {
-  apiKey: /\b(sk-[a-zA-Z0-9]{32,}|ghp_[a-zA-Z0-9]{36}|api[_-]?key[:\s=]+[^\s]{20,})\b/gi,
+  apiKey:
+    /\b(sk-[a-zA-Z0-9]{32,}|ghp_[a-zA-Z0-9]{36}|api[_-]?key[:\s=]+[^\s]{20,})\b/gi,
   password: /\b(password|passwd|pwd|secret)[:\s=]+[^\s]{6,}\b/gi,
   ssn: /\b\d{3}-\d{2}-\d{4}\b/g,
   creditCard: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
@@ -28,7 +27,7 @@ const PII_PATTERNS: Record<string, RegExp> = {
   money: /\$\d{1,3}(,\d{3})*(\.\d{2})?/g,
   dbConnection: /\b(host|server|hostname|database|db)[:\s=]+[^\s]+\b/gi,
   credentials: /\b(user|username|login)[:\s=]+[^\s]+\b/gi,
-  url: /\b(https?:\/\/[^\s]+)\b/g
+  url: /\b(https?:\/\/[^\s]+)\b/g,
 };
 
 /**
@@ -36,10 +35,10 @@ const PII_PATTERNS: Record<string, RegExp> = {
  */
 export function tokenize(
   text: string,
-  options: TokenizationOptions = {}
+  options: TokenizationOptions = {},
 ): TokenizedData {
   if (!text) {
-    return { text: '', tokens: {}, detectedTypes: {} };
+    return { text: "", tokens: {}, detectedTypes: {} };
   }
 
   let tokenized = text;
@@ -49,7 +48,7 @@ export function tokenize(
 
   for (const [type, pattern] of Object.entries(PII_PATTERNS)) {
     // Skip URLs if preserveUrls is true
-    if (options.preserveUrls && type === 'url') continue;
+    if (options.preserveUrls && type === "url") continue;
 
     tokenized = tokenized.replace(pattern, (match) => {
       const tokenId = `PII_TOKEN_${tokenCounter++}`;
@@ -67,7 +66,7 @@ export function tokenize(
  */
 export function detokenize(tokenized: TokenizedData): string {
   if (!tokenized || !tokenized.text) {
-    return '';
+    return "";
   }
 
   let text = tokenized.text;
@@ -109,12 +108,12 @@ export function hasPII(text: string): boolean {
  */
 export function getPIISummary(detectedTypes: Record<string, number>): string {
   if (!detectedTypes || Object.keys(detectedTypes).length === 0) {
-    return 'No PII detected';
+    return "No PII detected";
   }
 
   const summary = Object.entries(detectedTypes)
-    .map(([type, count]) => `${count} ${type}${count > 1 ? 's' : ''}`)
-    .join(', ');
+    .map(([type, count]) => `${count} ${type}${count > 1 ? "s" : ""}`)
+    .join(", ");
 
   return `Detected: ${summary}`;
 }
