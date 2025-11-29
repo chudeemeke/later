@@ -201,7 +201,7 @@ export class McpClient {
 
       // Version is embedded in server metadata, but for now we'll use package.json
       // This is a lightweight check to ensure server is responding
-      return "1.0.0"; // Server version matches package.json
+      return "2.0.0"; // Server version (later MCP server v2.0)
     } catch (error) {
       throw new Error("Unable to connect to MCP server");
     }
