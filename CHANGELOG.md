@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### V2.0.2: Quality & UX Improvements (2025-11-29)
+
+**Status:** Production-ready with 98.31% statement coverage, 95.06% branch coverage, 1084 tests passing (100% pass rate)
+
+**Changes:**
+
+- Removed all istanbul ignore comments and refactored for testability
+- Added FileSystemOps DI pattern for injectable filesystem operations
+- Added DI parameters to handleBulkDelete for testable error paths
+- Fixed CLI log leakage - server logs now silent in CLI mode
+- Fixed unused crypto import lint warning
+- Updated README with correct package name (@chude/later)
+- Updated coverage metrics in documentation
+
+**Coverage Improvements:**
+
+- Statements: 96.19% -> 98.31%
+- Branches: 90.75% -> 95.06%
+- Functions: 98.14% -> 98.88%
+- Lines: 96.23% -> 98.46%
+- Tests: 1027 -> 1084 (+57 new tests for error paths)
+
+---
+
 ### ✅ V2.0: Progressive Disclosure & PII Tokenization (2025-11-07)
 
 **Status:** Production-ready with 96.19% statement coverage, 90.75% branch coverage, 1027 tests passing (100% pass rate)
@@ -15,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Major release implementing progressive tool disclosure for ~90% token reduction and automatic PII tokenization with 95%+ detection accuracy. Comprehensive architectural improvements with full backward compatibility.
 
 **Coverage Achievements:**
+
 - ✅ Statements: 96.19% (target: 95%+) - **EXCEEDED**
 - ✅ Branches: 90.75% (industry standard: 80-85%) - **EXCEEDED**
 - ✅ Functions: 98.14% (target: 95%+) - **EXCEEDED**
@@ -24,6 +49,7 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 **Major Features:**
 
 **1. Progressive Tool Disclosure (~90% Token Reduction)**
+
 - **Challenge:** Initial MCP tools/list exposed all 8 tools, consuming ~10KB tokens
 - **Solution:** Expose only `search_tools` meta-tool initially, load others on-demand
 - **Implementation:**
@@ -36,10 +62,11 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 - **Test Coverage:** 100% coverage for registry and search_tools
 
 **2. Automatic PII Tokenization (95%+ Detection)**
+
 - **Challenge:** Sensitive data in context could leak to model logs
 - **Solution:** Automatic detection and reversible tokenization of 11 PII types
 - **Implementation:**
-  - API keys (OpenAI sk-*, GitHub ghp-*, generic api_key=)
+  - API keys (OpenAI sk-_, GitHub ghp-_, generic api_key=)
   - Passwords and secrets
   - Social Security Numbers (SSN)
   - Credit card numbers
@@ -61,6 +88,7 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 - **Test Coverage:** 100% coverage for pii-tokenization module (71 tests)
 
 **3. Architectural Improvements**
+
 - **Tool Reorganization:**
   ```
   src/tools/
@@ -81,6 +109,7 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
   - Keyword-based discovery
 
 **Files Added:**
+
 - `src/registry.ts` - Tool registry with search (220 lines)
 - `src/types/tool-metadata.ts` - Tool metadata interfaces
 - `src/utils/pii-tokenization.ts` - PII detection & tokenization (121 lines)
@@ -91,6 +120,7 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 - `tests/tools/search-tools.test.ts` - Search tools tests (300+ lines)
 
 **Files Modified:**
+
 - `src/index.ts` - V2.0 MCP server with progressive disclosure
 - `src/types.ts` - Added PII tokenization fields to DeferredItem
 - `src/tools/core/capture.ts` - Integrated PII tokenization
@@ -98,10 +128,12 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 - All tool imports updated for new directory structure
 
 **Files Reorganized:**
+
 - Moved 8 tool files from `src/tools/*.ts` to category subdirectories
 - Updated 14 test files with new import paths
 
 **Test Enhancements:**
+
 - **PII Tokenization Tests (71 tests):**
   - All 11 PII pattern types
   - Round-trip preservation
@@ -124,6 +156,7 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
   - Empty token object handling
 
 **Backward Compatibility:**
+
 - ✅ All V1.0.0 functionality preserved
 - ✅ Existing data format compatible
 - ✅ Tool invocation patterns unchanged
@@ -131,12 +164,14 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 - ✅ No breaking changes
 
 **Performance:**
+
 - Progressive disclosure: ~90% reduction in initial tools/list payload
 - PII tokenization: Near-zero overhead (only on capture)
 - Registry search: O(n) with relevance scoring (n = number of tools)
 - Detokenization: O(m) where m = number of tokens
 
 **Security:**
+
 - Automatic PII detection on capture
 - Secure token-based storage
 - Reversible detokenization for authorized display
@@ -144,12 +179,14 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 - Optional URL preservation for non-sensitive links
 
 **Quality Metrics:**
+
 - **Test Pass Rate:** 100% (1027/1027 tests)
 - **Build Status:** ✅ Successful
 - **Linting:** ✅ All passing
 - **Regressions:** ✅ Zero
 
 **Gap Analysis - Branch Coverage 90.75% vs 95% Target:**
+
 - **Gap:** 4.25% (35 uncovered branches)
 - **Category 1 (Impossible):** ~8 branches - ES module mocking limitations
   - bulk.ts catch blocks for handler exceptions (never throw)
@@ -169,14 +206,17 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
   - **Impact:** NONE - Visual/UX edge cases only
 
 **Risk Assessment:**
+
 - **Functional Risk:** ZERO - All critical paths 100% covered
 - **Production Risk:** ZERO - Exceeds industry standard (80-85%)
 - **Deployment Confidence:** HIGH - Comprehensive testing
 
 **Breaking Changes:**
+
 - None - Full backward compatibility maintained
 
 **Migration Path:**
+
 - No migration required
 - Existing items without `context_tokens` continue to work
 - New items automatically get PII tokenization
@@ -184,6 +224,7 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 **Author:** Chude <chude@emeke.org>
 
 **References:**
+
 - Progressive Disclosure: MCP SDK best practices
 - PII Tokenization: OWASP PII Protection Guidelines
 - Test Coverage: Industry standard 80-85% (achieved 90.75%)
@@ -198,6 +239,7 @@ Major release implementing progressive tool disclosure for ~90% token reduction 
 Final push to production-ready status with ESLint configuration, comprehensive test coverage across all modules, and updated documentation. Achieved all coverage targets (95%+ statements, 85%+ branches, 95%+ functions, 95%+ lines).
 
 **Coverage Achievements:**
+
 - ✅ Statements: 96.6% (target: 95%)
 - ✅ Branches: 88.7% (target: 85%)
 - ✅ Functions: 97.95% (target: 95%)
@@ -205,6 +247,7 @@ Final push to production-ready status with ESLint configuration, comprehensive t
 - Tests: 862 → 880 (+18 new tests, 100% pass rate)
 
 **Key Improvements:**
+
 1. **ESLint Configuration**
    - Added `.eslintrc.json` with TypeScript support
    - Fixed 1 error (const vs let) and 4 warnings (unused imports/variables)
@@ -223,6 +266,7 @@ Final push to production-ready status with ESLint configuration, comprehensive t
    - CHANGELOG.md: Current coverage numbers and completion status
 
 **Production Readiness:**
+
 - ✅ 880 tests passing (100% pass rate)
 - ✅ ESLint configured and passing
 - ✅ TypeScript compilation successful
@@ -240,6 +284,7 @@ Final push to production-ready status with ESLint configuration, comprehensive t
 Systematic improvement of branch coverage through targeted testing of CLI command edge cases, error paths, and warning handling. Added 18 comprehensive tests covering critical branch paths in capture, delete, and update commands.
 
 **Coverage Improvements:**
+
 - Statements: 94.42% → 95.17% (+0.75%, exceeds 95% target)
 - Branches: 85.1% → 86.9% (+1.8%, +14 branches)
 - Functions: 96.73% → 97.55% (+0.82%)
@@ -266,6 +311,7 @@ Systematic improvement of branch coverage through targeted testing of CLI comman
    - Dependency validation: invalid dependency IDs
 
 **Testing Strategy:**
+
 - Targeted branch coverage for error paths
 - Warning handling edge cases (empty arrays)
 - Non-Error exception handling (string errors)
@@ -273,6 +319,7 @@ Systematic improvement of branch coverage through targeted testing of CLI comman
 - All tests maintain production-ready quality
 
 **Remaining Work for 95% Branch Coverage:**
+
 - Need 63 more branches (currently 677/779, target 739)
 - Primary areas: storage error paths (72.72%), bulk operation exceptions (57.14%)
 - Estimated: 30-40 additional test cases required
@@ -313,16 +360,17 @@ Completed critical architectural improvements including Dependency Injection ref
 
 4. **Comprehensive Test Coverage Improvements**
    - **table-formatter.ts:** 85.40% → 99.27% (+13.87%)
-     * Fixed chalk.level in test environment to enable color code paths
-     * Added tests for all priority/status default cases
+     - Fixed chalk.level in test environment to enable color code paths
+     - Added tests for all priority/status default cases
    - **CLI commands:** Added targeted tests for uncovered paths
-     * do.ts: 81.81% → improved (todo_guidance, warnings display)
-     * list.ts: 81.81% → improved (filter flags: status, priority, tags, limit)
-     * Added JSON output mode tests
+     - do.ts: 81.81% → improved (todo_guidance, warnings display)
+     - list.ts: 81.81% → improved (filter flags: status, priority, tags, limit)
+     - Added JSON output mode tests
    - **Overall coverage:** 88.66% → 94.42% statements (+5.76%)
    - **Tests:** 791 → 844 (+53 new tests)
 
 **Test Statistics:**
+
 - Total tests: 844 (100% passing)
 - Statements: 94.42% (target: 95%, +5.76% from start)
 - Branches: 85.1% (exceeds 85% target!)
@@ -330,10 +378,12 @@ Completed critical architectural improvements including Dependency Injection ref
 - Lines: 94.64% (exceeds 90% target!)
 
 **Breaking Changes:**
+
 - `Storage.append()` now returns `Promise<number>` instead of `Promise<void>`
 - All mock implementations in tests updated accordingly
 
 **Performance:**
+
 - Concurrent operations now handle 20+ simultaneous captures reliably
 - Lock acquisition improved with smaller base delay and jitter
 - No degradation in single-operation performance
@@ -413,6 +463,7 @@ Completed Phase 3 with beautiful colored output, progress indicators, enhanced J
 **Test Coverage Achievements:**
 
 **Overall Metrics:**
+
 - ✅ **791 tests passing** (up from 252 in Phase 2)
 - ✅ **95.35% function coverage** 🎯 (EXCEEDS 95% TARGET!)
 - ✅ **88.66% statement coverage** (close to 90% threshold)
@@ -421,6 +472,7 @@ Completed Phase 3 with beautiful colored output, progress indicators, enhanced J
 - ✅ **Zero test failures**
 
 **New Test Suites Added:**
+
 - table-formatter.test.ts: 56 tests (color support, formatters, edge cases)
 - json-formatter.test.ts: 21 tests (all command formats, JSON validation)
 - mcp-client.test.ts: 13 additional tests (version checking, spinners, concurrent calls)
@@ -430,6 +482,7 @@ Completed Phase 3 with beautiful colored output, progress indicators, enhanced J
 - bulk-delete.test.ts: 12 tests (soft/hard delete, partial success, batches)
 
 **Component Coverage Breakdown:**
+
 ```
 File                 | Coverage | Tests
 ---------------------|----------|------
@@ -444,6 +497,7 @@ errors.ts            |     92.0% | Error formatting
 ```
 
 **Command Handlers:**
+
 ```
 search.ts            |   100.0% | 12 tests (fields, limit, min-score, JSON)
 show.ts              |   100.0% | 6 tests
@@ -459,6 +513,7 @@ do.ts                |   81.81% | Do operations
 **Production Quality:**
 
 **Usability:**
+
 - Beautiful colored output for human readability
 - JSON mode for machine parsing and scripts
 - Progress feedback during slow operations
@@ -466,6 +521,7 @@ do.ts                |   81.81% | Do operations
 - Comprehensive help system
 
 **Reliability:**
+
 - 791 tests ensuring correctness
 - 95%+ function coverage
 - Edge cases thoroughly tested
@@ -473,12 +529,14 @@ do.ts                |   81.81% | Do operations
 - Concurrent operations tested
 
 **Performance:**
+
 - Spinners don't block operations
 - Smart disable in CI/non-TTY environments
 - Efficient color detection
 - Zero performance regression
 
 **Accessibility:**
+
 - Respects NO_COLOR environment variable
 - --no-color flag for explicit control
 - Graceful degradation without colors
@@ -497,12 +555,14 @@ do.ts                |   81.81% | Do operations
 ✅ Production and market ready
 
 **Notable Fixes:**
+
 - Fixed negative number parsing (e.g., `later show -1`)
 - Enhanced parser coverage from 42% to 87.75%
 - Improved mcp-client coverage from 71% to 93.65%
 - Added 539 new tests (252 → 791)
 
 **Next:**
+
 - Address remaining concurrency test issues
 - Push overall coverage to 95% (currently 88.66%)
 - Final production readiness audit
@@ -517,6 +577,7 @@ do.ts                |   81.81% | Do operations
 Extended Phase 1 MVP to full feature parity with MCP server. Added comprehensive flag support, help system, error handling, and all remaining commands.
 
 **Enhanced Parser:**
+
 - Command schemas for all 9 commands
 - Full flag parsing (--flag and -f shorthand)
 - Type coercion (string → number, CSV → array)
@@ -572,6 +633,7 @@ Extended Phase 1 MVP to full feature parity with MCP server. Added comprehensive
    - `--min-score`: Minimum relevance score
 
 **Help System:**
+
 - `later --help`: Main help with all commands
 - `later <command> --help`: Command-specific help
 - Auto-generated from schemas
@@ -579,6 +641,7 @@ Extended Phase 1 MVP to full feature parity with MCP server. Added comprehensive
 - Context-aware help suggestions on errors
 
 **Error Handling:**
+
 - Exit codes (SUCCESS=0, USER_ERROR=1, SYSTEM_ERROR=2)
 - CliError, UserError, SystemError classes
 - Helpful tips in error messages
@@ -586,17 +649,20 @@ Extended Phase 1 MVP to full feature parity with MCP server. Added comprehensive
 - Formatted error output
 
 **Test Results:**
+
 - ✅ All existing tests passing (updated to ParsedArgs)
 - ✅ 15 command handler tests
 - ✅ 10 parser tests (schemas, flags, validation)
 - ✅ Zero breaking changes
 
 **Production Dependencies:**
+
 - chalk: Terminal colors
 - cli-table3: Table formatting
 - ora: Progress spinners
 
 **Next:**
+
 - Table formatter with colors for beautiful output
 - JSON output mode (--json flag)
 - Configuration management
@@ -648,6 +714,7 @@ Implemented thin CLI client that delegates 100% to the MCP server. Follows the i
    - Build verification
 
 **Features:**
+
 - Thin client pattern - zero business logic in CLI
 - All validation and processing delegated to MCP server
 - Working commands: `later capture "text"`, `later list`, `later show 5`
@@ -655,6 +722,7 @@ Implemented thin CLI client that delegates 100% to the MCP server. Follows the i
 - Clean separation of concerns
 
 **Test Results:**
+
 - ✅ **64 CLI tests passing**
   - 11 MCP client tests
   - 10 parser tests
@@ -670,11 +738,13 @@ Implemented thin CLI client that delegates 100% to the MCP server. Follows the i
 - ✅ **Production and market ready**
 
 **MCP Server Enhancement:**
+
 - Added `__raw` parameter to all tools for JSON responses
 - Backward compatible (AI clients unaffected)
 - CLI gets structured data, AI clients get formatted strings
 
 **Next Steps:**
+
 - Phase 2: Enhanced CLI with flags, filtering, and help system
 - Phase 3: Pretty output with colors and tables
 
@@ -709,6 +779,7 @@ Implemented bulk operations for efficient batch processing and TF-IDF based full
    - 9 comprehensive tests
 
 **Features:**
+
 - Bulk operations process items individually with detailed error reporting
 - Search only includes active items (pending/in-progress)
 - Weighted scoring: decision (2x), tags (1.5x), context (1x)
@@ -716,18 +787,21 @@ Implemented bulk operations for efficient batch processing and TF-IDF based full
 - Structured logging for all operations
 
 **Test Results:**
+
 - ✅ **449 tests passing** (+26 from Phase 3)
 - ✅ **94.34% statement coverage**
 - ✅ **86.18% branch coverage**
 - ✅ **95.48% function coverage**
 
 **Files Added:**
+
 - `src/tools/bulk.ts`: Bulk operations (94% coverage)
 - `src/tools/search.ts`: Full-text search (90% coverage)
 - `tests/tools/bulk.test.ts`: 17 tests
 - `tests/tools/search.test.ts`: 9 tests
 
 **Performance:**
+
 - Bulk operations: Individual item processing with aggregated results
 - Search: Sub-millisecond for small datasets, logged for monitoring
 
@@ -741,12 +815,14 @@ Implemented bulk operations for efficient batch processing and TF-IDF based full
 Created JSON-RPC 2.0 compliant error code system for consistent error handling across all tools.
 
 **Features:**
+
 - Standard JSON-RPC error codes (-32700 to -32603)
 - Custom application error codes (-32001 to -32007)
 - Utility functions for creating standard errors
 - Client/server error classification
 
 **Error Codes:**
+
 - `VALIDATION_ERROR` (-32001): Input validation failures
 - `ITEM_NOT_FOUND` (-32002): Item lookup failures
 - `STORAGE_ERROR` (-32003): Storage operation failures
@@ -755,12 +831,14 @@ Created JSON-RPC 2.0 compliant error code system for consistent error handling a
 - `INTERNAL_ERROR` (-32603): Unexpected errors
 
 **Test Results:**
+
 - ✅ **423 tests passing** (+18 error tests)
 - ✅ **94.8% statement coverage**
 - ✅ **87.62% branch coverage**
 - ✅ **96% function coverage**
 
 **Files Added:**
+
 - `src/utils/errors.ts`: Error utilities (100% coverage)
 - `tests/utils/errors.test.ts`: 24 comprehensive tests
 
@@ -803,6 +881,7 @@ Implemented comprehensive advanced filtering, multi-field sorting, and cursor-ba
    - Full backward compatibility with legacy filters
 
 **Type Additions** (`src/types.ts`):
+
 - `PaginationArgs` - Cursor-based pagination parameters
 - `PageInfo` - Pagination metadata
 - `PaginatedResult<T>` - Generic paginated response
@@ -812,6 +891,7 @@ Implemented comprehensive advanced filtering, multi-field sorting, and cursor-ba
 - Enhanced `ListArgs` - Backward compatible with new fields
 
 **Test Results:**
+
 - ✅ **405 tests passing** (+49 from hard delete)
 - ✅ **94.62% statement coverage** (near 95% target)
 - ✅ **86.95% branch coverage**
@@ -819,16 +899,19 @@ Implemented comprehensive advanced filtering, multi-field sorting, and cursor-ba
 - ✅ **Zero TypeScript errors**
 
 **Test Coverage:**
+
 - 26 tests for query utilities (filtering, sorting, pagination)
 - 23 tests for Phase 2 list features
 - 5 backward compatibility tests
 
 **Performance:**
+
 - List operations logged with duration tracking
 - Efficient in-memory filtering and sorting
 - Ready for future SQLite optimization
 
 **Backward Compatibility:** ✅ Perfect
+
 - All legacy filter parameters still work (`status`, `tags`, `priority`, `limit`)
 - Can mix legacy and advanced filters
 - All existing tests pass without modification
@@ -844,6 +927,7 @@ Implemented comprehensive advanced filtering, multi-field sorting, and cursor-ba
 Completed the hard delete functionality that was previously a placeholder. Items can now be permanently removed from storage using the `hard: true` flag.
 
 **Changes:**
+
 1. **Storage Interface** - Added `delete(id: number): Promise<void>` method
 2. **JSONLStorage** - Implemented actual hard delete with:
    - File locking for concurrency safety
@@ -860,6 +944,7 @@ Completed the hard delete functionality that was previously a placeholder. Items
    - Concurrent delete operations
 
 **Test Results:**
+
 - ✅ **356 tests passing** (+8 from Phase 1)
 - ✅ **94.88% statement coverage** (just below 95% target)
 - ✅ **87.67% branch coverage**
@@ -880,6 +965,7 @@ Upgraded from MVP (4 basic tools) to production-ready system with full CRUD capa
 **Phase 1 Implementation Summary:**
 
 #### New Tools Added:
+
 1. **`later_update`** - Modify existing deferred items
    - Update any field: decision, context, tags, priority, status, dependencies
    - State transition validation (prevents invalid flows like pending→done)
@@ -893,6 +979,7 @@ Upgraded from MVP (4 basic tools) to production-ready system with full CRUD capa
    - Comprehensive error handling
 
 #### New Utilities Added:
+
 3. **`logger.ts`** - Structured JSON logging
    - Namespace support (`later:update`, `later:delete`, etc.)
    - Log levels: debug, info, warn, error
@@ -916,6 +1003,7 @@ Upgraded from MVP (4 basic tools) to production-ready system with full CRUD capa
    - 52 tests, 88% coverage
 
 #### Test Results - EXCEEDS ALL TARGETS:
+
 - ✅ **348 tests passing** (100% pass rate)
 - ✅ **95.1% statement coverage** (exceeds 95% goal!)
 - ✅ **87.61% branch coverage** (exceeds 85% target)
@@ -925,6 +1013,7 @@ Upgraded from MVP (4 basic tools) to production-ready system with full CRUD capa
 - ✅ **Build succeeds** with zero warnings
 
 #### Coverage Breakdown:
+
 ```
 File               | Statements | Branches | Functions | Lines
 -------------------|------------|----------|-----------|-------
@@ -944,6 +1033,7 @@ All files          |     95.1%  |   87.61% |   95.95%  | 94.93%
 #### Features Implemented:
 
 **Update Tool (`later_update`):**
+
 - Full field updates with validation
 - State transition enforcement using state machine
 - Dependency cycle detection (prevents circular dependencies)
@@ -952,6 +1042,7 @@ All files          |     95.1%  |   87.61% |   95.95%  | 94.93%
 - 32 tests covering all scenarios
 
 **Delete Tool (`later_delete`):**
+
 - Soft delete: Archives item (default, reversible)
 - Hard delete: Placeholder for Phase 2 (permanent removal)
 - Preserves data integrity
@@ -959,12 +1050,14 @@ All files          |     95.1%  |   87.61% |   95.95%  | 94.93%
 - 16 tests
 
 **Logger Utility:**
+
 - Structured JSON output for machine parsing
 - Namespace-based organization
 - Performance optimized (non-blocking)
 - Handles edge cases (circular refs, long messages, special chars)
 
 **State Machine:**
+
 - Validates all status transitions
 - Workflow support: pending→in-progress→done→archived
 - Rollback support: in-progress→pending
@@ -972,6 +1065,7 @@ All files          |     95.1%  |   87.61% |   95.95%  | 94.93%
 - Blocks invalid transitions (e.g., pending→done without in-progress)
 
 **Validation:**
+
 - Zod schemas for type safety
 - Runtime validation (catches errors early)
 - Detailed error messages (actionable for users)
@@ -982,6 +1076,7 @@ All files          |     95.1%  |   87.61% |   95.95%  | 94.93%
   - Tag/dependency arrays
 
 #### Development Methodology:
+
 - **Strict TDD** (Test-Driven Development)
   - RED: Write failing test first
   - GREEN: Write minimal code to pass
@@ -992,30 +1087,35 @@ All files          |     95.1%  |   87.61% |   95.95%  | 94.93%
 - **Backward Compatible**: MVP tools unchanged
 
 #### Migration Path:
+
 - Original 4 tools (capture, list, show, do) unchanged
 - 2 new tools (update, delete) added
 - No breaking changes to existing functionality
 - Seamless upgrade for existing users
 
 #### Performance:
+
 - Update operation: <100ms (including validation and cycle detection)
 - Delete operation: <50ms
 - Logging overhead: <1ms per operation
 - All operations non-blocking
 
 #### Security:
+
 - Input validation on all arguments
 - No SQL injection risk (JSONL storage)
 - Proper error handling (no stack traces leaked)
 - Structured logging (audit trail)
 
 #### Documentation:
+
 - Comprehensive inline documentation
 - JSDoc comments on all public functions
 - Type definitions for all interfaces
 - Usage examples in tests
 
 #### Next Steps (Future Phases):
+
 - Phase 2: Pagination, advanced filtering, bulk operations
 - Phase 3: Enhanced error codes (JSON-RPC compliance)
 - Phase 4: Search functionality (full-text)
@@ -1023,9 +1123,11 @@ All files          |     95.1%  |   87.61% |   95.95%  | 94.93%
 - Phase 6: Integration tests, E2E tests
 
 #### Breaking Changes:
+
 - **None** - Fully backward compatible
 
 #### Deployment:
+
 1. Install dependencies: `npm install`
 2. Build project: `npm run build`
 3. Run tests: `npm test` (verify 348 passing, 95%+ coverage)
@@ -1043,6 +1145,7 @@ Phase 1 complete. System is production-ready with professional-grade error handl
 
 **Problem Identified:**
 During MCP server configuration and testing, secrets (Supabase API token) were temporarily hardcoded in `.mcp.json`. This violated:
+
 - Security best practices (secrets in plain text configuration files)
 - 12-factor app principles (config in environment)
 - Project security standards (no hardcoded credentials)
@@ -1077,12 +1180,12 @@ Migrated from hardcoded secrets to proper environment variable management using 
 
 After thorough research, chose `/etc/environment` over alternatives:
 
-| Approach | Verdict |
-|----------|---------|
-| `/etc/environment` | ✅ **Selected** - System-wide, survives sudo, shell-agnostic |
-| `.bashrc` | ❌ Only works in interactive shells, not for MCP servers |
-| Hardcoded in config | ❌ Security risk, violates 12-factor principles |
-| `.env` + wrapper | ❌ Over-engineering for single-machine personal use |
+| Approach            | Verdict                                                      |
+| ------------------- | ------------------------------------------------------------ |
+| `/etc/environment`  | ✅ **Selected** - System-wide, survives sudo, shell-agnostic |
+| `.bashrc`           | ❌ Only works in interactive shells, not for MCP servers     |
+| Hardcoded in config | ❌ Security risk, violates 12-factor principles              |
+| `.env` + wrapper    | ❌ Over-engineering for single-machine personal use          |
 
 **Technical Details:**
 
@@ -1104,6 +1207,7 @@ After thorough research, chose `/etc/environment` over alternatives:
 ```
 
 **Verification:**
+
 - ✅ Secrets removed from version-controllable files
 - ✅ Variable expansion working in Claude Code MCP servers
 - ✅ `later` MCP server functioning with environment variables
@@ -1111,6 +1215,7 @@ After thorough research, chose `/etc/environment` over alternatives:
 - ✅ Follows industry standards (12-factor, Linux best practices)
 
 **Security Improvements:**
+
 - **No hardcoded secrets** in configuration files
 - **Safe to commit** `.mcp.json` to version control
 - **Single source of truth** for credential management
@@ -1118,18 +1223,21 @@ After thorough research, chose `/etc/environment` over alternatives:
 - **Proper permissions** on `/etc/environment` (root-owned, 644)
 
 **Future Enhancements (if needed):**
+
 - User-level secrets via `~/.pam_environment`
 - Encryption at rest via GPG
 - Secret rotation automation
 - Integration with secret managers (Vault, AWS Secrets Manager)
 
 **Impact:**
+
 - **Risk reduction:** Eliminated secret exposure in config files
 - **Maintainability:** Centralized secret management
 - **Compliance:** Aligned with industry security standards
 - **Portability:** Same config works across environments (dev/prod)
 
 **References:**
+
 - Claude Code MCP Docs: https://docs.claude.com/en/docs/claude-code/mcp
 - 12-Factor App: https://12factor.net/config
 - Linux environment configuration best practices
@@ -1144,6 +1252,7 @@ After thorough research, chose `/etc/environment` over alternatives:
 Extended product vision beyond V1-V3 with strategic analysis of features that would transform `/later` from personal productivity tool into decision intelligence platform.
 
 **Key Documents Added:**
+
 - `docs/planning/roadmap/product-vision-strategic-features.md` (comprehensive 10-feature analysis)
 - `docs/planning/roadmap/strategic-features-executive-summary.md` (prioritized top 5)
 
@@ -1175,17 +1284,20 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
    - Status: P2 (strategic for V5)
 
 **Business Model:**
+
 - Freemium approach defined (Free → Pro $10/mo → Team $50/mo → Enterprise)
 - Monetization rationale: Sustainable development funding
 - Target metrics: 15% free→pro conversion, 70% 6-month retention
 
 **Competitive Moat:**
+
 - Network effects from global decision library
 - Personalized learning from decision patterns
 - Deep workflow integration (Git, GitHub, IDE, Calendar)
 - Unique IP: Decision science frameworks + outcome tracking
 
 **Next Steps:**
+
 1. Validate V1-V3 with users (6-12 months)
 2. Prototype top 3 strategic features (decision retrospectives, global library, smart scheduling)
 3. User research on willingness to pay
@@ -1198,6 +1310,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
 **Status:** Phase 7/7 - **COMPLETE & PRODUCTION READY** 🎉
 
 **Final Metrics:**
+
 - ✅ **179 tests passing** (100% pass rate)
 - ✅ **95.44% code coverage** (exceeding 95% goal!)
   - Statements: 95.44%
@@ -1294,6 +1407,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
   - Production readiness validation complete
 
 **Architecture Achievements:**
+
 - ✅ Strict TDD methodology (RED → GREEN → REFACTOR)
 - ✅ Hexagonal architecture (storage abstraction layer)
 - ✅ Security-first design (automatic secret sanitization, secure file permissions)
@@ -1303,6 +1417,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
 - ✅ Type safety (strict TypeScript, zero any types in production code)
 
 ### Documentation (Complete)
+
 - Complete architecture documentation (storage, schema, scaling)
 - Complete design/UX documentation (commands, progressive disclosure, error handling)
 - Complete technical documentation (implementation, performance)
@@ -1314,6 +1429,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
 - Sample data and examples
 
 ### Infrastructure
+
 - Git repository initialized
 - Project structure established (WoW conventions)
 - Documentation-first approach validated
@@ -1323,6 +1439,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
 ## [0.0.0] - 2025-10-31
 
 ### Added
+
 - Initial project conception
 - Design phase complete
 - Comprehensive documentation (40+ files)
@@ -1333,6 +1450,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
 ## Upcoming Releases
 
 ### [0.1.0] - MVP Phase (Target: Week 1)
+
 - Basic capture command
 - List command
 - Show command
@@ -1341,6 +1459,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
 - JSONL storage
 
 ### [1.0.0] - V1 Enhanced (Target: Week 3)
+
 - AI context extraction
 - Categories and tags
 - Duplicate detection
@@ -1349,6 +1468,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
 - Archive command
 
 ### [2.0.0] - V2 SQLite (Target: Month 2)
+
 - SQLite migration (automatic)
 - FTS5 full-text search
 - Indexed queries
@@ -1356,6 +1476,7 @@ Extended product vision beyond V1-V3 with strategic analysis of features that wo
 - Performance at scale (10K+ items)
 
 ### [3.0.0] - V3 Intelligence (Target: Month 6+)
+
 - Smart reminders
 - Context auto-refresh
 - Intelligent categorization

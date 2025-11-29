@@ -1,16 +1,17 @@
-# @anthropic-claude/later
+# @chude/later
 
 **MCP Server for Deferred Decision Management**
 
 Capture decisions with full context, revisit later without memory overhead. A production-ready Model Context Protocol (MCP) server following the MCP 2025-06 specification.
 
-[![npm version](https://badge.fury.io/js/@anthropic-claude%2Flater.svg)](https://www.npmjs.com/package/@anthropic-claude/later)
+[![npm version](https://badge.fury.io/js/@chude%2Flater.svg)](https://www.npmjs.com/package/@chude/later)
 [![CI](https://github.com/chudeemeke/later/actions/workflows/ci.yml/badge.svg)](https://github.com/chudeemeke/later/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## The Problem
 
 During complex work, you encounter decisions that:
+
 - Aren't urgent enough to do now
 - Require significant context to understand later
 - Get lost in conversation history
@@ -39,7 +40,7 @@ later_do 1
 ### npm (Global)
 
 ```bash
-npm install -g @anthropic-claude/later
+npm install -g @chude/later
 ```
 
 ### Claude Code Integration
@@ -51,7 +52,7 @@ Add to your Claude Code MCP configuration (`~/.claude/.mcp.json`):
   "mcpServers": {
     "later": {
       "command": "npx",
-      "args": ["@anthropic-claude/later"],
+      "args": ["@chude/later"],
       "env": {}
     }
   }
@@ -94,6 +95,7 @@ search_tools: "create a decision"
 ### Automatic PII Protection
 
 Sensitive data in context is automatically detected and tokenized:
+
 - API keys (OpenAI, Anthropic, GitHub, etc.)
 - Passwords and secrets
 - Social Security Numbers
@@ -106,18 +108,18 @@ Detection rate: 95%+ accuracy with zero false negatives on tested patterns.
 
 ### Available Tools
 
-| Tool | Description |
-|------|-------------|
-| `search_tools` | Discover tools based on what you want to do |
-| `later_capture` | Capture a decision with context |
-| `later_list` | List and filter deferred items |
-| `later_show` | Show full item details |
-| `later_do` | Mark item as in-progress, get todo guidance |
-| `later_update` | Update any item field |
-| `later_delete` | Soft or hard delete items |
-| `later_bulk_update` | Update multiple items at once |
-| `later_bulk_delete` | Delete multiple items at once |
-| `later_search` | Full-text search with relevance ranking |
+| Tool                | Description                                 |
+| ------------------- | ------------------------------------------- |
+| `search_tools`      | Discover tools based on what you want to do |
+| `later_capture`     | Capture a decision with context             |
+| `later_list`        | List and filter deferred items              |
+| `later_show`        | Show full item details                      |
+| `later_do`          | Mark item as in-progress, get todo guidance |
+| `later_update`      | Update any item field                       |
+| `later_delete`      | Soft or hard delete items                   |
+| `later_bulk_update` | Update multiple items at once               |
+| `later_bulk_delete` | Delete multiple items at once               |
+| `later_search`      | Full-text search with relevance ranking     |
 
 ### MCP 2025-06 Compliance
 
@@ -166,6 +168,7 @@ later search "authentication"
 ## Data Storage
 
 Items are stored in `~/.later/items.jsonl`:
+
 - JSONL format (one JSON object per line)
 - Atomic writes with file locking
 - Automatic corruption recovery
@@ -231,12 +234,12 @@ npm run watch
 
 ## Test Coverage
 
-- Statements: 95.91%
-- Branches: 90.26%
-- Functions: 97.76%
-- Lines: 95.95%
+- Statements: 98.31%
+- Branches: 95.06%
+- Functions: 98.88%
+- Lines: 98.46%
 
-All coverage metrics exceed industry standards (80-85% for branches).
+All coverage metrics exceed the 95% quality gate threshold.
 
 ## Architecture
 
