@@ -24,7 +24,7 @@ export interface GlobalFlags {
  * Flag schema definition
  */
 export interface FlagSchema {
-  type: 'string' | 'number' | 'boolean' | 'enum' | 'array';
+  type: "string" | "number" | "boolean" | "enum" | "array";
   description: string;
   short?: string; // Shorthand flag (e.g., 'c' for --context)
   values?: string[]; // For enum type
@@ -46,79 +46,150 @@ export interface CommandSchema {
  */
 export const commandSchemas: Record<string, CommandSchema> = {
   capture: {
-    description: 'Capture a deferred decision with context',
+    description: "Capture a deferred decision with context",
     requiredPositional: 1,
     flags: {
-      context: { type: 'string', description: 'Additional context or reasoning', short: 'c' },
-      priority: { type: 'enum', description: 'Priority level', short: 'p', values: ['low', 'medium', 'high'] },
-      tags: { type: 'array', description: 'Comma-separated tags', short: 't' },
-      high: { type: 'boolean', description: 'Shorthand for --priority high' },
+      context: {
+        type: "string",
+        description: "Additional context or reasoning",
+        short: "c",
+      },
+      priority: {
+        type: "enum",
+        description: "Priority level",
+        short: "p",
+        values: ["low", "medium", "high"],
+      },
+      tags: { type: "array", description: "Comma-separated tags", short: "t" },
+      high: { type: "boolean", description: "Shorthand for --priority high" },
     },
   },
   list: {
-    description: 'List deferred items with optional filtering',
+    description: "List deferred items with optional filtering",
     flags: {
-      status: { type: 'enum', description: 'Filter by status', short: 's', values: ['pending', 'in-progress', 'done', 'archived'] },
-      priority: { type: 'enum', description: 'Filter by priority', short: 'p', values: ['low', 'medium', 'high'] },
-      tags: { type: 'array', description: 'Filter by tags (OR logic)', short: 't' },
-      limit: { type: 'number', description: 'Maximum number of items', short: 'l' },
+      status: {
+        type: "enum",
+        description: "Filter by status",
+        short: "s",
+        values: ["pending", "in-progress", "done", "archived"],
+      },
+      priority: {
+        type: "enum",
+        description: "Filter by priority",
+        short: "p",
+        values: ["low", "medium", "high"],
+      },
+      tags: {
+        type: "array",
+        description: "Filter by tags (OR logic)",
+        short: "t",
+      },
+      limit: {
+        type: "number",
+        description: "Maximum number of items",
+        short: "l",
+      },
     },
   },
   show: {
-    description: 'Show full details of a specific item',
+    description: "Show full details of a specific item",
     requiredPositional: 1,
   },
   do: {
-    description: 'Mark item as in-progress and get todo guidance',
+    description: "Mark item as in-progress and get todo guidance",
     requiredPositional: 1,
   },
   update: {
-    description: 'Update an existing deferred item',
+    description: "Update an existing deferred item",
     requiredPositional: 1,
     flags: {
-      decision: { type: 'string', description: 'Updated decision text', short: 'd' },
-      context: { type: 'string', description: 'Updated context', short: 'c' },
-      priority: { type: 'enum', description: 'Updated priority', short: 'p', values: ['low', 'medium', 'high'] },
-      status: { type: 'enum', description: 'Updated status', short: 's', values: ['pending', 'in-progress', 'done', 'archived'] },
-      tags: { type: 'array', description: 'Replace tags', short: 't' },
-      'add-tags': { type: 'array', description: 'Add tags to existing' },
-      'remove-tags': { type: 'array', description: 'Remove tags from existing' },
-      deps: { type: 'array', description: 'Set dependencies (comma-separated IDs)' },
+      decision: {
+        type: "string",
+        description: "Updated decision text",
+        short: "d",
+      },
+      context: { type: "string", description: "Updated context", short: "c" },
+      priority: {
+        type: "enum",
+        description: "Updated priority",
+        short: "p",
+        values: ["low", "medium", "high"],
+      },
+      status: {
+        type: "enum",
+        description: "Updated status",
+        short: "s",
+        values: ["pending", "in-progress", "done", "archived"],
+      },
+      tags: { type: "array", description: "Replace tags", short: "t" },
+      "add-tags": { type: "array", description: "Add tags to existing" },
+      "remove-tags": {
+        type: "array",
+        description: "Remove tags from existing",
+      },
+      deps: {
+        type: "array",
+        description: "Set dependencies (comma-separated IDs)",
+      },
     },
   },
   delete: {
-    description: 'Delete a deferred item',
+    description: "Delete a deferred item",
     requiredPositional: 1,
     flags: {
-      hard: { type: 'boolean', description: 'Permanently delete (default: soft delete)' },
+      hard: {
+        type: "boolean",
+        description: "Permanently delete (default: soft delete)",
+      },
     },
   },
-  'bulk-update': {
-    description: 'Update multiple items at once',
+  "bulk-update": {
+    description: "Update multiple items at once",
     requiredPositional: 1,
     flags: {
-      decision: { type: 'string', description: 'Updated decision text for all' },
-      context: { type: 'string', description: 'Updated context for all' },
-      priority: { type: 'enum', description: 'Updated priority for all', values: ['low', 'medium', 'high'] },
-      status: { type: 'enum', description: 'Updated status for all', values: ['pending', 'in-progress', 'done', 'archived'] },
-      tags: { type: 'array', description: 'Replace tags for all' },
-      'add-tags': { type: 'array', description: 'Add tags to all' },
+      decision: {
+        type: "string",
+        description: "Updated decision text for all",
+      },
+      context: { type: "string", description: "Updated context for all" },
+      priority: {
+        type: "enum",
+        description: "Updated priority for all",
+        values: ["low", "medium", "high"],
+      },
+      status: {
+        type: "enum",
+        description: "Updated status for all",
+        values: ["pending", "in-progress", "done", "archived"],
+      },
+      tags: { type: "array", description: "Replace tags for all" },
+      "add-tags": { type: "array", description: "Add tags to all" },
     },
   },
-  'bulk-delete': {
-    description: 'Delete multiple items at once',
+  "bulk-delete": {
+    description: "Delete multiple items at once",
     requiredPositional: 1,
     flags: {
-      hard: { type: 'boolean', description: 'Permanently delete all (default: soft delete)' },
+      hard: {
+        type: "boolean",
+        description: "Permanently delete all (default: soft delete)",
+      },
     },
   },
   search: {
-    description: 'Full-text search across items with relevance scoring',
+    description: "Full-text search across items with relevance scoring",
     requiredPositional: 1,
     flags: {
-      fields: { type: 'array', description: 'Fields to search (decision,context,tags)' },
-      limit: { type: 'number', description: 'Maximum results', default: 10 },
-      'min-score': { type: 'number', description: 'Minimum relevance score', default: 0.01 },
+      fields: {
+        type: "array",
+        description: "Fields to search (decision,context,tags)",
+      },
+      limit: { type: "number", description: "Maximum results", default: 10 },
+      "min-score": {
+        type: "number",
+        description: "Minimum relevance score",
+        default: 0.01,
+      },
     },
   },
 };
@@ -142,22 +213,37 @@ export function parseArgs(argv: string[]): ParsedArgs {
       args: [],
       errors: ['No subcommand provided. Try: later capture "text"'],
       flags: {},
-      globalFlags: { help: false, version: false, json: false, debug: false, noColor: false },
+      globalFlags: {
+        help: false,
+        version: false,
+        json: false,
+        debug: false,
+        noColor: false,
+      },
     };
   }
 
   // Parse global flags first
   const globalFlags: GlobalFlags = {
-    help: argv.includes('--help') || argv.includes('-h'),
-    version: argv.includes('--version') || argv.includes('-v'),
-    json: argv.includes('--json'),
-    debug: argv.includes('--debug'),
-    noColor: argv.includes('--no-color'),
+    help: argv.includes("--help") || argv.includes("-h"),
+    version: argv.includes("--version") || argv.includes("-v"),
+    json: argv.includes("--json"),
+    debug: argv.includes("--debug"),
+    noColor: argv.includes("--no-color"),
   };
 
   // Filter out global flags to get command args
   const filteredArgv = argv.filter(
-    arg => !['--help', '-h', '--version', '-v', '--json', '--debug', '--no-color'].includes(arg)
+    (arg) =>
+      ![
+        "--help",
+        "-h",
+        "--version",
+        "-v",
+        "--json",
+        "--debug",
+        "--no-color",
+      ].includes(arg),
   );
 
   // If no arguments after filtering global flags
@@ -165,7 +251,10 @@ export function parseArgs(argv: string[]): ParsedArgs {
     return {
       subcommand: null,
       args: [],
-      errors: globalFlags.help || globalFlags.version ? [] : ['No subcommand provided. Try: later capture "text"'],
+      errors:
+        globalFlags.help || globalFlags.version
+          ? []
+          : ['No subcommand provided. Try: later capture "text"'],
       flags: {},
       globalFlags,
     };
@@ -178,19 +267,28 @@ export function parseArgs(argv: string[]): ParsedArgs {
   const validCommands = Object.keys(commandSchemas);
   if (!validCommands.includes(subcommand)) {
     errors.push(`Unknown subcommand: ${subcommand}`);
-    errors.push(`Valid commands: ${validCommands.join(', ')}`);
+    errors.push(`Valid commands: ${validCommands.join(", ")}`);
   }
 
   // Parse flags and positional args
   const remainingArgs = filteredArgv.slice(1);
-  const { positional, flags: parsedFlags, errors: parseErrors } = parseFlags(remainingArgs, subcommand);
+  const {
+    positional,
+    flags: parsedFlags,
+    errors: parseErrors,
+  } = parseFlags(remainingArgs, subcommand);
 
   errors.push(...parseErrors);
 
   // Validate against schema if command is valid
   if (validCommands.includes(subcommand)) {
     const schema = commandSchemas[subcommand];
-    const validationErrors = validateArgs(subcommand, positional, parsedFlags, schema);
+    const validationErrors = validateArgs(
+      subcommand,
+      positional,
+      parsedFlags,
+      schema,
+    );
     errors.push(...validationErrors);
   }
 
@@ -208,7 +306,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
  */
 function parseFlags(
   args: string[],
-  subcommand: string
+  subcommand: string,
 ): { positional: string[]; flags: Record<string, any>; errors: string[] } {
   const positional: string[] = [];
   const flags: Record<string, any> = {};
@@ -220,10 +318,11 @@ function parseFlags(
     const arg = args[i];
 
     // Check if it's a negative number (treat as positional, not flag)
-    const isNegativeNumber = arg.startsWith('-') && arg.length > 1 && /^-\d+(\.\d+)?$/.test(arg);
+    const isNegativeNumber =
+      arg.startsWith("-") && arg.length > 1 && /^-\d+(\.\d+)?$/.test(arg);
 
     // Check if it's a flag
-    if (arg.startsWith('--') && !isNegativeNumber) {
+    if (arg.startsWith("--") && !isNegativeNumber) {
       const flagName = arg.substring(2);
       const flagSchema = schema?.flags?.[flagName];
 
@@ -234,14 +333,14 @@ function parseFlags(
       }
 
       // Boolean flags don't need a value
-      if (flagSchema.type === 'boolean') {
+      if (flagSchema.type === "boolean") {
         flags[flagName] = true;
         i++;
         continue;
       }
 
       // Other flags need a value
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
+      if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
         errors.push(`Flag ${arg} requires a value`);
         i++;
         continue;
@@ -250,7 +349,7 @@ function parseFlags(
       const value = args[i + 1];
       flags[flagName] = coerceValue(value, flagSchema, flagName, errors);
       i += 2;
-    } else if (arg.startsWith('-') && arg.length === 2 && !isNegativeNumber) {
+    } else if (arg.startsWith("-") && arg.length === 2 && !isNegativeNumber) {
       // Short flag
       const shortFlag = arg[1];
       const flagName = findFlagByShort(shortFlag, schema);
@@ -263,16 +362,15 @@ function parseFlags(
 
       const flagSchema = schema!.flags![flagName];
 
-      // Boolean flags
-      /* istanbul ignore if - no current short flags are boolean type */
-      if (flagSchema.type === 'boolean') {
+      // Boolean flags (no current short flags are boolean type)
+      if (flagSchema.type === "boolean") {
         flags[flagName] = true;
         i++;
         continue;
       }
 
       // Other flags need a value
-      if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
+      if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
         errors.push(`Flag -${shortFlag} requires a value`);
         i++;
         continue;
@@ -309,9 +407,14 @@ function findFlagByShort(short: string, schema?: CommandSchema): string | null {
 /**
  * Coerce value to the correct type
  */
-function coerceValue(value: string, schema: FlagSchema, flagName: string, errors: string[]): any {
+function coerceValue(
+  value: string,
+  schema: FlagSchema,
+  flagName: string,
+  errors: string[],
+): any {
   switch (schema.type) {
-    case 'number': {
+    case "number": {
       const num = Number(value);
       if (isNaN(num)) {
         errors.push(`Flag --${flagName} expects a number, got: ${value}`);
@@ -320,20 +423,25 @@ function coerceValue(value: string, schema: FlagSchema, flagName: string, errors
       return num;
     }
 
-    case 'array': {
+    case "array": {
       // Split by comma and trim
-      return value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter((v) => v.length > 0);
     }
 
-    case 'enum': {
+    case "enum": {
       if (schema.values && !schema.values.includes(value)) {
-        errors.push(`Flag --${flagName} must be one of: ${schema.values.join(', ')}`);
+        errors.push(
+          `Flag --${flagName} must be one of: ${schema.values.join(", ")}`,
+        );
         return value;
       }
       return value;
     }
 
-    case 'string':
+    case "string":
     default:
       return value;
   }
@@ -346,14 +454,17 @@ function validateArgs(
   subcommand: string,
   positional: string[],
   flags: Record<string, any>,
-  schema: CommandSchema
+  schema: CommandSchema,
 ): string[] {
   const errors: string[] = [];
 
   // Check required positional arguments
-  if (schema.requiredPositional && positional.length < schema.requiredPositional) {
+  if (
+    schema.requiredPositional &&
+    positional.length < schema.requiredPositional
+  ) {
     errors.push(
-      `Command '${subcommand}' requires ${schema.requiredPositional} argument${schema.requiredPositional > 1 ? 's' : ''}, got ${positional.length}`
+      `Command '${subcommand}' requires ${schema.requiredPositional} argument${schema.requiredPositional > 1 ? "s" : ""}, got ${positional.length}`,
     );
   }
 
