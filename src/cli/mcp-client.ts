@@ -1,8 +1,8 @@
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import ora, { Ora } from 'ora';
-import * as path from 'path';
-import * as os from 'os';
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import ora, { Ora } from "ora";
+import * as path from "path";
+import * as os from "os";
 
 /**
  * MCP Client for communicating with the MCP server via stdio
@@ -33,11 +33,12 @@ export class McpClient {
     serverPath?: string,
     dataDir?: string,
     timeout: number = 5000,
-    showSpinner: boolean = true
+    showSpinner: boolean = true,
   ) {
     // Default to compiled MCP server in project root
-    this.serverPath = serverPath || path.join(process.cwd(), 'dist', 'index.js');
-    this.dataDir = dataDir || path.join(os.homedir(), '.later');
+    this.serverPath =
+      serverPath || path.join(process.cwd(), "dist", "index.js");
+    this.dataDir = dataDir || path.join(os.homedir(), ".later");
     this.timeout = timeout;
     // Disable spinner in CI environments or when explicitly disabled
     this.showSpinner = showSpinner && !process.env.CI && process.stdout.isTTY;
@@ -52,7 +53,7 @@ export class McpClient {
    */
   async callTool(toolName: string, args: any): Promise<any> {
     if (this.closed) {
-      throw new Error('MCP client has been closed');
+      throw new Error("MCP client has been closed");
     }
 
     let spinner: Ora | null = null;
@@ -63,29 +64,30 @@ export class McpClient {
         const operationName = this.getOperationName(toolName);
         spinner = ora({
           text: operationName,
-          color: 'cyan',
+          color: "cyan",
         }).start();
       }
 
       // Create transport
       this.transport = new StdioClientTransport({
-        command: 'node',
+        command: "node",
         args: [this.serverPath],
         env: {
           ...process.env,
           HOME: path.dirname(this.dataDir), // Set HOME so MCP server uses correct data dir
+          LATER_LOG_LEVEL: "silent", // Suppress server logs in CLI mode
         },
       });
 
       // Create client
       this.client = new Client(
         {
-          name: 'later-cli',
-          version: '1.0.0',
+          name: "later-cli",
+          version: "1.0.0",
         },
         {
           capabilities: {},
-        }
+        },
       );
 
       // Set timeout for the operation
@@ -109,13 +111,15 @@ export class McpClient {
         // Check if result itself indicates error (check BEFORE parsing)
         if ((result as any).isError) {
           const content = (result as any).content;
-          throw new Error(content?.[0]?.text || 'Tool execution failed');
+          throw new Error(content?.[0]?.text || "Tool execution failed");
         }
 
         // Parse result
         // MCP returns result with content array containing text responses
         if (result.content && Array.isArray(result.content)) {
-          const textContent = result.content.find((c: any) => c.type === 'text');
+          const textContent = result.content.find(
+            (c: any) => c.type === "text",
+          );
           if (textContent && textContent.text) {
             // Try to parse JSON from text content
             try {
@@ -168,17 +172,17 @@ export class McpClient {
    */
   private getOperationName(toolName: string): string {
     const operations: Record<string, string> = {
-      later_capture: 'Capturing decision...',
-      later_list: 'Loading items...',
-      later_show: 'Fetching item...',
-      later_update: 'Updating item...',
-      later_delete: 'Deleting item...',
-      later_do: 'Marking as in-progress...',
-      later_search: 'Searching...',
-      later_bulk_update: 'Updating multiple items...',
-      later_bulk_delete: 'Deleting multiple items...',
+      later_capture: "Capturing decision...",
+      later_list: "Loading items...",
+      later_show: "Fetching item...",
+      later_update: "Updating item...",
+      later_delete: "Deleting item...",
+      later_do: "Marking as in-progress...",
+      later_search: "Searching...",
+      later_bulk_update: "Updating multiple items...",
+      later_bulk_delete: "Deleting multiple items...",
     };
-    return operations[toolName] || 'Processing...';
+    return operations[toolName] || "Processing...";
   }
 
   /**
@@ -191,15 +195,15 @@ export class McpClient {
       const originalShowSpinner = this.showSpinner;
       this.showSpinner = false;
 
-      const _result = await this.callTool('later_list', { limit: 1 });
+      const _result = await this.callTool("later_list", { limit: 1 });
 
       this.showSpinner = originalShowSpinner;
 
       // Version is embedded in server metadata, but for now we'll use package.json
       // This is a lightweight check to ensure server is responding
-      return '1.0.0'; // Server version matches package.json
+      return "1.0.0"; // Server version matches package.json
     } catch (error) {
-      throw new Error('Unable to connect to MCP server');
+      throw new Error("Unable to connect to MCP server");
     }
   }
 
@@ -208,10 +212,13 @@ export class McpClient {
    * @param cliVersion - CLI version string
    * @returns true if compatible, false otherwise
    */
-  static isVersionCompatible(cliVersion: string, serverVersion: string): boolean {
+  static isVersionCompatible(
+    cliVersion: string,
+    serverVersion: string,
+  ): boolean {
     // For now, require exact major version match
-    const cliMajor = cliVersion.split('.')[0];
-    const serverMajor = serverVersion.split('.')[0];
+    const cliMajor = cliVersion.split(".")[0];
+    const serverMajor = serverVersion.split(".")[0];
     return cliMajor === serverMajor;
   }
 
