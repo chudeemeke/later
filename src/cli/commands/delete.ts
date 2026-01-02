@@ -1,7 +1,8 @@
-import { McpClient } from '../mcp-client.js';
-import { formatError } from '../output/formatter.js';
-import { UserError } from '../errors.js';
-import { ParsedArgs } from '../parser.js';
+import { McpClient } from "../mcp-client.js";
+import { formatError } from "../output/formatter.js";
+import { UserError } from "../errors.js";
+import { ParsedArgs } from "../parser.js";
+import { OutputWriter } from "../output/writer.js";
 
 /**
  * Handle the delete command
@@ -10,15 +11,20 @@ import { ParsedArgs } from '../parser.js';
  *
  * @param parsed - Parsed arguments with flags
  * @param client - MCP client instance
+ * @param output - Output writer for testable output
  * @returns Exit code (0 = success, 1 = error)
  */
-export async function handleDelete(parsed: ParsedArgs, client: McpClient): Promise<number> {
+export async function handleDelete(
+  parsed: ParsedArgs,
+  client: McpClient,
+  output: OutputWriter,
+): Promise<number> {
   try {
     // Validate arguments
     if (parsed.args.length === 0) {
       throw new UserError(
-        'Item ID is required',
-        'Provide the ID of the item you want to delete'
+        "Item ID is required",
+        "Provide the ID of the item you want to delete",
       );
     }
 
@@ -27,7 +33,7 @@ export async function handleDelete(parsed: ParsedArgs, client: McpClient): Promi
     if (isNaN(id)) {
       throw new UserError(
         `Invalid ID: ${parsed.args[0]}`,
-        'ID must be a number'
+        "ID must be a number",
       );
     }
 
@@ -35,17 +41,17 @@ export async function handleDelete(parsed: ParsedArgs, client: McpClient): Promi
     const hard = parsed.flags?.hard === true;
 
     // Call MCP server
-    const result = await client.callTool('later_delete', { id, hard });
+    const result = await client.callTool("later_delete", { id, hard });
 
     // Display result
     if (result.success) {
-      console.log(result.message);
+      output.writeLine(result.message);
 
       // Show warnings if any
       if (result.warnings && result.warnings.length > 0) {
-        console.log('');
+        output.newLine();
         result.warnings.forEach((warning: string) => {
-          console.log(`⚠️  ${warning}`);
+          output.writeLine(`Warning: ${warning}`);
         });
       }
 
@@ -53,7 +59,7 @@ export async function handleDelete(parsed: ParsedArgs, client: McpClient): Promi
     } else {
       throw new UserError(
         result.error || `Failed to delete item #${id}`,
-        'Check that the item exists with: later show <id>'
+        "Check that the item exists with: later show <id>",
       );
     }
   } catch (error) {
@@ -61,8 +67,9 @@ export async function handleDelete(parsed: ParsedArgs, client: McpClient): Promi
       throw error; // Re-throw for CLI error handler
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(formatError(errorMessage));
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    output.errorLine(formatError(errorMessage));
     return 1;
   }
 }

@@ -1,7 +1,8 @@
-import { McpClient } from '../mcp-client.js';
-import { formatError } from '../output/formatter.js';
-import { UserError } from '../errors.js';
-import { ParsedArgs } from '../parser.js';
+import { McpClient } from "../mcp-client.js";
+import { formatError } from "../output/formatter.js";
+import { UserError } from "../errors.js";
+import { ParsedArgs } from "../parser.js";
+import { OutputWriter } from "../output/writer.js";
 
 /**
  * Handle the update command
@@ -10,15 +11,20 @@ import { ParsedArgs } from '../parser.js';
  *
  * @param parsed - Parsed arguments with flags
  * @param client - MCP client instance
+ * @param output - Output writer for testable output
  * @returns Exit code (0 = success, 1 = error)
  */
-export async function handleUpdate(parsed: ParsedArgs, client: McpClient): Promise<number> {
+export async function handleUpdate(
+  parsed: ParsedArgs,
+  client: McpClient,
+  output: OutputWriter,
+): Promise<number> {
   try {
     // Validate arguments
     if (parsed.args.length === 0) {
       throw new UserError(
-        'Item ID is required',
-        'Provide the ID of the item you want to update'
+        "Item ID is required",
+        "Provide the ID of the item you want to update",
       );
     }
 
@@ -27,12 +33,12 @@ export async function handleUpdate(parsed: ParsedArgs, client: McpClient): Promi
     if (isNaN(id)) {
       throw new UserError(
         `Invalid ID: ${parsed.args[0]}`,
-        'ID must be a number'
+        "ID must be a number",
       );
     }
 
     // Build update request from flags
-    const updateArgs: any = { id };
+    const updateArgs: Record<string, unknown> = { id };
 
     if (parsed.flags) {
       // Direct mappings
@@ -43,21 +49,25 @@ export async function handleUpdate(parsed: ParsedArgs, client: McpClient): Promi
 
       // Tag operations
       if (parsed.flags.tags) updateArgs.tags = parsed.flags.tags;
-      if (parsed.flags['add-tags']) updateArgs.add_tags = parsed.flags['add-tags'];
-      if (parsed.flags['remove-tags']) updateArgs.remove_tags = parsed.flags['remove-tags'];
+      if (parsed.flags["add-tags"])
+        updateArgs.add_tags = parsed.flags["add-tags"];
+      if (parsed.flags["remove-tags"])
+        updateArgs.remove_tags = parsed.flags["remove-tags"];
 
       // Dependencies (array of numbers)
       if (parsed.flags.deps) {
-        updateArgs.dependencies = parsed.flags.deps.map((dep: string) => {
-          const num = parseInt(dep, 10);
-          if (isNaN(num)) {
-            throw new UserError(
-              `Invalid dependency ID: ${dep}`,
-              'All dependency IDs must be numbers'
-            );
-          }
-          return num;
-        });
+        updateArgs.dependencies = (parsed.flags.deps as string[]).map(
+          (dep: string) => {
+            const num = parseInt(dep, 10);
+            if (isNaN(num)) {
+              throw new UserError(
+                `Invalid dependency ID: ${dep}`,
+                "All dependency IDs must be numbers",
+              );
+            }
+            return num;
+          },
+        );
       }
     }
 
@@ -65,23 +75,23 @@ export async function handleUpdate(parsed: ParsedArgs, client: McpClient): Promi
     const hasUpdates = Object.keys(updateArgs).length > 1; // > 1 because id is always present
     if (!hasUpdates) {
       throw new UserError(
-        'No update fields provided',
-        'Specify at least one field to update (e.g., --priority, --status, --decision)'
+        "No update fields provided",
+        "Specify at least one field to update (e.g., --priority, --status, --decision)",
       );
     }
 
     // Call MCP server
-    const result = await client.callTool('later_update', updateArgs);
+    const result = await client.callTool("later_update", updateArgs);
 
     // Display result
     if (result.success) {
-      console.log(result.message);
+      output.writeLine(result.message);
 
       // Show warnings if any
       if (result.warnings && result.warnings.length > 0) {
-        console.log('');
+        output.newLine();
         result.warnings.forEach((warning: string) => {
-          console.log(`⚠️  ${warning}`);
+          output.writeLine(`Warning: ${warning}`);
         });
       }
 
@@ -89,7 +99,7 @@ export async function handleUpdate(parsed: ParsedArgs, client: McpClient): Promi
     } else {
       throw new UserError(
         result.error || `Failed to update item #${id}`,
-        'Check that the item exists and the update values are valid'
+        "Check that the item exists and the update values are valid",
       );
     }
   } catch (error) {
@@ -97,8 +107,9 @@ export async function handleUpdate(parsed: ParsedArgs, client: McpClient): Promi
       throw error; // Re-throw for CLI error handler
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(formatError(errorMessage));
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    output.errorLine(formatError(errorMessage));
     return 1;
   }
 }

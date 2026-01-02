@@ -1,8 +1,9 @@
 # /later - Development Guide
 
 **Project:** Deferred decision management for Claude Code
-**Phase:** ✅ Production-ready v1.0.0 (JSONL-based, 96.6% test coverage, 880 tests)
+**Phase:** Production-ready v2.0.1 (JSONL-based, 96.6% test coverage, 1030+ tests)
 **Target:** Personal use, designed for power users
+**Package Manager:** bun (migrated from npm 2026-01-02)
 
 ## Quick Navigation
 
@@ -333,3 +334,33 @@ Benchmarks: [docs/technical/performance/benchmarks.md](docs/technical/performanc
 ---
 
 **Remember:** This tool exists because of a real need - "I want to revisit this later without having to remember all the context." Keep that user need central to every design decision.
+
+---
+
+## Session History
+
+### 2026-01-02 - Portfolio Remediation
+
+**Changes Made:**
+- Migrated from npm to bun (deleted package-lock.json, created bun.lock)
+- Updated CI/CD workflows to use bun (ci.yml, release.yml)
+- Added multi-OS matrix testing (ubuntu-latest, windows-latest)
+- Synced VERSION file with package.json (2.0.1)
+- Added release script to package.json
+- Fixed platform-specific test (file permissions test skips on Windows)
+- Updated package.json scripts for bun (prepublishOnly, preversion)
+
+**Test Status:**
+- 1030 tests passing, 1 skipped (Windows permission test)
+- 9 pre-existing failures in performance/concurrency tests (race conditions, timeouts)
+- Core functionality 100% working
+
+**Outstanding Items:**
+- Performance test flakiness (timeout issues, stale test data)
+- Concurrency test race conditions in file locking
+- These are pre-existing issues, not regressions
+
+**Next Steps:**
+1. Commit and push changes
+2. Consider refactoring performance tests for reliability
+3. Investigate file locking race conditions

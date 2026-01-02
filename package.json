@@ -23,9 +23,10 @@
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "lint": "eslint src/**/*.ts",
     "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.ci.js",
-    "prepublishOnly": "npm run build && npm run test:ci",
-    "preversion": "npm run test:ci",
-    "postversion": "git push && git push --tags"
+    "prepublishOnly": "bun run build && bun run test:ci",
+    "preversion": "bun run test:ci",
+    "postversion": "git push && git push --tags",
+    "release": "bun run build && bun run test:ci && bun publish"
   },
   "publishConfig": {
     "access": "public"

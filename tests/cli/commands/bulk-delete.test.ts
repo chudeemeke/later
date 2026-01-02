@@ -1,35 +1,45 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { handleBulkDelete } from '../../../src/cli/commands/bulk-delete.js';
-import { McpClient } from '../../../src/cli/mcp-client.js';
-import { ParsedArgs } from '../../../src/cli/parser.js';
+import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import { handleBulkDelete } from "../../../src/cli/commands/bulk-delete.js";
+import { McpClient } from "../../../src/cli/mcp-client.js";
+import { ParsedArgs } from "../../../src/cli/parser.js";
+import {
+  createMockOutputWriter,
+  MockOutputWriter,
+} from "../../../src/cli/output/writer.js";
 
-const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
-const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-function createParsedArgs(args: string[], flags: Record<string, any> = {}): ParsedArgs {
+function createParsedArgs(
+  args: string[],
+  flags: Record<string, unknown> = {},
+): ParsedArgs {
   return {
-    subcommand: 'bulk-delete',
+    subcommand: "bulk-delete",
     args,
     errors: [],
     flags,
-    globalFlags: { help: false, version: false, json: false, debug: false, noColor: false },
+    globalFlags: {
+      help: false,
+      version: false,
+      json: false,
+      debug: false,
+      noColor: false,
+    },
   };
 }
 
-describe('bulk-delete command handler', () => {
+describe("bulk-delete command handler", () => {
   let mockClient: jest.Mocked<McpClient>;
+  let mockOutput: MockOutputWriter;
 
   beforeEach(() => {
-    mockConsoleLog.mockClear();
-    mockConsoleError.mockClear();
+    mockOutput = createMockOutputWriter();
 
     mockClient = {
       callTool: jest.fn(),
       close: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<McpClient>;
   });
 
-  it('should soft delete multiple items by default', async () => {
+  it("should soft delete multiple items by default", async () => {
     mockClient.callTool.mockResolvedValue({
       success: true,
       total: 3,
@@ -39,17 +49,17 @@ describe('bulk-delete command handler', () => {
       failed: [],
     });
 
-    const parsed = createParsedArgs(['1,2,3']);
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const parsed = createParsedArgs(["1,2,3"]);
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
-    expect(mockClient.callTool).toHaveBeenCalledWith('later_bulk_delete', {
+    expect(mockClient.callTool).toHaveBeenCalledWith("later_bulk_delete", {
       ids: [1, 2, 3],
       hard: false,
     });
     expect(exitCode).toBe(0);
   });
 
-  it('should hard delete when --hard flag provided', async () => {
+  it("should hard delete when --hard flag provided", async () => {
     mockClient.callTool.mockResolvedValue({
       success: true,
       total: 2,
@@ -59,33 +69,33 @@ describe('bulk-delete command handler', () => {
       failed: [],
     });
 
-    const parsed = createParsedArgs(['5,6'], { hard: true });
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const parsed = createParsedArgs(["5,6"], { hard: true });
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
-    expect(mockClient.callTool).toHaveBeenCalledWith('later_bulk_delete', {
+    expect(mockClient.callTool).toHaveBeenCalledWith("later_bulk_delete", {
       ids: [5, 6],
       hard: true,
     });
     expect(exitCode).toBe(0);
   });
 
-  it('should handle partial success', async () => {
+  it("should handle partial success", async () => {
     mockClient.callTool.mockResolvedValue({
       success: true,
       total: 3,
       succeeded: 2,
       failedCount: 1,
       processed: [1, 2],
-      failed: [{ id: 3, error: 'Not found' }],
+      failed: [{ id: 3, error: "Not found" }],
     });
 
-    const parsed = createParsedArgs(['1,2,3']);
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const parsed = createParsedArgs(["1,2,3"]);
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
     expect(exitCode).toBe(1); // Non-zero because some failed
   });
 
-  it('should handle all failures', async () => {
+  it("should handle all failures", async () => {
     mockClient.callTool.mockResolvedValue({
       success: false,
       total: 2,
@@ -93,35 +103,35 @@ describe('bulk-delete command handler', () => {
       failedCount: 2,
       processed: [],
       failed: [
-        { id: 1, error: 'Not found' },
-        { id: 2, error: 'Not found' },
+        { id: 1, error: "Not found" },
+        { id: 2, error: "Not found" },
       ],
     });
 
-    const parsed = createParsedArgs(['1,2']);
+    const parsed = createParsedArgs(["1,2"]);
 
     await expect(async () => {
-      await handleBulkDelete(parsed, mockClient);
+      await handleBulkDelete(parsed, mockClient, mockOutput);
     }).rejects.toThrow();
   });
 
-  it('should throw error when no IDs provided', async () => {
+  it("should throw error when no IDs provided", async () => {
     const parsed = createParsedArgs([]);
 
     await expect(async () => {
-      await handleBulkDelete(parsed, mockClient);
-    }).rejects.toThrow('Item IDs are required');
+      await handleBulkDelete(parsed, mockClient, mockOutput);
+    }).rejects.toThrow("Item IDs are required");
   });
 
-  it('should throw error for invalid ID in list', async () => {
-    const parsed = createParsedArgs(['1,abc,3']);
+  it("should throw error for invalid ID in list", async () => {
+    const parsed = createParsedArgs(["1,abc,3"]);
 
     await expect(async () => {
-      await handleBulkDelete(parsed, mockClient);
-    }).rejects.toThrow('Invalid ID');
+      await handleBulkDelete(parsed, mockClient, mockOutput);
+    }).rejects.toThrow("Invalid ID");
   });
 
-  it('should handle spaces in ID list', async () => {
+  it("should handle spaces in ID list", async () => {
     mockClient.callTool.mockResolvedValue({
       success: true,
       total: 3,
@@ -131,17 +141,17 @@ describe('bulk-delete command handler', () => {
       failed: [],
     });
 
-    const parsed = createParsedArgs(['1, 2, 3']);
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const parsed = createParsedArgs(["1, 2, 3"]);
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
-    expect(mockClient.callTool).toHaveBeenCalledWith('later_bulk_delete', {
+    expect(mockClient.callTool).toHaveBeenCalledWith("later_bulk_delete", {
       ids: [1, 2, 3],
       hard: false,
     });
     expect(exitCode).toBe(0);
   });
 
-  it('should handle single item deletion', async () => {
+  it("should handle single item deletion", async () => {
     mockClient.callTool.mockResolvedValue({
       success: true,
       total: 1,
@@ -151,17 +161,17 @@ describe('bulk-delete command handler', () => {
       failed: [],
     });
 
-    const parsed = createParsedArgs(['10']);
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const parsed = createParsedArgs(["10"]);
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
-    expect(mockClient.callTool).toHaveBeenCalledWith('later_bulk_delete', {
+    expect(mockClient.callTool).toHaveBeenCalledWith("later_bulk_delete", {
       ids: [10],
       hard: false,
     });
     expect(exitCode).toBe(0);
   });
 
-  it('should handle large batch of IDs', async () => {
+  it("should handle large batch of IDs", async () => {
     const ids = Array.from({ length: 20 }, (_, i) => i + 1);
     mockClient.callTool.mockResolvedValue({
       success: true,
@@ -172,27 +182,27 @@ describe('bulk-delete command handler', () => {
       failed: [],
     });
 
-    const parsed = createParsedArgs([ids.join(',')]);
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const parsed = createParsedArgs([ids.join(",")]);
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
-    expect(mockClient.callTool).toHaveBeenCalledWith('later_bulk_delete', {
+    expect(mockClient.callTool).toHaveBeenCalledWith("later_bulk_delete", {
       ids,
       hard: false,
     });
     expect(exitCode).toBe(0);
   });
 
-  it('should handle exceptions', async () => {
-    mockClient.callTool.mockRejectedValue(new Error('Network error'));
+  it("should handle exceptions", async () => {
+    mockClient.callTool.mockRejectedValue(new Error("Network error"));
 
-    const parsed = createParsedArgs(['1,2']);
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const parsed = createParsedArgs(["1,2"]);
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
-    expect(mockConsoleError).toHaveBeenCalled();
+    expect(mockOutput.getErrors()).toContain("Network error");
     expect(exitCode).toBe(1);
   });
 
-  it('should handle JSON output mode', async () => {
+  it("should handle JSON output mode", async () => {
     mockClient.callTool.mockResolvedValue({
       success: true,
       total: 2,
@@ -202,29 +212,29 @@ describe('bulk-delete command handler', () => {
       failed: [],
     });
 
-    const parsed = createParsedArgs(['1,2']);
+    const parsed = createParsedArgs(["1,2"]);
     parsed.globalFlags = { ...parsed.globalFlags!, json: true };
 
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
     expect(exitCode).toBe(0);
-    expect(mockConsoleLog).toHaveBeenCalled();
+    expect(mockOutput.getOutput()).not.toBe("");
   });
 
-  it('should display detailed results', async () => {
+  it("should display detailed results", async () => {
     mockClient.callTool.mockResolvedValue({
       success: true,
       total: 4,
       succeeded: 3,
       failedCount: 1,
       processed: [1, 2, 3],
-      failed: [{ id: 4, error: 'Item has dependencies' }],
+      failed: [{ id: 4, error: "Item has dependencies" }],
     });
 
-    const parsed = createParsedArgs(['1,2,3,4']);
-    const exitCode = await handleBulkDelete(parsed, mockClient);
+    const parsed = createParsedArgs(["1,2,3,4"]);
+    const exitCode = await handleBulkDelete(parsed, mockClient, mockOutput);
 
-    expect(mockConsoleLog).toHaveBeenCalled();
+    expect(mockOutput.getOutput()).not.toBe("");
     expect(exitCode).toBe(1); // Should return 1 because some failed
   });
 });

@@ -292,25 +292,30 @@ describe("JSONLStorage", () => {
       expect(items.map((i) => i.id)).toEqual([1, 3, 5]);
     });
 
-    test("maintains file permissions after delete", async () => {
-      const item: DeferredItem = {
-        id: 1,
-        decision: "Test",
-        context: "",
-        status: "pending",
-        tags: [],
-        priority: "medium",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+    // Skip on Windows - Unix file permissions not supported
+    const isWindows = process.platform === "win32";
+    (isWindows ? test.skip : test)(
+      "maintains file permissions after delete",
+      async () => {
+        const item: DeferredItem = {
+          id: 1,
+          decision: "Test",
+          context: "",
+          status: "pending",
+          tags: [],
+          priority: "medium",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
 
-      await storage.append(item);
-      await storage.delete(1);
+        await storage.append(item);
+        await storage.delete(1);
 
-      const stats = await fs.stat(TEST_FILE);
-      const mode = stats.mode & 0o777;
-      expect(mode).toBe(0o600); // rw-------
-    });
+        const stats = await fs.stat(TEST_FILE);
+        const mode = stats.mode & 0o777;
+        expect(mode).toBe(0o600); // rw-------
+      }
+    );
 
     test("handles concurrent deletes safely", async () => {
       // Create 20 items

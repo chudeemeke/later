@@ -11,6 +11,7 @@ import { handleBulkDelete } from "./commands/bulk-delete.js";
 import { handleSearch } from "./commands/search.js";
 import { formatError } from "./output/formatter.js";
 import { ColorSupport } from "./output/table-formatter.js";
+import { createOutputWriter, OutputWriter } from "./output/writer.js";
 import { HelpGenerator } from "./help.js";
 import { ErrorFormatter, CliError } from "./errors.js";
 import * as fs from "fs";
@@ -182,51 +183,57 @@ export class CLI {
     const showSpinner =
       !parsed.globalFlags?.json && !parsed.globalFlags?.noColor;
 
+    // Create output writer for DI pattern (enables testing without console pollution)
+    const output: OutputWriter = createOutputWriter(
+      this.deps.stdout,
+      this.deps.stderr,
+    );
+
     // Route to appropriate command handler
     switch (parsed.subcommand) {
       case "capture": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleCapture(parsed, client);
+        return await handleCapture(parsed, client, output);
       }
 
       case "list": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleList(parsed, client);
+        return await handleList(parsed, client, output);
       }
 
       case "show": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleShow(parsed, client);
+        return await handleShow(parsed, client, output);
       }
 
       case "do": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleDo(parsed.args, client);
+        return await handleDo(parsed.args, client, output);
       }
 
       case "update": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleUpdate(parsed, client);
+        return await handleUpdate(parsed, client, output);
       }
 
       case "delete": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleDelete(parsed, client);
+        return await handleDelete(parsed, client, output);
       }
 
       case "bulk-update": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleBulkUpdate(parsed, client);
+        return await handleBulkUpdate(parsed, client, output);
       }
 
       case "bulk-delete": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleBulkDelete(parsed, client);
+        return await handleBulkDelete(parsed, client, output);
       }
 
       case "search": {
         const client = this.deps.createMcpClient(undefined, 5000, showSpinner);
-        return await handleSearch(parsed, client);
+        return await handleSearch(parsed, client, output);
       }
 
       // Defensive: parser validates commands first, but handle gracefully if reached

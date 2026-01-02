@@ -55,15 +55,15 @@ tmp/
 temp/
 .cache/
 
-# Lock files
-*.lock
+# Lock files (internal state)
 .migration-declined
 .using-sqlite
 .last-stale-check
 
-# Node/NPM (if adding npm scripts)
+# Node/NPM
 node_modules/
 package-lock.json
+# Note: bun.lock is tracked (not ignored)
 
 # Python (if adding Python tools)
 __pycache__/

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(git checkout:*)",
+      "Bash(cat:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm test)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "mcp__later__later_capture",
+      "mcp__later__later_list",
+      "mcp__later__later_show",
+      "mcp__later__later_do",
+      "Bash(node --version:*)",
+      "Bash(npx:*)",
+      "Bash(sudo ls:*)",
+      "Bash(sudo mkdir:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "later"
+  ]
+}

@@ -1,7 +1,8 @@
-import { McpClient } from '../mcp-client.js';
-import { formatSuccess, formatError } from '../output/formatter.js';
-import { UserError } from '../errors.js';
-import { ParsedArgs } from '../parser.js';
+import { McpClient } from "../mcp-client.js";
+import { formatSuccess, formatError } from "../output/formatter.js";
+import { UserError } from "../errors.js";
+import { ParsedArgs } from "../parser.js";
+import { OutputWriter } from "../output/writer.js";
 
 /**
  * Handle the capture command
@@ -10,15 +11,20 @@ import { ParsedArgs } from '../parser.js';
  *
  * @param parsed - Parsed arguments with flags
  * @param client - MCP client instance
+ * @param output - Output writer for testable output
  * @returns Exit code (0 = success, 1 = error)
  */
-export async function handleCapture(parsed: ParsedArgs, client: McpClient): Promise<number> {
+export async function handleCapture(
+  parsed: ParsedArgs,
+  client: McpClient,
+  output: OutputWriter,
+): Promise<number> {
   try {
     // Validate arguments
     if (parsed.args.length === 0) {
       throw new UserError(
-        'Decision text is required',
-        'Provide the decision you want to defer'
+        "Decision text is required",
+        "Provide the decision you want to defer",
       );
     }
 
@@ -26,7 +32,7 @@ export async function handleCapture(parsed: ParsedArgs, client: McpClient): Prom
     const decision = parsed.args[0];
 
     // Build capture request from flags
-    const captureArgs: any = { decision };
+    const captureArgs: Record<string, unknown> = { decision };
 
     if (parsed.flags) {
       if (parsed.flags.context) captureArgs.context = parsed.flags.context;
@@ -34,31 +40,31 @@ export async function handleCapture(parsed: ParsedArgs, client: McpClient): Prom
 
       // Priority handling: --priority <value> OR --high (shorthand)
       if (parsed.flags.high) {
-        captureArgs.priority = 'high';
+        captureArgs.priority = "high";
       } else if (parsed.flags.priority) {
         captureArgs.priority = parsed.flags.priority;
       }
     }
 
     // Call MCP server
-    const result = await client.callTool('later_capture', captureArgs);
+    const result = await client.callTool("later_capture", captureArgs);
 
     // Display result
     if (result.success) {
-      console.log(formatSuccess(result.message));
+      output.writeLine(formatSuccess(result.message));
 
       // Show warnings if any
       if (result.warnings && result.warnings.length > 0) {
         result.warnings.forEach((warning: string) => {
-          console.log(warning);
+          output.writeLine(warning);
         });
       }
 
       return 0;
     } else {
       throw new UserError(
-        result.error || 'Capture failed',
-        'Check that your decision text is valid (max 500 chars)'
+        result.error || "Capture failed",
+        "Check that your decision text is valid (max 500 chars)",
       );
     }
   } catch (error) {
@@ -66,8 +72,9 @@ export async function handleCapture(parsed: ParsedArgs, client: McpClient): Prom
       throw error; // Re-throw for CLI error handler
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(formatError(errorMessage));
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    output.errorLine(formatError(errorMessage));
     return 1;
   }
 }

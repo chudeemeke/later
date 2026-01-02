@@ -1,6 +1,7 @@
-import { McpClient } from '../mcp-client.js';
-import { formatItem, formatError } from '../output/formatter.js';
-import { UserError } from '../errors.js';
+import { McpClient } from "../mcp-client.js";
+import { formatError } from "../output/formatter.js";
+import { UserError } from "../errors.js";
+import { OutputWriter } from "../output/writer.js";
 
 /**
  * Handle the do command
@@ -9,51 +10,53 @@ import { UserError } from '../errors.js';
  *
  * @param args - Command arguments from parser
  * @param client - MCP client instance
+ * @param output - Output writer for testable output
  * @returns Exit code (0 = success, 1 = error)
  */
-export async function handleDo(args: string[], client: McpClient): Promise<number> {
+export async function handleDo(
+  args: string[],
+  client: McpClient,
+  output: OutputWriter,
+): Promise<number> {
   try {
     // Validate arguments
     if (args.length === 0) {
       throw new UserError(
-        'Item ID is required',
-        'Provide the ID of the item you want to start working on'
+        "Item ID is required",
+        "Provide the ID of the item you want to start working on",
       );
     }
 
     // Parse ID
     const id = parseInt(args[0], 10);
     if (isNaN(id)) {
-      throw new UserError(
-        `Invalid ID: ${args[0]}`,
-        'ID must be a number'
-      );
+      throw new UserError(`Invalid ID: ${args[0]}`, "ID must be a number");
     }
 
     // Call MCP server
-    const result = await client.callTool('later_do', { id });
+    const result = await client.callTool("later_do", { id });
 
     // Display result
     if (result.success) {
-      console.log(result.message);
+      output.writeLine(result.message);
 
       // Show todo guidance if available
       if (result.todo_guidance) {
-        console.log('');
-        console.log(result.todo_guidance);
+        output.newLine();
+        output.writeLine(result.todo_guidance);
       }
 
       // Show warnings if any
       if (result.warnings) {
-        console.log('');
-        console.log(result.warnings);
+        output.newLine();
+        output.writeLine(result.warnings);
       }
 
       return 0;
     } else {
       throw new UserError(
         result.error || `Item #${id} not found`,
-        'Check that the item ID exists with: later list'
+        "Check that the item ID exists with: later list",
       );
     }
   } catch (error) {
@@ -61,8 +64,9 @@ export async function handleDo(args: string[], client: McpClient): Promise<numbe
       throw error; // Re-throw for CLI error handler
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(formatError(errorMessage));
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    output.errorLine(formatError(errorMessage));
     return 1;
   }
 }

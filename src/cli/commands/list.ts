@@ -1,9 +1,10 @@
-import { McpClient } from '../mcp-client.js';
-import { formatList, formatError } from '../output/formatter.js';
-import { TableFormatter } from '../output/table-formatter.js';
-import { JsonFormatter } from '../output/json-formatter.js';
-import { UserError } from '../errors.js';
-import { ParsedArgs } from '../parser.js';
+import { McpClient } from "../mcp-client.js";
+import { formatError } from "../output/formatter.js";
+import { TableFormatter } from "../output/table-formatter.js";
+import { JsonFormatter } from "../output/json-formatter.js";
+import { UserError } from "../errors.js";
+import { ParsedArgs } from "../parser.js";
+import { OutputWriter } from "../output/writer.js";
 
 /**
  * Handle the list command
@@ -12,12 +13,17 @@ import { ParsedArgs } from '../parser.js';
  *
  * @param parsed - Parsed arguments with flags
  * @param client - MCP client instance
+ * @param output - Output writer for testable output
  * @returns Exit code (0 = success, 1 = error)
  */
-export async function handleList(parsed: ParsedArgs, client: McpClient): Promise<number> {
+export async function handleList(
+  parsed: ParsedArgs,
+  client: McpClient,
+  output: OutputWriter,
+): Promise<number> {
   try {
     // Build list request from flags
-    const listArgs: any = {};
+    const listArgs: Record<string, unknown> = {};
 
     if (parsed.flags) {
       if (parsed.flags.status) listArgs.status = parsed.flags.status;
@@ -27,22 +33,22 @@ export async function handleList(parsed: ParsedArgs, client: McpClient): Promise
     }
 
     // Call MCP server
-    const result = await client.callTool('later_list', listArgs);
+    const result = await client.callTool("later_list", listArgs);
 
     // Display result
     if (result.success) {
       // Format based on --json flag
-      const output = parsed.globalFlags?.json
+      const formatted = parsed.globalFlags?.json
         ? JsonFormatter.formatListResult(result.items || [])
         : TableFormatter.formatList(result.items || []);
 
-      console.log(output);
+      output.writeLine(formatted);
 
       return 0;
     } else {
       throw new UserError(
-        result.error || 'List failed',
-        'Check that your filter values are valid'
+        result.error || "List failed",
+        "Check that your filter values are valid",
       );
     }
   } catch (error) {
@@ -50,8 +56,9 @@ export async function handleList(parsed: ParsedArgs, client: McpClient): Promise
       throw error; // Re-throw for CLI error handler
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(formatError(errorMessage));
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    output.errorLine(formatError(errorMessage));
     return 1;
   }
 }
