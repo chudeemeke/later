@@ -107,7 +107,9 @@ describe('Config Management Utilities', () => {
       expect(exists).toBe(true);
     });
 
-    test('sets secure file permissions (600)', async () => {
+    // Skip on Windows - Unix file permissions don't apply
+    const testFn = process.platform === 'win32' ? test.skip : test;
+    testFn('sets secure file permissions (600)', async () => {
       const config = getDefaultConfig(TEST_DIR);
       await saveConfig(config, TEST_DIR);
 
