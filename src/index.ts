@@ -46,11 +46,10 @@ const log = createLogger("later:server");
 const storage = getStorage();
 
 // Server instance (module-level for graceful shutdown)
-let server: Server;
 let isShuttingDown = false;
 
 // Create MCP server
-server = new Server(
+const server = new Server(
   {
     name: "later",
     version: "2.0.0",
