@@ -34,15 +34,15 @@ describe("do command handler", () => {
   });
 
   it("should throw error when no ID provided", async () => {
-    await expect(async () => {
-      await handleDo([], mockClient, mockOutput);
-    }).rejects.toThrow("Item ID is required");
+    await expect(
+      handleDo([], mockClient, mockOutput)
+    ).rejects.toThrow("Item ID is required");
   });
 
   it("should throw error for invalid ID", async () => {
-    await expect(async () => {
-      await handleDo(["abc"], mockClient, mockOutput);
-    }).rejects.toThrow("Invalid ID");
+    await expect(
+      handleDo(["abc"], mockClient, mockOutput)
+    ).rejects.toThrow("Invalid ID");
   });
 
   it("should handle MCP tool errors", async () => {
@@ -51,9 +51,9 @@ describe("do command handler", () => {
       error: "Item not found",
     });
 
-    await expect(async () => {
-      await handleDo(["99"], mockClient, mockOutput);
-    }).rejects.toThrow("Item not found");
+    await expect(
+      handleDo(["99"], mockClient, mockOutput)
+    ).rejects.toThrow("Item not found");
   });
 
   it("should handle exceptions", async () => {
@@ -121,9 +121,9 @@ describe("do command handler", () => {
       // No error field
     });
 
-    await expect(async () => {
-      await handleDo(["999"], mockClient, mockOutput);
-    }).rejects.toThrow("Item #999 not found");
+    await expect(
+      handleDo(["999"], mockClient, mockOutput)
+    ).rejects.toThrow("Item #999 not found");
   });
 
   it("should handle non-Error exceptions", async () => {

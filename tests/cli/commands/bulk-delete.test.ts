@@ -110,25 +110,25 @@ describe("bulk-delete command handler", () => {
 
     const parsed = createParsedArgs(["1,2"]);
 
-    await expect(async () => {
-      await handleBulkDelete(parsed, mockClient, mockOutput);
-    }).rejects.toThrow();
+    await expect(
+      handleBulkDelete(parsed, mockClient, mockOutput)
+    ).rejects.toThrow();
   });
 
   it("should throw error when no IDs provided", async () => {
     const parsed = createParsedArgs([]);
 
-    await expect(async () => {
-      await handleBulkDelete(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item IDs are required");
+    await expect(
+      handleBulkDelete(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item IDs are required");
   });
 
   it("should throw error for invalid ID in list", async () => {
     const parsed = createParsedArgs(["1,abc,3"]);
 
-    await expect(async () => {
-      await handleBulkDelete(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Invalid ID");
+    await expect(
+      handleBulkDelete(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Invalid ID");
   });
 
   it("should handle spaces in ID list", async () => {

@@ -61,9 +61,9 @@ describe("capture command handler", () => {
   it("should return error when no decision provided", async () => {
     const parsed = createParsedArgs([]);
 
-    await expect(async () => {
-      await handleCapture(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Decision text is required");
+    await expect(
+      handleCapture(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Decision text is required");
   });
 
   it("should handle MCP tool errors", async () => {
@@ -74,9 +74,9 @@ describe("capture command handler", () => {
 
     const parsed = createParsedArgs(["Test"]);
 
-    await expect(async () => {
-      await handleCapture(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Failed to capture");
+    await expect(
+      handleCapture(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Failed to capture");
   });
 
   it("should handle exceptions", async () => {

@@ -85,9 +85,9 @@ describe("list command handler", () => {
 
     const parsed = createParsedArgs();
 
-    await expect(async () => {
-      await handleList(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Failed to list");
+    await expect(
+      handleList(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Failed to list");
   });
 
   it("should handle exceptions", async () => {
@@ -211,9 +211,9 @@ describe("list command handler", () => {
 
     const parsed = createParsedArgs();
 
-    await expect(async () => {
-      await handleList(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("List failed");
+    await expect(
+      handleList(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("List failed");
   });
 
   it("should handle non-Error exceptions", async () => {

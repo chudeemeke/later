@@ -118,33 +118,33 @@ describe("bulk-update command handler", () => {
 
     const parsed = createParsedArgs(["1,2"], { priority: "high" });
 
-    await expect(async () => {
-      await handleBulkUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow();
+    await expect(
+      handleBulkUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow();
   });
 
   it("should throw error when no IDs provided", async () => {
     const parsed = createParsedArgs([], { priority: "high" });
 
-    await expect(async () => {
-      await handleBulkUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item IDs are required");
+    await expect(
+      handleBulkUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item IDs are required");
   });
 
   it("should throw error for invalid ID in list", async () => {
     const parsed = createParsedArgs(["1,abc,3"], { priority: "high" });
 
-    await expect(async () => {
-      await handleBulkUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Invalid ID");
+    await expect(
+      handleBulkUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Invalid ID");
   });
 
   it("should throw error when no changes provided", async () => {
     const parsed = createParsedArgs(["1,2,3"], {});
 
-    await expect(async () => {
-      await handleBulkUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("No changes provided");
+    await expect(
+      handleBulkUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("No changes provided");
   });
 
   it("should handle spaces in ID list", async () => {

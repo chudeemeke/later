@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### V2.0.3: Cross-Platform Test Fixes (2026-01-07)
+
+**Status:** Production-ready with 97.79% statement coverage, 95.09% branch coverage, 1205 tests passing
+
+**Changes:**
+
+- Fixed Jest async testing syntax across all CLI command handler tests
+- Pattern: Changed `await expect(async () => {...}).rejects.toThrow()` to `await expect(promise).rejects.toThrow()`
+- Fixed 37 tests across 10 test files:
+  - mcp-client.test.ts (5 fixes)
+  - capture.test.ts (2 fixes)
+  - list.test.ts (2 fixes)
+  - show.test.ts (5 fixes)
+  - do.test.ts (4 fixes)
+  - update.test.ts (5 fixes)
+  - delete.test.ts (4 fixes)
+  - bulk-update.test.ts (4 fixes)
+  - bulk-delete.test.ts (3 fixes)
+  - search.test.ts (3 fixes)
+
+**Coverage:**
+
+- Statements: 97.79%
+- Branches: 95.09%
+- Functions: 96.10%
+- Lines: 97.97%
+- Tests: 1205 passing, 12 skipped (platform-specific)
+
+---
+
 ### V2.0.2: Quality & UX Improvements (2025-11-29)
 
 **Status:** Production-ready with 98.31% statement coverage, 95.06% branch coverage, 1084 tests passing (100% pass rate)

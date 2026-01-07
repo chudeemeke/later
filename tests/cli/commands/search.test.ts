@@ -189,9 +189,9 @@ describe("search command handler", () => {
   it("should throw error when no query provided", async () => {
     const parsed = createParsedArgs([]);
 
-    await expect(async () => {
-      await handleSearch(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Search query is required");
+    await expect(
+      handleSearch(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Search query is required");
   });
 
   it("should handle MCP tool errors", async () => {
@@ -202,9 +202,9 @@ describe("search command handler", () => {
 
     const parsed = createParsedArgs(["test"]);
 
-    await expect(async () => {
-      await handleSearch(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Search failed");
+    await expect(
+      handleSearch(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Search failed");
   });
 
   it("should handle exceptions", async () => {
@@ -305,9 +305,9 @@ describe("search command handler", () => {
 
     const parsed = createParsedArgs(["test"]);
 
-    await expect(async () => {
-      await handleSearch(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Search failed");
+    await expect(
+      handleSearch(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Search failed");
   });
 
   it("should handle non-Error exceptions", async () => {

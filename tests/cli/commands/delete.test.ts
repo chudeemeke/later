@@ -74,17 +74,17 @@ describe("delete command handler", () => {
   it("should throw error when no ID provided", async () => {
     const parsed = createParsedArgs([]);
 
-    await expect(async () => {
-      await handleDelete(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item ID is required");
+    await expect(
+      handleDelete(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item ID is required");
   });
 
   it("should throw error for invalid ID", async () => {
     const parsed = createParsedArgs(["abc"]);
 
-    await expect(async () => {
-      await handleDelete(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Invalid ID");
+    await expect(
+      handleDelete(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Invalid ID");
   });
 
   it("should handle MCP tool errors", async () => {
@@ -95,9 +95,9 @@ describe("delete command handler", () => {
 
     const parsed = createParsedArgs(["99"]);
 
-    await expect(async () => {
-      await handleDelete(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item not found");
+    await expect(
+      handleDelete(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item not found");
   });
 
   it("should handle exceptions", async () => {
@@ -165,8 +165,8 @@ describe("delete command handler", () => {
 
     const parsed = createParsedArgs(["999"]);
 
-    await expect(async () => {
-      await handleDelete(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Failed to delete item #999");
+    await expect(
+      handleDelete(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Failed to delete item #999");
   });
 });

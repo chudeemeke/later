@@ -65,17 +65,17 @@ describe("show command handler", () => {
   it("should return error when no ID provided", async () => {
     const parsed = createParsedArgs([]);
 
-    await expect(async () => {
-      await handleShow(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item ID is required");
+    await expect(
+      handleShow(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item ID is required");
   });
 
   it("should return error for invalid ID", async () => {
     const parsed = createParsedArgs(["abc"]);
 
-    await expect(async () => {
-      await handleShow(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Invalid ID");
+    await expect(
+      handleShow(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Invalid ID");
   });
 
   it("should handle MCP tool errors", async () => {
@@ -86,9 +86,9 @@ describe("show command handler", () => {
 
     const parsed = createParsedArgs(["99"]);
 
-    await expect(async () => {
-      await handleShow(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item not found");
+    await expect(
+      handleShow(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item not found");
   });
 
   it("should handle exceptions", async () => {
@@ -109,9 +109,9 @@ describe("show command handler", () => {
 
     const parsed = createParsedArgs(["99"]);
 
-    await expect(async () => {
-      await handleShow(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item #99 not found");
+    await expect(
+      handleShow(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item #99 not found");
   });
 
   it("should format output as JSON when --json flag is set", async () => {
@@ -157,8 +157,8 @@ describe("show command handler", () => {
 
     const parsed = createParsedArgs(["999"]);
 
-    await expect(async () => {
-      await handleShow(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item #999 not found");
+    await expect(
+      handleShow(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item #999 not found");
   });
 });

@@ -91,9 +91,9 @@ describe('McpClient', () => {
     }, 10000);
 
     it('should handle tool errors gracefully', async () => {
-      await expect(async () => {
-        await client.callTool('later_show', { id: 99999 });
-      }).rejects.toThrow();
+      await expect(
+        client.callTool('later_show', { id: 99999 })
+      ).rejects.toThrow();
     }, 10000);
 
     it('should handle invalid tool name', async () => {
@@ -108,10 +108,9 @@ describe('McpClient', () => {
       // This tests the timeout mechanism
       const shortTimeoutClient = new McpClient(undefined, TEST_DIR, 100);
 
-      await expect(async () => {
-        // Call a tool but the timeout is too short
-        await shortTimeoutClient.callTool('later_list', {});
-      }).rejects.toThrow(/timeout/i);
+      await expect(
+        shortTimeoutClient.callTool('later_list', {})
+      ).rejects.toThrow(/timeout/i);
 
       await shortTimeoutClient.close();
     }, 15000);
@@ -123,15 +122,15 @@ describe('McpClient', () => {
     });
 
     it('should handle missing required arguments', async () => {
-      await expect(async () => {
-        await client.callTool('later_capture', {});
-      }).rejects.toThrow();
+      await expect(
+        client.callTool('later_capture', {})
+      ).rejects.toThrow();
     }, 10000);
 
     it('should handle invalid argument types', async () => {
-      await expect(async () => {
-        await client.callTool('later_show', { id: 'not-a-number' });
-      }).rejects.toThrow();
+      await expect(
+        client.callTool('later_show', { id: 'not-a-number' })
+      ).rejects.toThrow();
     }, 10000);
   });
 
@@ -146,10 +145,10 @@ describe('McpClient', () => {
 
       await client.close();
 
-      // Calling after close should create new instance
-      await expect(async () => {
-        await client.callTool('later_list', {});
-      }).rejects.toThrow();
+      // Calling after close should throw
+      await expect(
+        client.callTool('later_list', {})
+      ).rejects.toThrow();
     }, 10000);
   });
 

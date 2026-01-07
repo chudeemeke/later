@@ -116,25 +116,25 @@ describe("update command handler", () => {
   it("should throw error when no ID provided", async () => {
     const parsed = createParsedArgs([], { priority: "high" });
 
-    await expect(async () => {
-      await handleUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item ID is required");
+    await expect(
+      handleUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item ID is required");
   });
 
   it("should throw error for invalid ID", async () => {
     const parsed = createParsedArgs(["abc"], { priority: "high" });
 
-    await expect(async () => {
-      await handleUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Invalid ID");
+    await expect(
+      handleUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Invalid ID");
   });
 
   it("should throw error when no changes provided", async () => {
     const parsed = createParsedArgs(["5"], {});
 
-    await expect(async () => {
-      await handleUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("No update fields provided");
+    await expect(
+      handleUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("No update fields provided");
   });
 
   it("should handle MCP tool errors", async () => {
@@ -145,9 +145,9 @@ describe("update command handler", () => {
 
     const parsed = createParsedArgs(["99"], { priority: "high" });
 
-    await expect(async () => {
-      await handleUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Item not found");
+    await expect(
+      handleUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Item not found");
   });
 
   it("should handle exceptions", async () => {
@@ -271,8 +271,8 @@ describe("update command handler", () => {
   it("should throw error for invalid dependency ID", async () => {
     const parsed = createParsedArgs(["5"], { deps: ["1", "invalid", "3"] });
 
-    await expect(async () => {
-      await handleUpdate(parsed, mockClient, mockOutput);
-    }).rejects.toThrow("Invalid dependency ID: invalid");
+    await expect(
+      handleUpdate(parsed, mockClient, mockOutput)
+    ).rejects.toThrow("Invalid dependency ID: invalid");
   });
 });
