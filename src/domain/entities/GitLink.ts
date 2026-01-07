@@ -18,7 +18,7 @@ export interface GitLinkProps {
 }
 
 export interface CreateGitLinkInput {
-  id: number;
+  id?: number; // Optional - assigned by storage if not provided
   itemId: number;
   commitHash: string;
   commitMessage?: string;
@@ -50,8 +50,9 @@ export class GitLink {
 
   /**
    * Create a new git link
+   * @param input Creation input. If id is not provided, caller must provide it.
    */
-  static create(input: CreateGitLinkInput): GitLink {
+  static create(input: CreateGitLinkInput & { id: number }): GitLink {
     if (!input.commitHash || input.commitHash.length === 0) {
       throw new Error('Commit hash cannot be empty');
     }

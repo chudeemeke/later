@@ -36,7 +36,7 @@ export interface ReminderProps {
 }
 
 export interface CreateReminderInput {
-  id: number;
+  id?: number; // Optional - assigned by storage if not provided
   itemId: number;
   triggerType: TriggerTypeValue;
   triggerConfig?: TriggerConfig;
@@ -65,8 +65,9 @@ export class Reminder {
 
   /**
    * Create a new reminder
+   * @param input Creation input. If id is not provided, caller must provide it.
    */
-  static create(input: CreateReminderInput): Reminder {
+  static create(input: CreateReminderInput & { id: number }): Reminder {
     return new Reminder({
       id: input.id,
       itemId: input.itemId,
