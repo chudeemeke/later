@@ -20,10 +20,10 @@ export interface ItemProps {
   updatedAt: Date;
   conversationId?: string;
   dependencies?: number[];
+  contextFiles?: string[];
+  contextHash?: string;
   contextTokens?: Record<string, string>;
   contextPiiTypes?: Record<string, number>;
-  contextHash?: string;
-  contextFiles?: string[];
 }
 
 export interface CreateItemInput {
@@ -33,6 +33,8 @@ export interface CreateItemInput {
   priority?: PriorityValue;
   conversationId?: string;
   dependencies?: number[];
+  contextFiles?: string[];
+  contextHash?: string;
 }
 
 export class Item {
@@ -88,6 +90,8 @@ export class Item {
       updatedAt: now,
       conversationId: input.conversationId,
       dependencies: input.dependencies || [],
+      contextFiles: input.contextFiles,
+      contextHash: input.contextHash,
     });
   }
 
