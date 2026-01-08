@@ -27,6 +27,9 @@ import { DeleteItemCommand } from '../application/commands/DeleteItemCommand.js'
 import { AddDependencyCommand } from '../application/commands/AddDependencyCommand.js';
 import { RemoveDependencyCommand } from '../application/commands/RemoveDependencyCommand.js';
 import { UpdateRetrospectiveCommand } from '../application/commands/UpdateRetrospectiveCommand.js';
+import { CreateReminderCommand } from '../application/commands/CreateReminderCommand.js';
+import { DismissReminderCommand } from '../application/commands/DismissReminderCommand.js';
+import { SnoozeReminderCommand } from '../application/commands/SnoozeReminderCommand.js';
 
 // Application Queries
 import { GetItemQuery } from '../application/queries/GetItemQuery.js';
@@ -39,6 +42,7 @@ import { GetResolutionOrderQuery } from '../application/queries/GetResolutionOrd
 import { SuggestDependenciesQuery } from '../application/queries/SuggestDependenciesQuery.js';
 import { GetRetrospectiveQuery } from '../application/queries/GetRetrospectiveQuery.js';
 import { GetRetrospectiveStatsQuery } from '../application/queries/GetRetrospectiveStatsQuery.js';
+import { GetRemindersQuery } from '../application/queries/GetRemindersQuery.js';
 
 /**
  * Configuration for container creation
@@ -62,6 +66,9 @@ export interface Commands {
   addDependency: AddDependencyCommand;
   removeDependency: RemoveDependencyCommand;
   updateRetrospective: UpdateRetrospectiveCommand;
+  createReminder: CreateReminderCommand;
+  dismissReminder: DismissReminderCommand;
+  snoozeReminder: SnoozeReminderCommand;
 }
 
 /**
@@ -78,6 +85,7 @@ export interface Queries {
   suggestDependencies: SuggestDependenciesQuery;
   getRetrospective: GetRetrospectiveQuery;
   getRetrospectiveStats: GetRetrospectiveStatsQuery;
+  getReminders: GetRemindersQuery;
 }
 
 /**
@@ -137,6 +145,9 @@ export function createContainer(config: ContainerConfig): Container {
   const addDependencyCommand = new AddDependencyCommand(storage);
   const removeDependencyCommand = new RemoveDependencyCommand(storage);
   const updateRetrospectiveCommand = new UpdateRetrospectiveCommand(storage);
+  const createReminderCommand = new CreateReminderCommand(storage);
+  const dismissReminderCommand = new DismissReminderCommand(storage);
+  const snoozeReminderCommand = new SnoozeReminderCommand(storage);
 
   // Create application queries (inject storage only - queries create internal services)
   const getItemQuery = new GetItemQuery(storage);
@@ -149,6 +160,7 @@ export function createContainer(config: ContainerConfig): Container {
   const suggestDependenciesQuery = new SuggestDependenciesQuery(storage);
   const getRetrospectiveQuery = new GetRetrospectiveQuery(storage);
   const getRetrospectiveStatsQuery = new GetRetrospectiveStatsQuery(storage);
+  const getRemindersQuery = new GetRemindersQuery(storage);
 
   return {
     storage,
@@ -161,6 +173,9 @@ export function createContainer(config: ContainerConfig): Container {
       addDependency: addDependencyCommand,
       removeDependency: removeDependencyCommand,
       updateRetrospective: updateRetrospectiveCommand,
+      createReminder: createReminderCommand,
+      dismissReminder: dismissReminderCommand,
+      snoozeReminder: snoozeReminderCommand,
     },
 
     queries: {
@@ -174,6 +189,7 @@ export function createContainer(config: ContainerConfig): Container {
       suggestDependencies: suggestDependenciesQuery,
       getRetrospective: getRetrospectiveQuery,
       getRetrospectiveStats: getRetrospectiveStatsQuery,
+      getReminders: getRemindersQuery,
     },
 
     services: {

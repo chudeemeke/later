@@ -71,3 +71,37 @@ export {
   type UpdateRetrospectiveArgs,
   type UpdateRetrospectiveResult,
 } from './update-retrospective.js';
+
+// Reminder handlers
+export {
+  createCreateReminderHandler,
+  type CreateReminderArgs,
+  type CreateReminderResult,
+  type ReminderMCP,
+} from './create-reminder.js';
+export {
+  createDismissReminderHandler,
+  type DismissReminderArgs,
+  type DismissReminderResult,
+} from './dismiss-reminder.js';
+export {
+  createSnoozeReminderHandler,
+  type SnoozeReminderArgs,
+  type SnoozeReminderResult,
+} from './snooze-reminder.js';
+export {
+  createGetRemindersHandler,
+  type GetRemindersArgs,
+  type GetRemindersResult,
+  type TriggerCountsMCP,
+} from './get-reminders.js';
+
+// Staleness handler
+export {
+  createGetStaleItemsHandler,
+  type GetStaleItemsArgs,
+  type GetStaleItemsResult,
+  type StaleItemMCP,
+  type StalenessFactorsMCP,
+  type StalenessSummaryMCP,
+} from './get-stale-items.js';

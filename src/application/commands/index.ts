@@ -33,3 +33,33 @@ export {
   DeleteItemInput,
   DeleteItemResult,
 } from './DeleteItemCommand.js';
+
+export {
+  RemoveDependencyCommand,
+  RemoveDependencyInput,
+  RemoveDependencyResult,
+} from './RemoveDependencyCommand.js';
+
+export {
+  UpdateRetrospectiveCommand,
+  UpdateRetrospectiveInput,
+  UpdateRetrospectiveResult,
+} from './UpdateRetrospectiveCommand.js';
+
+export {
+  CreateReminderCommand,
+  CreateReminderInput,
+  CreateReminderResult,
+} from './CreateReminderCommand.js';
+
+export {
+  DismissReminderCommand,
+  DismissReminderInput,
+  DismissReminderResult,
+} from './DismissReminderCommand.js';
+
+export {
+  SnoozeReminderCommand,
+  SnoozeReminderInput,
+  SnoozeReminderResult,
+} from './SnoozeReminderCommand.js';

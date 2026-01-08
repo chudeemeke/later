@@ -46,6 +46,11 @@ import {
   createGetRetrospectiveHandler,
   createGetRetrospectiveStatsHandler,
   createUpdateRetrospectiveHandler,
+  createCreateReminderHandler,
+  createDismissReminderHandler,
+  createSnoozeReminderHandler,
+  createGetRemindersHandler,
+  createGetStaleItemsHandler,
 } from './handlers/index.js';
 
 import type { ToolMetadata, JsonSchema } from './tool-metadata.js';
@@ -75,6 +80,11 @@ const handlers = {
   later_get_retrospective: createGetRetrospectiveHandler(container),
   later_get_retrospective_stats: createGetRetrospectiveStatsHandler(container),
   later_update_retrospective: createUpdateRetrospectiveHandler(container),
+  later_create_reminder: createCreateReminderHandler(container),
+  later_dismiss_reminder: createDismissReminderHandler(container),
+  later_snooze_reminder: createSnoozeReminderHandler(container),
+  later_get_reminders: createGetRemindersHandler(container),
+  later_get_stale_items: createGetStaleItemsHandler(container),
 };
 
 /**
@@ -648,6 +658,146 @@ const tools: ToolMetadata[] = [
       required: ['item_id'],
     },
     handler: handlers.later_update_retrospective,
+  },
+  // Reminder tools
+  {
+    name: 'later_create_reminder',
+    category: 'reminder',
+    keywords: ['reminder', 'remind', 'alert', 'notify', 'trigger', 'schedule', 'time'],
+    priority: 7,
+    description:
+      'Create a reminder for an item. Supports time-based, dependency, file change, and activity triggers.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        item_id: {
+          type: 'number',
+          description: 'ID of the item to create reminder for (required)',
+        },
+        trigger_type: {
+          type: 'string',
+          enum: ['time', 'dependency', 'file_change', 'activity'],
+          description: 'Type of trigger (required)',
+        },
+        threshold_days: {
+          type: 'number',
+          description: 'Days threshold for time/activity triggers',
+        },
+        dependency_ids: {
+          type: 'array',
+          items: { type: 'number' },
+          description: 'Item IDs for dependency triggers',
+        },
+        file_paths: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'File paths for file_change triggers',
+        },
+      },
+      required: ['item_id', 'trigger_type'],
+    },
+    handler: handlers.later_create_reminder,
+  },
+  {
+    name: 'later_dismiss_reminder',
+    category: 'reminder',
+    keywords: ['dismiss', 'clear', 'acknowledge', 'done', 'reminder'],
+    priority: 6,
+    description:
+      'Dismiss a triggered reminder. Marks it as acknowledged and removes from active list.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        reminder_id: {
+          type: 'number',
+          description: 'ID of the reminder to dismiss (required)',
+        },
+      },
+      required: ['reminder_id'],
+    },
+    handler: handlers.later_dismiss_reminder,
+  },
+  {
+    name: 'later_snooze_reminder',
+    category: 'reminder',
+    keywords: ['snooze', 'delay', 'postpone', 'later', 'reminder'],
+    priority: 6,
+    description:
+      'Snooze a reminder for a specified number of days. Defaults to 1 day if not specified.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        reminder_id: {
+          type: 'number',
+          description: 'ID of the reminder to snooze (required)',
+        },
+        days: {
+          type: 'number',
+          description: 'Number of days to snooze (default: 1)',
+        },
+      },
+      required: ['reminder_id'],
+    },
+    handler: handlers.later_snooze_reminder,
+  },
+  {
+    name: 'later_get_reminders',
+    category: 'reminder',
+    keywords: ['reminders', 'list', 'active', 'pending', 'alerts', 'notifications'],
+    priority: 7,
+    description:
+      'Get reminders. Can filter by item or trigger type. Optionally include counts by type.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        item_id: {
+          type: 'number',
+          description: 'Filter by specific item ID',
+        },
+        trigger_type: {
+          type: 'string',
+          enum: ['time', 'dependency', 'file_change', 'activity'],
+          description: 'Filter by trigger type',
+        },
+        include_counts: {
+          type: 'boolean',
+          description: 'Include counts by trigger type',
+        },
+      },
+    },
+    handler: handlers.later_get_reminders,
+  },
+  // Staleness tool
+  {
+    name: 'later_get_stale_items',
+    category: 'search',
+    keywords: ['stale', 'old', 'outdated', 'neglected', 'attention', 'review', 'cleanup'],
+    priority: 7,
+    description:
+      'Get items that may need attention based on staleness scoring. Identifies neglected decisions.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        min_score: {
+          type: 'number',
+          description: 'Minimum staleness score 0-1 (default: 0.3)',
+        },
+        include_urgent: {
+          type: 'boolean',
+          description: 'Include only urgent items needing immediate attention',
+        },
+        priority_filter: {
+          type: 'array',
+          items: { type: 'string', enum: ['low', 'medium', 'high'] },
+          description: 'Filter by priority levels',
+        },
+        exclude_archived: {
+          type: 'boolean',
+          description: 'Exclude archived items (default: true)',
+        },
+      },
+    },
+    handler: handlers.later_get_stale_items,
   },
 ];
 
