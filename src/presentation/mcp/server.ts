@@ -38,6 +38,11 @@ import {
   createUpdateHandler,
   createDeleteHandler,
   createSearchHandler,
+  createAddDependencyHandler,
+  createRemoveDependencyHandler,
+  createDependencyChainHandler,
+  createResolutionOrderHandler,
+  createSuggestDependenciesHandler,
 } from './handlers/index.js';
 
 import type { ToolMetadata, JsonSchema } from './tool-metadata.js';
@@ -59,6 +64,11 @@ const handlers = {
   later_update: createUpdateHandler(container),
   later_delete: createDeleteHandler(container),
   later_search: createSearchHandler(container),
+  later_add_dependency: createAddDependencyHandler(container),
+  later_remove_dependency: createRemoveDependencyHandler(container),
+  later_dependency_chain: createDependencyChainHandler(container),
+  later_resolution_order: createResolutionOrderHandler(container),
+  later_suggest_dependencies: createSuggestDependenciesHandler(container),
 };
 
 /**
@@ -364,6 +374,172 @@ const tools: ToolMetadata[] = [
       required: ['query'],
     },
     handler: handlers.later_search,
+  },
+  // Dependency tools
+  {
+    name: 'later_add_dependency',
+    category: 'workflow',
+    keywords: ['dependency', 'depends', 'block', 'blocks', 'relate', 'link', 'chain'],
+    priority: 7,
+    description:
+      'Add a dependency between items. Item A depends on item B (B blocks A).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        item_id: {
+          type: 'number',
+          description: 'ID of the item that depends on another (required)',
+        },
+        depends_on_id: {
+          type: 'number',
+          description: 'ID of the item that blocks this one (required)',
+        },
+        type: {
+          type: 'string',
+          enum: ['blocks', 'relates-to', 'parent-of'],
+          description: 'Type of dependency (default: blocks)',
+        },
+      },
+      required: ['item_id', 'depends_on_id'],
+    },
+    handler: handlers.later_add_dependency,
+  },
+  {
+    name: 'later_remove_dependency',
+    category: 'workflow',
+    keywords: ['dependency', 'depends', 'unblock', 'unlink', 'remove'],
+    priority: 6,
+    description:
+      'Remove a dependency between items. Unblocks the dependent item.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        item_id: {
+          type: 'number',
+          description: 'ID of the item with the dependency (required)',
+        },
+        depends_on_id: {
+          type: 'number',
+          description: 'ID of the item to remove as dependency (required)',
+        },
+        report_unblocked: {
+          type: 'boolean',
+          description: 'Include list of items that become unblocked',
+        },
+      },
+      required: ['item_id', 'depends_on_id'],
+    },
+    handler: handlers.later_remove_dependency,
+  },
+  {
+    name: 'later_dependency_chain',
+    category: 'search',
+    keywords: ['dependency', 'chain', 'tree', 'graph', 'blockers', 'blocked'],
+    priority: 7,
+    description:
+      'Get the full dependency chain for an item. Shows all blockers recursively.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        item_id: {
+          type: 'number',
+          description: 'ID of the item to analyze (required)',
+        },
+        include_item_details: {
+          type: 'boolean',
+          description: 'Include full item details in the chain',
+        },
+        include_all_types: {
+          type: 'boolean',
+          description: 'Include all dependency types (not just blocks)',
+        },
+        include_dependents: {
+          type: 'boolean',
+          description: 'Also show items that depend on this item',
+        },
+        include_visualization: {
+          type: 'boolean',
+          description: 'Include ASCII visualization of dependency tree',
+        },
+      },
+      required: ['item_id'],
+    },
+    handler: handlers.later_dependency_chain,
+  },
+  {
+    name: 'later_resolution_order',
+    category: 'search',
+    keywords: ['order', 'priority', 'next', 'todo', 'actionable', 'unblocked', 'work'],
+    priority: 8,
+    description:
+      'Get items in optimal resolution order. Shows unblocked items first, then blocked items by depth.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        include_completed: {
+          type: 'boolean',
+          description: 'Include completed items in the order',
+        },
+        include_stats: {
+          type: 'boolean',
+          description: 'Include statistics about dependencies',
+        },
+        include_next_actions: {
+          type: 'boolean',
+          description: 'Include recommended next actions',
+        },
+        priority_filter: {
+          type: 'array',
+          items: { type: 'string', enum: ['low', 'medium', 'high'] },
+          description: 'Filter by priority levels',
+        },
+        tag_filter: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Filter by tags',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum items to return',
+        },
+      },
+    },
+    handler: handlers.later_resolution_order,
+  },
+  {
+    name: 'later_suggest_dependencies',
+    category: 'search',
+    keywords: ['suggest', 'recommend', 'ai', 'smart', 'auto', 'dependency'],
+    priority: 6,
+    description:
+      'Get AI-powered dependency suggestions based on text similarity and tag overlap.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        item_id: {
+          type: 'number',
+          description: 'ID of the item to get suggestions for (required)',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum suggestions to return (default: 5)',
+        },
+        min_confidence: {
+          type: 'number',
+          description: 'Minimum confidence threshold 0-1 (default: 0.3)',
+        },
+        include_completed: {
+          type: 'boolean',
+          description: 'Include completed items as potential dependencies',
+        },
+        include_target_details: {
+          type: 'boolean',
+          description: 'Include full details of suggested items',
+        },
+      },
+      required: ['item_id'],
+    },
+    handler: handlers.later_suggest_dependencies,
   },
 ];
 
