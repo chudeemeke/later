@@ -25,6 +25,7 @@ import { UpdateItemCommand } from '../application/commands/UpdateItemCommand.js'
 import { CompleteItemCommand } from '../application/commands/CompleteItemCommand.js';
 import { DeleteItemCommand } from '../application/commands/DeleteItemCommand.js';
 import { AddDependencyCommand } from '../application/commands/AddDependencyCommand.js';
+import { RemoveDependencyCommand } from '../application/commands/RemoveDependencyCommand.js';
 
 // Application Queries
 import { GetItemQuery } from '../application/queries/GetItemQuery.js';
@@ -32,6 +33,9 @@ import { ListItemsQuery } from '../application/queries/ListItemsQuery.js';
 import { SearchItemsQuery } from '../application/queries/SearchItemsQuery.js';
 import { GetBlockedItemsQuery } from '../application/queries/GetBlockedItemsQuery.js';
 import { GetStaleItemsQuery } from '../application/queries/GetStaleItemsQuery.js';
+import { GetDependencyChainQuery } from '../application/queries/GetDependencyChainQuery.js';
+import { GetResolutionOrderQuery } from '../application/queries/GetResolutionOrderQuery.js';
+import { SuggestDependenciesQuery } from '../application/queries/SuggestDependenciesQuery.js';
 
 /**
  * Configuration for container creation
@@ -53,6 +57,7 @@ export interface Commands {
   complete: CompleteItemCommand;
   delete: DeleteItemCommand;
   addDependency: AddDependencyCommand;
+  removeDependency: RemoveDependencyCommand;
 }
 
 /**
@@ -64,6 +69,9 @@ export interface Queries {
   searchItems: SearchItemsQuery;
   getBlockedItems: GetBlockedItemsQuery;
   getStaleItems: GetStaleItemsQuery;
+  getDependencyChain: GetDependencyChainQuery;
+  getResolutionOrder: GetResolutionOrderQuery;
+  suggestDependencies: SuggestDependenciesQuery;
 }
 
 /**
@@ -121,6 +129,7 @@ export function createContainer(config: ContainerConfig): Container {
   const completeCommand = new CompleteItemCommand(storage);
   const deleteCommand = new DeleteItemCommand(storage);
   const addDependencyCommand = new AddDependencyCommand(storage);
+  const removeDependencyCommand = new RemoveDependencyCommand(storage);
 
   // Create application queries (inject storage only - queries create internal services)
   const getItemQuery = new GetItemQuery(storage);
@@ -128,6 +137,9 @@ export function createContainer(config: ContainerConfig): Container {
   const searchItemsQuery = new SearchItemsQuery(storage);
   const getBlockedItemsQuery = new GetBlockedItemsQuery(storage);
   const getStaleItemsQuery = new GetStaleItemsQuery(storage);
+  const getDependencyChainQuery = new GetDependencyChainQuery(storage);
+  const getResolutionOrderQuery = new GetResolutionOrderQuery(storage);
+  const suggestDependenciesQuery = new SuggestDependenciesQuery(storage);
 
   return {
     storage,
@@ -138,6 +150,7 @@ export function createContainer(config: ContainerConfig): Container {
       complete: completeCommand,
       delete: deleteCommand,
       addDependency: addDependencyCommand,
+      removeDependency: removeDependencyCommand,
     },
 
     queries: {
@@ -146,6 +159,9 @@ export function createContainer(config: ContainerConfig): Container {
       searchItems: searchItemsQuery,
       getBlockedItems: getBlockedItemsQuery,
       getStaleItems: getStaleItemsQuery,
+      getDependencyChain: getDependencyChainQuery,
+      getResolutionOrder: getResolutionOrderQuery,
+      suggestDependencies: suggestDependenciesQuery,
     },
 
     services: {

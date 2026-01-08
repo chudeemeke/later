@@ -16,3 +16,36 @@ export { createDeleteHandler, type DeleteArgs, type DeleteResult } from './delet
 
 // Search handler
 export { createSearchHandler, type SearchArgs, type SearchResult, type SearchResultItem } from './search.js';
+
+// Dependency handlers
+export {
+  createAddDependencyHandler,
+  type AddDependencyArgs,
+  type AddDependencyResult,
+} from './add-dependency.js';
+export {
+  createRemoveDependencyHandler,
+  type RemoveDependencyArgs,
+  type RemoveDependencyResult,
+} from './remove-dependency.js';
+export {
+  createDependencyChainHandler,
+  type DependencyChainArgs,
+  type DependencyChainResult,
+  type ChainItemDetailMCP,
+  type DependencySummaryMCP,
+} from './dependency-chain.js';
+export {
+  createResolutionOrderHandler,
+  type ResolutionOrderArgs,
+  type ResolutionOrderResult,
+  type OrderedItemMCP,
+  type ResolutionStatsMCP,
+  type NextActionMCP,
+} from './resolution-order.js';
+export {
+  createSuggestDependenciesHandler,
+  type SuggestDependenciesArgs,
+  type SuggestDependenciesResult,
+  type SuggestedDependencyMCP,
+} from './suggest-dependencies.js';
