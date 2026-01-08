@@ -1,3 +1,4 @@
+// @ts-nocheck - Jest mock typing incompatibility with @jest/globals
 /**
  * CreateReminderCommand Tests
  *

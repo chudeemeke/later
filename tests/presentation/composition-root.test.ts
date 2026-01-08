@@ -5,7 +5,7 @@
  * all application layer components with infrastructure.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -162,8 +162,10 @@ describe('CompositionRoot', () => {
       // Complete
       const completeResult = await container.commands.complete.execute({
         id: itemId,
-        outcome: 'success',
-        lessonsLearned: 'PostgreSQL better for relational data',
+        retrospective: {
+          outcome: 'success',
+          lessonsLearned: 'PostgreSQL better for relational data',
+        },
       });
 
       expect(completeResult.success).toBe(true);

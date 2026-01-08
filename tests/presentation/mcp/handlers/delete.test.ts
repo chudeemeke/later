@@ -4,7 +4,7 @@
  * Tests for the MCP-facing delete handler that wraps DeleteItemCommand.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

@@ -1,10 +1,11 @@
+// @ts-nocheck - Jest mock typing incompatibility with @jest/globals
 /**
  * ListItemsQuery Tests
  *
  * Tests the list items query handler with filtering, sorting, and pagination.
  */
 
-import { describe, it, expect, beforeEach, jest } from 'bun:test';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { ListItemsQuery, ListItemsInput } from '../../../src/application/queries/ListItemsQuery.js';
 import { IStoragePort } from '../../../src/domain/ports/IStoragePort.js';
 import { ItemProps } from '../../../src/domain/entities/Item.js';
@@ -93,7 +94,7 @@ function createMockStorage(items: ItemProps[] = []): IStoragePort {
     exportToJsonl: jest.fn().mockResolvedValue(''),
     importFromJsonl: jest.fn().mockResolvedValue({ success: 0, failed: 0, errors: [] }),
     getMetadata: jest.fn().mockResolvedValue({ version: '1.0.0', itemCount: 0, lastUpdated: null, storageType: 'jsonl' }),
-  };
+  } as unknown as IStoragePort;
 }
 
 describe('ListItemsQuery', () => {

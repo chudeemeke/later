@@ -1,3 +1,4 @@
+// @ts-nocheck - Jest mock typing incompatibility with @jest/globals
 /**
  * JSONLStorageAdapter Tests
  *
@@ -5,7 +6,7 @@
  * Uses TDD approach - tests written first.
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';

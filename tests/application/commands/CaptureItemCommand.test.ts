@@ -1,10 +1,11 @@
+// @ts-nocheck - Jest mock typing incompatibility with @jest/globals
 /**
  * CaptureItemCommand Tests
  *
  * Tests the capture item command handler with various scenarios.
  */
 
-import { describe, it, expect, beforeEach, jest } from 'bun:test';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { CaptureItemCommand, CaptureItemInput } from '../../../src/application/commands/CaptureItemCommand.js';
 import { IStoragePort, ItemFilter, ItemSort, PaginationOptions, SearchResult, BulkResult } from '../../../src/domain/ports/IStoragePort.js';
 import { IAIPort, TagSuggestion, AIRequestOptions } from '../../../src/domain/ports/IAIPort.js';
@@ -17,8 +18,8 @@ import { GitLinkProps, CreateGitLinkInput } from '../../../src/domain/entities/G
 /**
  * Mock Storage Port for testing
  */
-function createMockStorage(overrides: Partial<IStoragePort> = {}): IStoragePort {
-  return {
+function createMockStorage(overrides: Record<string, unknown> = {}): IStoragePort {
+  return ({
     createItem: jest.fn().mockResolvedValue({
       id: 1,
       decision: 'Test decision',
@@ -69,13 +70,13 @@ function createMockStorage(overrides: Partial<IStoragePort> = {}): IStoragePort 
     importFromJsonl: jest.fn().mockResolvedValue({ success: 0, failed: 0, errors: [] }),
     getMetadata: jest.fn().mockResolvedValue({ version: '1.0.0', itemCount: 0, lastUpdated: null, storageType: 'jsonl' }),
     ...overrides,
-  };
+  }) as unknown as IStoragePort;
 }
 
 /**
  * Mock AI Port for testing
  */
-function createMockAI(overrides: Partial<IAIPort> = {}): IAIPort {
+function createMockAI(overrides: Record<string, unknown> = {}): IAIPort {
   return {
     isAvailable: jest.fn().mockResolvedValue(true),
     suggestTags: jest.fn().mockResolvedValue([]),
@@ -84,7 +85,7 @@ function createMockAI(overrides: Partial<IAIPort> = {}): IAIPort {
     extractContext: jest.fn().mockResolvedValue({ summary: '', relevantMessages: [] }),
     analyzeItem: jest.fn().mockResolvedValue({ tags: [], priority: { priority: 'medium', confidence: 0.5, reasoning: '' } }),
     ...overrides,
-  };
+  } as unknown as IAIPort;
 }
 
 describe('CaptureItemCommand', () => {
@@ -279,7 +280,7 @@ describe('CaptureItemCommand', () => {
         });
 
         storage = createMockStorage({
-          createItem: jest.fn().mockImplementation(async (input: CreateItemInput) => ({
+          createItem: jest.fn<(input: CreateItemInput) => Promise<ItemProps>>().mockImplementation(async (input: CreateItemInput) => ({
             id: 1,
             decision: input.decision,
             context: input.context || '',
@@ -289,7 +290,7 @@ describe('CaptureItemCommand', () => {
             createdAt: new Date(),
             updatedAt: new Date(),
           })),
-          listItems: jest.fn().mockResolvedValue([]),
+          listItems: jest.fn<() => Promise<ItemProps[]>>().mockResolvedValue([]),
         });
 
         const command = new CaptureItemCommand(storage, ai);
@@ -323,14 +324,14 @@ describe('CaptureItemCommand', () => {
 
       it('should preserve user-provided tags', async () => {
         ai = createMockAI({
-          isAvailable: jest.fn().mockResolvedValue(true),
-          suggestTags: jest.fn().mockResolvedValue([
+          isAvailable: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
+          suggestTags: jest.fn<() => Promise<{tag: string; confidence: number}[]>>().mockResolvedValue([
             { tag: 'auto-tag', confidence: 0.9 },
           ]),
         });
 
         storage = createMockStorage({
-          createItem: jest.fn().mockImplementation(async (input: CreateItemInput) => ({
+          createItem: jest.fn<(input: CreateItemInput) => Promise<ItemProps>>().mockImplementation(async (input: CreateItemInput) => ({
             id: 1,
             decision: input.decision,
             context: input.context || '',
@@ -340,7 +341,7 @@ describe('CaptureItemCommand', () => {
             createdAt: new Date(),
             updatedAt: new Date(),
           })),
-          listItems: jest.fn().mockResolvedValue([]),
+          listItems: jest.fn<() => Promise<ItemProps[]>>().mockResolvedValue([]),
         });
 
         const command = new CaptureItemCommand(storage, ai);
@@ -360,7 +361,7 @@ describe('CaptureItemCommand', () => {
 
       it('should continue without AI when unavailable', async () => {
         ai = createMockAI({
-          isAvailable: jest.fn().mockResolvedValue(false),
+          isAvailable: jest.fn<() => Promise<boolean>>().mockResolvedValue(false),
         });
 
         const command = new CaptureItemCommand(storage, ai);
@@ -378,7 +379,7 @@ describe('CaptureItemCommand', () => {
     describe('error handling', () => {
       it('should handle storage errors', async () => {
         storage = createMockStorage({
-          createItem: jest.fn().mockRejectedValue(new Error('Storage failed')),
+          createItem: jest.fn<() => Promise<ItemProps>>().mockRejectedValue(new Error('Storage failed')),
         });
 
         const command = new CaptureItemCommand(storage);
@@ -394,7 +395,7 @@ describe('CaptureItemCommand', () => {
 
       it('should handle unknown errors', async () => {
         storage = createMockStorage({
-          createItem: jest.fn().mockRejectedValue('Unknown error'),
+          createItem: jest.fn<() => Promise<ItemProps>>().mockRejectedValue('Unknown error'),
         });
 
         const command = new CaptureItemCommand(storage);

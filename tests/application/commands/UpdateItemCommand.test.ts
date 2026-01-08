@@ -1,10 +1,11 @@
+// @ts-nocheck - Jest mock typing incompatibility with @jest/globals
 /**
  * UpdateItemCommand Tests
  *
  * Tests the update item command handler.
  */
 
-import { describe, it, expect, beforeEach, jest } from 'bun:test';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { UpdateItemCommand, UpdateItemInput } from '../../../src/application/commands/UpdateItemCommand.js';
 import { IStoragePort } from '../../../src/domain/ports/IStoragePort.js';
 import { ItemProps, CreateItemInput } from '../../../src/domain/entities/Item.js';
@@ -13,7 +14,7 @@ import { RetrospectiveProps, CreateRetrospectiveInput } from '../../../src/domai
 import { ReminderProps, CreateReminderInput } from '../../../src/domain/entities/Reminder.js';
 import { GitLinkProps, CreateGitLinkInput } from '../../../src/domain/entities/GitLink.js';
 
-function createMockStorage(overrides: Partial<IStoragePort> = {}): IStoragePort {
+function createMockStorage(overrides: Record<string, unknown> = {}): IStoragePort {
   const defaultItem: ItemProps = {
     id: 1,
     decision: 'Test decision',
@@ -72,7 +73,7 @@ function createMockStorage(overrides: Partial<IStoragePort> = {}): IStoragePort 
     importFromJsonl: jest.fn().mockResolvedValue({ success: 0, failed: 0, errors: [] }),
     getMetadata: jest.fn().mockResolvedValue({ version: '1.0.0', itemCount: 0, lastUpdated: null, storageType: 'jsonl' }),
     ...overrides,
-  };
+  } as unknown as IStoragePort;
 }
 
 describe('UpdateItemCommand', () => {
