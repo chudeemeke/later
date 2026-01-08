@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### V3.0.0: Hexagonal Architecture Refactor (2026-01-08)
+
+**Status:** In development - Phase 1 complete (Domain, Application, Infrastructure, Presentation layers)
+
+**Overview:**
+Major architectural refactor implementing hexagonal (ports and adapters) architecture for better testability, maintainability, and future extensibility. This lays the foundation for V3 features including SQLite/FTS5 search, enhanced dependency tracking, and AI categorization.
+
+**Architecture Changes:**
+
+Domain Layer:
+- Entities: Item, Dependency, Reminder, Retrospective, GitLink with rich value objects
+- Value Objects: ItemId, Status, Priority, DependencyType, Outcome with validation
+- Ports: IStoragePort interface defining all data operations
+- Services: DependencyResolver (cycle detection), StalenessChecker (item aging)
+
+Application Layer (CQRS):
+- Commands: CaptureItemCommand, UpdateItemCommand, CompleteItemCommand, DeleteItemCommand, AddDependencyCommand
+- Queries: GetItemQuery, ListItemsQuery, SearchItemsQuery, GetBlockedItemsQuery, GetStaleItemsQuery
+- All commands/queries return result objects with success/error pattern
+
+Infrastructure Layer:
+- JSONLStorageAdapter: Implements IStoragePort for JSONL file storage
+- Translates between domain entities and persistence format
+- File locking for concurrent access safety
+
+Presentation Layer:
+- Composition Root: Central dependency injection container
+- MCP Handlers: capture, list, show, do, update, delete, search
+- MCP Server V3.0: Uses hexagonal handlers with progressive disclosure
+- All handlers use snake_case for MCP compatibility
+
+**Test Status:**
+
+- 1800+ tests passing (92 new handler tests)
+- 12 tests skipped (platform-specific)
+- 2 pre-existing integration test failures (MCP client needs server)
+- Coverage maintained above 95% at each metric
+
+**Breaking Changes:**
+
+- New MCP server entry point at src/presentation/mcp/server.ts
+- Old tools still work but will be deprecated in future release
+
+---
+
 ### V2.0.3: Cross-Platform Test Fixes (2026-01-07)
 
 **Status:** Production-ready with 97.79% statement coverage, 95.09% branch coverage, 1205 tests passing
