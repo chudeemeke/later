@@ -26,6 +26,7 @@ import { CompleteItemCommand } from '../application/commands/CompleteItemCommand
 import { DeleteItemCommand } from '../application/commands/DeleteItemCommand.js';
 import { AddDependencyCommand } from '../application/commands/AddDependencyCommand.js';
 import { RemoveDependencyCommand } from '../application/commands/RemoveDependencyCommand.js';
+import { UpdateRetrospectiveCommand } from '../application/commands/UpdateRetrospectiveCommand.js';
 
 // Application Queries
 import { GetItemQuery } from '../application/queries/GetItemQuery.js';
@@ -36,6 +37,8 @@ import { GetStaleItemsQuery } from '../application/queries/GetStaleItemsQuery.js
 import { GetDependencyChainQuery } from '../application/queries/GetDependencyChainQuery.js';
 import { GetResolutionOrderQuery } from '../application/queries/GetResolutionOrderQuery.js';
 import { SuggestDependenciesQuery } from '../application/queries/SuggestDependenciesQuery.js';
+import { GetRetrospectiveQuery } from '../application/queries/GetRetrospectiveQuery.js';
+import { GetRetrospectiveStatsQuery } from '../application/queries/GetRetrospectiveStatsQuery.js';
 
 /**
  * Configuration for container creation
@@ -58,6 +61,7 @@ export interface Commands {
   delete: DeleteItemCommand;
   addDependency: AddDependencyCommand;
   removeDependency: RemoveDependencyCommand;
+  updateRetrospective: UpdateRetrospectiveCommand;
 }
 
 /**
@@ -72,6 +76,8 @@ export interface Queries {
   getDependencyChain: GetDependencyChainQuery;
   getResolutionOrder: GetResolutionOrderQuery;
   suggestDependencies: SuggestDependenciesQuery;
+  getRetrospective: GetRetrospectiveQuery;
+  getRetrospectiveStats: GetRetrospectiveStatsQuery;
 }
 
 /**
@@ -130,6 +136,7 @@ export function createContainer(config: ContainerConfig): Container {
   const deleteCommand = new DeleteItemCommand(storage);
   const addDependencyCommand = new AddDependencyCommand(storage);
   const removeDependencyCommand = new RemoveDependencyCommand(storage);
+  const updateRetrospectiveCommand = new UpdateRetrospectiveCommand(storage);
 
   // Create application queries (inject storage only - queries create internal services)
   const getItemQuery = new GetItemQuery(storage);
@@ -140,6 +147,8 @@ export function createContainer(config: ContainerConfig): Container {
   const getDependencyChainQuery = new GetDependencyChainQuery(storage);
   const getResolutionOrderQuery = new GetResolutionOrderQuery(storage);
   const suggestDependenciesQuery = new SuggestDependenciesQuery(storage);
+  const getRetrospectiveQuery = new GetRetrospectiveQuery(storage);
+  const getRetrospectiveStatsQuery = new GetRetrospectiveStatsQuery(storage);
 
   return {
     storage,
@@ -151,6 +160,7 @@ export function createContainer(config: ContainerConfig): Container {
       delete: deleteCommand,
       addDependency: addDependencyCommand,
       removeDependency: removeDependencyCommand,
+      updateRetrospective: updateRetrospectiveCommand,
     },
 
     queries: {
@@ -162,6 +172,8 @@ export function createContainer(config: ContainerConfig): Container {
       getDependencyChain: getDependencyChainQuery,
       getResolutionOrder: getResolutionOrderQuery,
       suggestDependencies: suggestDependenciesQuery,
+      getRetrospective: getRetrospectiveQuery,
+      getRetrospectiveStats: getRetrospectiveStatsQuery,
     },
 
     services: {

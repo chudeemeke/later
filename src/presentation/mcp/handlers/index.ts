@@ -49,3 +49,25 @@ export {
   type SuggestDependenciesResult,
   type SuggestedDependencyMCP,
 } from './suggest-dependencies.js';
+
+// Retrospective handlers
+export {
+  createGetRetrospectiveHandler,
+  type GetRetrospectiveArgs,
+  type GetRetrospectiveResult,
+  type RetrospectiveMCP,
+  type RetrospectiveAnalysisMCP,
+} from './get-retrospective.js';
+export {
+  createGetRetrospectiveStatsHandler,
+  type GetRetrospectiveStatsArgs,
+  type GetRetrospectiveStatsResult,
+  type RetrospectiveStatsMCP,
+  type DetailedAnalysisMCP,
+  type LessonsSummaryMCP,
+} from './get-retrospective-stats.js';
+export {
+  createUpdateRetrospectiveHandler,
+  type UpdateRetrospectiveArgs,
+  type UpdateRetrospectiveResult,
+} from './update-retrospective.js';

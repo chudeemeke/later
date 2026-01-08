@@ -29,7 +29,7 @@ export interface ToolMetadata {
   /** Unique tool identifier */
   name: string;
   /** Tool category for organization */
-  category: 'core' | 'workflow' | 'batch' | 'search' | 'meta';
+  category: 'core' | 'workflow' | 'batch' | 'search' | 'meta' | 'retrospective';
   /** Keywords for discovery search */
   keywords: string[];
   /** Priority for search ranking (higher = more relevant) */

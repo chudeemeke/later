@@ -43,6 +43,9 @@ import {
   createDependencyChainHandler,
   createResolutionOrderHandler,
   createSuggestDependenciesHandler,
+  createGetRetrospectiveHandler,
+  createGetRetrospectiveStatsHandler,
+  createUpdateRetrospectiveHandler,
 } from './handlers/index.js';
 
 import type { ToolMetadata, JsonSchema } from './tool-metadata.js';
@@ -69,6 +72,9 @@ const handlers = {
   later_dependency_chain: createDependencyChainHandler(container),
   later_resolution_order: createResolutionOrderHandler(container),
   later_suggest_dependencies: createSuggestDependenciesHandler(container),
+  later_get_retrospective: createGetRetrospectiveHandler(container),
+  later_get_retrospective_stats: createGetRetrospectiveStatsHandler(container),
+  later_update_retrospective: createUpdateRetrospectiveHandler(container),
 };
 
 /**
@@ -540,6 +546,108 @@ const tools: ToolMetadata[] = [
       required: ['item_id'],
     },
     handler: handlers.later_suggest_dependencies,
+  },
+  // Retrospective tools
+  {
+    name: 'later_get_retrospective',
+    category: 'retrospective',
+    keywords: ['retrospective', 'retro', 'outcome', 'lessons', 'review', 'analysis'],
+    priority: 7,
+    description:
+      'Get retrospective data for a completed item. Includes outcome, impact metrics, and lessons learned.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        item_id: {
+          type: 'number',
+          description: 'ID of the completed item (required)',
+        },
+        include_item_details: {
+          type: 'boolean',
+          description: 'Include full item details',
+        },
+        include_analysis: {
+          type: 'boolean',
+          description: 'Include estimation accuracy and variance analysis',
+        },
+      },
+      required: ['item_id'],
+    },
+    handler: handlers.later_get_retrospective,
+  },
+  {
+    name: 'later_get_retrospective_stats',
+    category: 'retrospective',
+    keywords: ['stats', 'statistics', 'metrics', 'summary', 'aggregate', 'report'],
+    priority: 6,
+    description:
+      'Get aggregate retrospective statistics. Success rates, estimation accuracy, time/cost savings.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        include_detailed_analysis: {
+          type: 'boolean',
+          description: 'Include detailed analysis with success rates and savings',
+        },
+        include_lessons_summary: {
+          type: 'boolean',
+          description: 'Include summary of all lessons learned',
+        },
+        after_date: {
+          type: 'string',
+          description: 'Filter to items completed after this date (ISO 8601)',
+        },
+        before_date: {
+          type: 'string',
+          description: 'Filter to items completed before this date (ISO 8601)',
+        },
+      },
+    },
+    handler: handlers.later_get_retrospective_stats,
+  },
+  {
+    name: 'later_update_retrospective',
+    category: 'retrospective',
+    keywords: ['update', 'edit', 'modify', 'retrospective', 'lessons', 'outcome'],
+    priority: 6,
+    description:
+      'Update retrospective data for a completed item. Update outcome, impact metrics, or lessons learned.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        item_id: {
+          type: 'number',
+          description: 'ID of the completed item (required)',
+        },
+        outcome: {
+          type: 'string',
+          enum: ['success', 'failure', 'partial'],
+          description: 'Updated outcome',
+        },
+        impact_time_saved: {
+          type: 'number',
+          description: 'Updated time saved in minutes',
+        },
+        impact_cost_saved: {
+          type: 'number',
+          description: 'Updated cost saved in currency units',
+        },
+        effort_estimated: {
+          type: 'number',
+          description: 'Updated estimated effort in minutes',
+        },
+        effort_actual: {
+          type: 'number',
+          description: 'Updated actual effort in minutes',
+        },
+        lessons_learned: {
+          type: 'string',
+          description: 'Updated lessons learned',
+        },
+      },
+      required: ['item_id'],
+    },
+    handler: handlers.later_update_retrospective,
   },
 ];
 
