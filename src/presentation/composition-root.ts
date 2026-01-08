@@ -107,31 +107,27 @@ export function createContainer(config: ContainerConfig): Container {
   // Create infrastructure layer (adapters)
   const storage = new JSONLStorageAdapter(config.dataDir);
 
-  // Create domain services
+  // Create domain services (for external use)
   const dependencyResolver = new DependencyResolver();
   const stalenessChecker = new StalenessChecker(
-    config.stalenessThresholdDays ?? 30
+    config.stalenessThresholdDays !== undefined
+      ? { defaultThresholdDays: config.stalenessThresholdDays }
+      : {}
   );
 
-  // Create application commands (inject dependencies)
+  // Create application commands (inject storage only - commands create internal services)
   const captureCommand = new CaptureItemCommand(storage);
   const updateCommand = new UpdateItemCommand(storage);
   const completeCommand = new CompleteItemCommand(storage);
-  const deleteCommand = new DeleteItemCommand(storage, dependencyResolver);
-  const addDependencyCommand = new AddDependencyCommand(
-    storage,
-    dependencyResolver
-  );
+  const deleteCommand = new DeleteItemCommand(storage);
+  const addDependencyCommand = new AddDependencyCommand(storage);
 
-  // Create application queries (inject dependencies)
+  // Create application queries (inject storage only - queries create internal services)
   const getItemQuery = new GetItemQuery(storage);
   const listItemsQuery = new ListItemsQuery(storage);
   const searchItemsQuery = new SearchItemsQuery(storage);
-  const getBlockedItemsQuery = new GetBlockedItemsQuery(
-    storage,
-    dependencyResolver
-  );
-  const getStaleItemsQuery = new GetStaleItemsQuery(storage, stalenessChecker);
+  const getBlockedItemsQuery = new GetBlockedItemsQuery(storage);
+  const getStaleItemsQuery = new GetStaleItemsQuery(storage);
 
   return {
     storage,
