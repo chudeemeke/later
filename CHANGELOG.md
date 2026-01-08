@@ -9,12 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### V3.0.0: Hexagonal Architecture Refactor (2026-01-08)
 
-**Status:** In development - Phase 1 complete (Domain, Application, Infrastructure, Presentation layers)
+**Status:** In development - Phase 1 & 2 complete (Domain, Application, Infrastructure, Presentation layers + SQLite Foundation)
 
 **Overview:**
 Major architectural refactor implementing hexagonal (ports and adapters) architecture for better testability, maintainability, and future extensibility. This lays the foundation for V3 features including SQLite/FTS5 search, enhanced dependency tracking, and AI categorization.
 
-**Architecture Changes:**
+**Phase 1: Architecture Changes**
 
 Domain Layer:
 - Entities: Item, Dependency, Reminder, Retrospective, GitLink with rich value objects
@@ -38,9 +38,32 @@ Presentation Layer:
 - MCP Server V3.0: Uses hexagonal handlers with progressive disclosure
 - All handlers use snake_case for MCP compatibility
 
+**Phase 2: SQLite Foundation with FTS5**
+
+SQLite Storage Adapter:
+- SQLiteStorageAdapter: Implements IStoragePort using better-sqlite3
+- FTS5 virtual table with porter stemming for full-text search
+- BM25 ranking algorithm for search relevance scoring
+- Automatic FTS sync via database triggers
+- WAL mode for better concurrent read performance
+- ACID transactions with proper rollback handling
+- Support for all entity types (items, retrospectives, reminders, git links)
+
+Storage Migration Utility:
+- StorageMigration: Safe migration from JSONL to SQLite
+- Backup creation before migration for rollback support
+- Validation to verify migration data integrity
+- Statistics reporting (by priority, status, with tags/dependencies/context)
+- Merge mode for incremental migration
+- Progress callbacks for monitoring long migrations
+
+Dependencies Added:
+- better-sqlite3: Node.js/Jest compatible SQLite binding
+- @types/better-sqlite3: TypeScript type definitions
+
 **Test Status:**
 
-- 1800+ tests passing (92 new handler tests)
+- 1800+ tests passing (92 new handler tests + 95 SQLite/migration tests)
 - 12 tests skipped (platform-specific)
 - 2 pre-existing integration test failures (MCP client needs server)
 - Coverage maintained above 95% at each metric
