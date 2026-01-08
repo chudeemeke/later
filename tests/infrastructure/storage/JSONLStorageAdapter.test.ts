@@ -26,13 +26,13 @@ describe('JSONLStorageAdapter', () => {
     await fs.mkdir(testDir, { recursive: true });
     adapter = new JSONLStorageAdapter(testDir);
     await adapter.initialize();
-  });
+  }, 30000); // Increased timeout for Windows/WSL I/O
 
   afterEach(async () => {
     await adapter.close();
     // Clean up test directory
     await fs.rm(testDir, { recursive: true, force: true }).catch(() => {});
-  });
+  }, 30000); // Increased timeout for Windows/WSL cleanup
 
   describe('Item Operations', () => {
     describe('createItem', () => {

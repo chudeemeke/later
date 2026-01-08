@@ -42,12 +42,12 @@ describe('MCP Search Handler', () => {
       tags: ['performance', 'cache'],
       priority: 'medium',
     });
-  });
+  }, 30000); // Increased timeout for Windows/WSL I/O
 
   afterEach(async () => {
     await container.close();
     fs.rmSync(testDir, { recursive: true, force: true });
-  });
+  }, 30000); // Increased timeout for Windows/WSL cleanup
 
   describe('Basic search', () => {
     it('should find items by decision text', async () => {

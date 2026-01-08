@@ -11,14 +11,47 @@ describe('later_list Tool', () => {
   let storage: JSONLStorage;
 
   beforeEach(async () => {
-    await fs.rm(TEST_DIR, { recursive: true, force: true });
+    // Clean test directory with retry logic for Windows file handle release
+    const maxRetries = 3;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await fs.rm(TEST_DIR, { recursive: true, force: true });
+        break;
+      } catch (error: unknown) {
+        const isRetryable =
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'ENOTEMPTY' || error.code === 'EBUSY');
+        if (isRetryable && attempt < maxRetries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 100 * (attempt + 1)));
+          continue;
+        }
+        // Ignore cleanup errors on final attempt
+      }
+    }
     await fs.mkdir(TEST_DIR, { recursive: true });
     storage = new JSONLStorage(TEST_DIR);
-  });
+  }, 30000); // Increased timeout for Windows/WSL I/O
 
   afterEach(async () => {
-    await fs.rm(TEST_DIR, { recursive: true, force: true });
-  });
+    // Cleanup with retry logic for Windows
+    const maxRetries = 3;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await fs.rm(TEST_DIR, { recursive: true, force: true });
+        break;
+      } catch (error: unknown) {
+        const isRetryable =
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'ENOTEMPTY' || error.code === 'EBUSY');
+        if (isRetryable && attempt < maxRetries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 100 * (attempt + 1)));
+          continue;
+        }
+      }
+    }
+  }, 30000); // Increased timeout for Windows/WSL cleanup
 
   describe('basic listing', () => {
     test('returns empty list when no items exist', async () => {
@@ -168,7 +201,7 @@ describe('later_list Tool', () => {
       for (const item of items) {
         await storage.append(item);
       }
-    });
+    }, 30000); // Increased timeout for Windows/WSL I/O
 
     test('filters by pending status', async () => {
       const result = await handleList({ status: 'pending' }, storage);
@@ -230,7 +263,7 @@ describe('later_list Tool', () => {
       for (const item of items) {
         await storage.append(item);
       }
-    });
+    }, 30000); // Increased timeout for Windows/WSL I/O
 
     test('filters by single tag', async () => {
       const result = await handleList({ tags: ['typescript'] }, storage);
@@ -291,7 +324,7 @@ describe('later_list Tool', () => {
       for (const item of items) {
         await storage.append(item);
       }
-    });
+    }, 30000); // Increased timeout for Windows/WSL I/O
 
     test('filters by low priority', async () => {
       const result = await handleList({ priority: 'low' }, storage);
@@ -346,7 +379,7 @@ describe('later_list Tool', () => {
       for (const item of items) {
         await storage.append(item);
       }
-    });
+    }, 30000); // Increased timeout for Windows/WSL I/O
 
     test('filters by status AND priority', async () => {
       const result = await handleList(
@@ -383,7 +416,7 @@ describe('later_list Tool', () => {
           updated_at: new Date(2025, 0, i).toISOString(),
         });
       }
-    });
+    }, 30000); // Increased timeout for Windows/WSL I/O
 
     test('limits results when specified', async () => {
       const result = await handleList({ limit: 5 }, storage);
@@ -591,7 +624,7 @@ describe('later_list Tool', () => {
           created_at: '2025-01-03T00:00:00Z',
           updated_at: '2025-01-03T00:00:00Z',
         });
-      });
+      }, 30000); // Increased timeout for Windows/WSL I/O
 
       test('filters by equality operator', async () => {
         const result = await handleList({
@@ -683,7 +716,7 @@ describe('later_list Tool', () => {
           created_at: '2025-01-02T00:00:00Z',
           updated_at: '2025-01-02T00:00:00Z',
         });
-      });
+      }, 30000); // Increased timeout for Windows/WSL I/O
 
       test('sorts by created_at ascending', async () => {
         const result = await handleList({
@@ -731,7 +764,7 @@ describe('later_list Tool', () => {
             updated_at: new Date(2025, 0, i).toISOString(),
           });
         }
-      });
+      }, 30000); // Increased timeout for creating 20 items on Windows/WSL
 
       test('paginates with first parameter', async () => {
         const result = await handleList({
@@ -803,7 +836,7 @@ describe('later_list Tool', () => {
           created_at: '2025-01-02T00:00:00Z',
           updated_at: '2025-01-02T00:00:00Z',
         });
-      });
+      }, 30000); // Increased timeout for Windows/WSL I/O
 
       test('legacy status filter still works', async () => {
         const result = await handleList({ status: 'pending' }, storage);

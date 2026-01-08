@@ -26,12 +26,12 @@ describe('MCP Do Handler', () => {
     const captureHandler = createCaptureHandler(container);
     await captureHandler({ decision: 'Test decision 1' });
     await captureHandler({ decision: 'Test decision 2' });
-  });
+  }, 30000); // Increased timeout for Windows/WSL I/O
 
   afterEach(async () => {
     await container.close();
     fs.rmSync(testDir, { recursive: true, force: true });
-  });
+  }, 30000); // Increased timeout for Windows/WSL cleanup
 
   describe('Basic completion', () => {
     it('should mark item as done', async () => {
@@ -122,6 +122,78 @@ describe('MCP Do Handler', () => {
     it('should include success flag', async () => {
       const result = await doHandler({ id: 1 });
       expect(typeof result.success).toBe('boolean');
+    });
+
+    it('should include retrospective_created flag when provided', async () => {
+      const result = await doHandler({ id: 1, outcome: 'success' });
+      expect(result.retrospective_created).toBe(true);
+    });
+  });
+
+  describe('Dependency blocking', () => {
+    it('should return blocked_by when item has unresolved dependencies', async () => {
+      // Create a third item and add dependency: item 3 depends on item 1
+      const captureHandler = createCaptureHandler(container);
+      await captureHandler({ decision: 'Dependent decision' });
+
+      // Add dependency: item 3 depends on item 1
+      await container.commands.addDependency.execute({ itemId: 3, dependsOnId: 1 });
+
+      // Try to complete item 3 without completing item 1
+      const result = await doHandler({ id: 3 });
+
+      expect(result.success).toBe(false);
+      expect(result.blocked_by).toBeDefined();
+      expect(result.blocked_by!.length).toBeGreaterThan(0);
+      expect(result.blocked_by![0].id).toBe(1);
+      expect(result.error).toContain('blocked by');
+      expect(result.error).toContain('unresolved');
+    });
+
+    it('should include decision text in blocked_by items', async () => {
+      const captureHandler = createCaptureHandler(container);
+      await captureHandler({ decision: 'Dependent decision' });
+
+      // Add dependency
+      await container.commands.addDependency.execute({ itemId: 3, dependsOnId: 1 });
+
+      const result = await doHandler({ id: 3 });
+
+      expect(result.blocked_by).toBeDefined();
+      expect(result.blocked_by![0].decision).toBeDefined();
+      expect(result.blocked_by![0].decision.length).toBeGreaterThan(0);
+    });
+
+    it('should complete item with force=true even when blocked', async () => {
+      const captureHandler = createCaptureHandler(container);
+      await captureHandler({ decision: 'Dependent decision' });
+
+      // Add dependency
+      await container.commands.addDependency.execute({ itemId: 3, dependsOnId: 1 });
+
+      // Force complete despite dependency
+      const result = await doHandler({ id: 3, force: true });
+
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('#3');
+      expect(result.message).toContain('done');
+    });
+
+    it('should allow completing item after dependencies are resolved', async () => {
+      const captureHandler = createCaptureHandler(container);
+      await captureHandler({ decision: 'Dependent decision' });
+
+      // Add dependency: item 3 depends on item 1
+      await container.commands.addDependency.execute({ itemId: 3, dependsOnId: 1 });
+
+      // First complete the dependency (item 1)
+      await doHandler({ id: 1 });
+
+      // Now completing item 3 should work
+      const result = await doHandler({ id: 3 });
+
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('#3');
     });
   });
 });

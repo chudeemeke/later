@@ -1,0 +1,13 @@
+# Bun configuration for Later project
+# https://bun.sh/docs/runtime/bunfig
+
+[test]
+# Coverage configuration
+coverage = true
+coverageSkipSourceFiles = [
+  "src/infrastructure/storage/SQLiteStorageAdapter.ts",
+  "src/infrastructure/storage/StorageMigration.ts",
+  # Exclude index re-exports (no logic)
+  "src/index.ts",
+  "src/presentation/mcp/handlers/index.ts"
+]

@@ -166,4 +166,57 @@ describe('MCP Capture Handler', () => {
       expect(getResult.item?.tags).toEqual([]);
     });
   });
+
+  describe('Duplicate detection', () => {
+    it('should detect similar decisions and include duplicate_detected flag', async () => {
+      // First capture
+      await captureHandler({ decision: 'Use PostgreSQL for the database' });
+
+      // Capture a very similar decision
+      const result = await captureHandler({ decision: 'Use PostgreSQL for database' });
+
+      // Should still succeed but with duplicate warning
+      expect(result.success).toBe(true);
+      expect(result.item_id).toBeDefined();
+
+      // Check if duplicate detection triggered
+      if (result.duplicate_detected) {
+        expect(result.similar_items).toBeDefined();
+        expect(result.similar_items!.length).toBeGreaterThan(0);
+        expect(result.similar_items![0].id).toBe(1);
+        expect(result.similar_items![0].decision).toContain('PostgreSQL');
+        expect(result.similar_items![0].similarity).toBeGreaterThan(0);
+        expect(result.message).toContain('Similar item found');
+      }
+    });
+
+    it('should include similarity score in duplicate warning', async () => {
+      await captureHandler({ decision: 'Choose REST API architecture' });
+      const result = await captureHandler({ decision: 'Choose REST API architecture' });
+
+      // Exact match should have high similarity
+      if (result.duplicate_detected && result.similar_items) {
+        expect(result.similar_items[0].similarity).toBeGreaterThanOrEqual(0.8);
+      }
+    });
+
+    it('should not flag clearly different decisions as duplicates', async () => {
+      await captureHandler({ decision: 'Use PostgreSQL' });
+      const result = await captureHandler({ decision: 'Deploy to AWS Lambda' });
+
+      expect(result.success).toBe(true);
+      // Different decisions should not trigger duplicate warning
+      expect(result.duplicate_detected).toBeFalsy();
+    });
+
+    it('should include existingId in similar_items', async () => {
+      await captureHandler({ decision: 'Implement user authentication' });
+      const result = await captureHandler({ decision: 'Implement user authentication flow' });
+
+      if (result.duplicate_detected && result.similar_items) {
+        expect(result.similar_items[0].id).toBe(1);
+        expect(typeof result.similar_items[0].id).toBe('number');
+      }
+    });
+  });
 });

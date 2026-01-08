@@ -26,6 +26,8 @@ export default {
     "!src/**/*.d.ts",
     // Exclude main entry point (bootstrapping only)
     "!src/index.ts",
+    // Exclude MCP server entrypoint (bootstrapping with stdio transport)
+    "!src/presentation/mcp/server.ts",
     // Exclude barrel files (pure re-exports, no logic)
     "!src/tools/**/index.ts",
     // Exclude pure schema definitions (data only, no executable logic)

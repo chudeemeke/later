@@ -175,7 +175,7 @@ describe('CompositionRoot', () => {
 
       expect(getResult.item).toBeDefined();
       expect(getResult.item!.status).toBe('done'); // ItemProps has status as string
-    });
+    }, 30000); // Increased timeout for Windows/WSL I/O
 
     it('should handle dependency workflow', async () => {
       const container = createContainer({ dataDir: testDir });

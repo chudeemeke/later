@@ -97,11 +97,10 @@ describe('McpClient', () => {
     }, 10000);
 
     it('should handle invalid tool name', async () => {
-      // V2.0: Invalid tools return error response instead of throwing
-      const result: any = await client.callTool('invalid_tool', {});
-      expect(result.message).toContain('Error');
-      expect(result.message).toContain('invalid_tool');
-      expect(result.message).toContain('not found');
+      // Invalid tools now throw an error
+      await expect(
+        client.callTool('invalid_tool', {})
+      ).rejects.toThrow(/not found|invalid/i);
     }, 10000);
 
     it('should timeout if server takes too long', async () => {
