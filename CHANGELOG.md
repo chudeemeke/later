@@ -5,11 +5,11 @@ All notable changes to `/later` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.0] - 2026-01-08
 
-### V3.0.0: Hexagonal Architecture Refactor (2026-01-08)
+### V3.0.0: Hexagonal Architecture & Production Features
 
-**Status:** In development - Phase 1 & 2 complete (Domain, Application, Infrastructure, Presentation layers + SQLite Foundation)
+**Status:** Production-ready - All 6 phases complete
 
 **Overview:**
 Major architectural refactor implementing hexagonal (ports and adapters) architecture for better testability, maintainability, and future extensibility. This lays the foundation for V3 features including SQLite/FTS5 search, enhanced dependency tracking, and AI categorization.
@@ -61,11 +61,43 @@ Dependencies Added:
 - better-sqlite3: Node.js/Jest compatible SQLite binding
 - @types/better-sqlite3: TypeScript type definitions
 
+**Phase 3: Dependency Tracking Enhancements**
+
+- AddDependencyCommand with cycle detection
+- RemoveDependencyCommand with unblocked item tracking
+- DependencyChainQuery for full dependency tree analysis
+- ResolutionOrderQuery for optimal work ordering
+- SuggestDependenciesQuery with text similarity scoring
+- MCP handlers: later_add_dependency, later_remove_dependency, later_dependency_chain, later_resolution_order, later_suggest_dependencies
+- Comprehensive test suite (35+ dependency-related tests)
+
+**Phase 4: Decision Retrospectives**
+
+- UpdateRetrospectiveCommand for post-decision analysis
+- GetRetrospectiveQuery for individual item retrospectives
+- GetRetrospectiveStatsQuery for aggregate statistics
+- Outcome tracking (success/failure/partial)
+- Impact metrics (time saved, cost saved)
+- Effort estimation vs actual comparison
+- Lessons learned capture
+- MCP handlers: later_get_retrospective, later_get_retrospective_stats, later_update_retrospective
+- Comprehensive test suite (61 retrospective tests)
+
+**Phase 5: Smart Reminders**
+
+- CreateReminderCommand with trigger type validation
+- DismissReminderCommand for acknowledging reminders
+- SnoozeReminderCommand with configurable delay
+- GetRemindersQuery with filtering and counts
+- GetStaleItemsQuery for identifying neglected items
+- Four trigger types: time, dependency, file_change, activity
+- MCP handlers: later_create_reminder, later_dismiss_reminder, later_snooze_reminder, later_get_reminders, later_get_stale_items
+- Comprehensive test suite (87 reminder tests)
+
 **Test Status:**
 
-- 1800+ tests passing (92 new handler tests + 95 SQLite/migration tests)
+- 2000+ tests passing (across all phases)
 - 12 tests skipped (platform-specific)
-- 2 pre-existing integration test failures (MCP client needs server)
 - Coverage maintained above 95% at each metric
 
 **Breaking Changes:**
